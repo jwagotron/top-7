@@ -12,6 +12,7 @@ import TrainingPlans from '@/pages/TrainingPlans';
 import Analytics from '@/pages/Analytics';
 import Goals from '@/pages/Goals';
 import Messages from '@/pages/Messages';
+import CoachPanel from '@/pages/CoachPanel';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -46,6 +47,7 @@ const AuthenticatedApp = () => {
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/goals" element={<Goals />} />
         <Route path="/messages" element={<Messages />} />
+        <Route path="/coach" element={<CoachPanel />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

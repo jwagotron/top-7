@@ -2,17 +2,18 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Dumbbell, Calendar, BarChart3, 
-  Target, MessageSquare, ChevronLeft, ChevronRight, Activity
+  Target, MessageSquare, ChevronLeft, ChevronRight, Activity, ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/workouts', label: 'Workouts', icon: Dumbbell },
+  { path: '/workouts', label: 'My Runs', icon: Dumbbell },
   { path: '/plans', label: 'Training Plans', icon: Calendar },
   { path: '/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/goals', label: 'Goals', icon: Target },
   { path: '/messages', label: 'Messages', icon: MessageSquare },
+  { path: '/coach', label: 'Coach Panel', icon: ShieldCheck },
 ];
 
 export default function Sidebar({ collapsed, onToggle }) {
