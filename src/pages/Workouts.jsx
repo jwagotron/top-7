@@ -7,7 +7,8 @@ import RunLogForm from '@/components/workouts/RunLogForm';
 import RunDetailDrawer from '@/components/workouts/RunDetailDrawer';
 import PlannedWorkoutCard from '@/components/workouts/PlannedWorkoutCard';
 import { Button } from '@/components/ui/button';
-import { Plus, CalendarDays, Footprints, Clock, MapPin, Flame } from 'lucide-react';
+import { Plus, CalendarDays, Footprints, Clock, MapPin, Upload } from 'lucide-react';
+import GpxImportDialog from '@/components/workouts/GpxImportDialog';
 import { format, isSameDay, addMonths, subMonths } from 'date-fns';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,7 @@ export default function Workouts() {
   const [viewingWorkout, setViewingWorkout] = useState(null);
   const [expandedPlanned, setExpandedPlanned] = useState(null);
   const [preFillPlanned, setPreFillPlanned] = useState(null);
+  const [showGpxImport, setShowGpxImport] = useState(false);
   const qc = useQueryClient();
 
   const { data: workouts = [] } = useQuery({
@@ -94,6 +96,9 @@ export default function Workouts() {
   return (
     <div className="min-h-screen bg-background">
       <TopBar title="My Runs">
+        <Button variant="outline" onClick={() => setShowGpxImport(true)} className="gap-2">
+          <Upload className="w-4 h-4" /> Import GPX
+        </Button>
         <Button onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }} className="gap-2">
           <Plus className="w-4 h-4" /> Log Run
         </Button>
@@ -199,6 +204,12 @@ export default function Workouts() {
           </div>
         </div>
       </div>
+
+      <GpxImportDialog
+        open={showGpxImport}
+        onClose={() => setShowGpxImport(false)}
+        onImport={(data) => { createMut.mutate(data); setShowGpxImport(false); }}
+      />
 
       {/* Forms & drawers */}
       <RunLogForm
