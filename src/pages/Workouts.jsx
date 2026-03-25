@@ -12,9 +12,11 @@ import GpxImportDialog from '@/components/workouts/GpxImportDialog';
 import { format, isSameDay, addMonths, subMonths } from 'date-fns';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
+import { useUnits } from '@/hooks/useUnits';
 
 export default function Workouts() {
   const { user } = useAuth();
+  const { toDisplay, label } = useUnits();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showLogForm, setShowLogForm] = useState(false);
@@ -121,8 +123,8 @@ export default function Workouts() {
               <MapPin className="w-4 h-4 text-secondary" />
             </div>
             <div>
-              <p className="text-lg font-bold">{weekKm.toFixed(1)}</p>
-              <p className="text-[11px] text-muted-foreground">km this week</p>
+              <p className="text-lg font-bold">{toDisplay(weekKm).toFixed(1)}</p>
+              <p className="text-[11px] text-muted-foreground">{label} this week</p>
             </div>
           </div>
           <div className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
@@ -195,7 +197,7 @@ export default function Workouts() {
                   {w.feeling && <span className="text-xs">{{ great: '🔥', good: '💪', okay: '👌', tired: '😓', exhausted: '😵' }[w.feeling]}</span>}
                 </div>
                 <div className="flex gap-3 pl-4">
-                  {w.distance_km && <span className="text-xs text-muted-foreground">{w.distance_km} km</span>}
+                  {w.distance_km && <span className="text-xs text-muted-foreground">{toDisplay(w.distance_km)} {label}</span>}
                   {w.duration_minutes && <span className="text-xs text-muted-foreground">{w.duration_minutes} min</span>}
                   {w.avg_pace && <span className="text-xs text-muted-foreground">{w.avg_pace} /km</span>}
                 </div>
