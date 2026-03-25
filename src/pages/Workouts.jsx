@@ -2,99 +2,226 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
-import WorkoutForm from '@/components/workouts/WorkoutForm';
-import WorkoutCard from '@/components/workouts/WorkoutCard';
+import WorkoutCalendar from '@/components/workouts/WorkoutCalendar';
+import RunLogForm from '@/components/workouts/RunLogForm';
+import RunDetailDrawer from '@/components/workouts/RunDetailDrawer';
+import PlannedWorkoutCard from '@/components/workouts/PlannedWorkoutCard';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, CalendarDays, Footprints, Clock, MapPin, Flame } from 'lucide-react';
+import { format, isSameDay, addMonths, subMonths } from 'date-fns';
+import { useAuth } from '@/lib/AuthContext';
+import { cn } from '@/lib/utils';
 
 export default function Workouts() {
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [sportFilter, setSportFilter] = useState('all');
+  const { user } = useAuth();
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showLogForm, setShowLogForm] = useState(false);
+  const [editingWorkout, setEditingWorkout] = useState(null);
+  const [viewingWorkout, setViewingWorkout] = useState(null);
+  const [expandedPlanned, setExpandedPlanned] = useState(null);
+  const [preFillPlanned, setPreFillPlanned] = useState(null);
   const qc = useQueryClient();
 
-  const { data: workouts = [], isLoading } = useQuery({
+  const { data: workouts = [] } = useQuery({
     queryKey: ['workouts'],
-    queryFn: () => base44.entities.Workout.list('-date', 200),
+    queryFn: () => base44.entities.Workout.list('-date', 500),
   });
+
+  const { data: plannedWorkouts = [] } = useQuery({
+    queryKey: ['planned-workouts'],
+    queryFn: () => base44.entities.PlannedWorkout.list('scheduled_date', 500),
+  });
+
+  const myPlanned = plannedWorkouts.filter(p =>
+    !p.assigned_to || p.assigned_to === user?.email
+  );
 
   const createMut = useMutation({
     mutationFn: (data) => base44.entities.Workout.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workouts'] }); setShowForm(false); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workouts'] }); setShowLogForm(false); setPreFillPlanned(null); },
   });
 
-  const updateMut = useMutation({
+  const updateWorkoutMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Workout.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workouts'] }); setEditing(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workouts'] }); setEditingWorkout(null); },
   });
 
-  const deleteMut = useMutation({
+  const deleteWorkoutMut = useMutation({
     mutationFn: (id) => base44.entities.Workout.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['workouts'] }),
   });
 
-  const filtered = sportFilter === 'all' ? workouts : workouts.filter(w => w.sport === sportFilter);
+  const updatePlannedMut = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.PlannedWorkout.update(id, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['planned-workouts'] }),
+  });
+
+  const handleMonthChange = (dir) => {
+    if (dir === 0) { setCurrentMonth(new Date()); setSelectedDate(new Date()); }
+    else setCurrentMonth(p => dir === 1 ? addMonths(p, 1) : subMonths(p, 1));
+  };
+
+  const handleLogFromPlanned = (planned) => {
+    setPreFillPlanned(planned);
+    setShowLogForm(true);
+  };
+
+  const handleMarkSkipped = (planned) => {
+    updatePlannedMut.mutate({ id: planned.id, data: { status: 'skipped' } });
+  };
+
+  const handleCreateWorkout = (data) => {
+    createMut.mutate(data);
+    // If logging from a planned workout, mark it complete
+    if (preFillPlanned) {
+      updatePlannedMut.mutate({ id: preFillPlanned.id, data: { status: 'completed' } });
+    }
+  };
+
+  // Selected day data
+  const dayWorkouts = workouts.filter(w => isSameDay(new Date(w.date), selectedDate));
+  const dayPlanned = myPlanned.filter(p => isSameDay(new Date(p.scheduled_date), selectedDate));
+
+  // Weekly stats
+  const now = new Date();
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay() + 1);
+  weekStart.setHours(0, 0, 0, 0);
+  const weekWorkouts = workouts.filter(w => new Date(w.date) >= weekStart);
+  const weekKm = weekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0);
+  const weekMin = weekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0);
 
   return (
-    <div>
-      <TopBar title="Workouts">
-        <Button onClick={() => setShowForm(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> Log Workout
+    <div className="min-h-screen bg-background">
+      <TopBar title="My Runs">
+        <Button onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }} className="gap-2">
+          <Plus className="w-4 h-4" /> Log Run
         </Button>
       </TopBar>
-      <div className="p-6 max-w-5xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          <Select value={sportFilter} onValueChange={setSportFilter}>
-            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sports</SelectItem>
-              <SelectItem value="run">Run</SelectItem>
-              <SelectItem value="bike">Bike</SelectItem>
-              <SelectItem value="swim">Swim</SelectItem>
-              <SelectItem value="strength">Strength</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-          <span className="text-sm text-muted-foreground">{filtered.length} workouts</span>
+
+      <div className="p-4 lg:p-6 max-w-7xl mx-auto">
+        {/* Weekly summary strip */}
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          <div className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Footprints className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-lg font-bold">{weekWorkouts.length}</p>
+              <p className="text-[11px] text-muted-foreground">Runs this week</p>
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
+              <MapPin className="w-4 h-4 text-secondary" />
+            </div>
+            <div>
+              <p className="text-lg font-bold">{weekKm.toFixed(1)}</p>
+              <p className="text-[11px] text-muted-foreground">km this week</p>
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+              <Clock className="w-4 h-4 text-accent" />
+            </div>
+            <div>
+              <p className="text-lg font-bold">{Math.round(weekMin / 60 * 10) / 10}</p>
+              <p className="text-[11px] text-muted-foreground">hrs this week</p>
+            </div>
+          </div>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Calendar */}
+          <div className="lg:col-span-2">
+            <WorkoutCalendar
+              currentMonth={currentMonth}
+              onMonthChange={handleMonthChange}
+              workouts={workouts}
+              plannedWorkouts={myPlanned}
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+            />
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-muted-foreground">No workouts yet. Log your first one!</p>
-          </div>
-        ) : (
+
+          {/* Day panel */}
           <div className="space-y-3">
-            {filtered.map(w => (
-              <WorkoutCard
-                key={w.id}
-                workout={w}
-                onEdit={(w) => setEditing(w)}
-                onDelete={(id) => deleteMut.mutate(id)}
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-sm">{format(selectedDate, 'EEEE, MMM d')}</h3>
+              <button
+                onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }}
+                className="text-xs text-primary hover:underline flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" /> Log run
+              </button>
+            </div>
+
+            {dayPlanned.length === 0 && dayWorkouts.length === 0 && (
+              <div className="text-center py-8 border-2 border-dashed border-border rounded-xl">
+                <CalendarDays className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Rest day or no workouts</p>
+              </div>
+            )}
+
+            {/* Planned workouts for the day */}
+            {dayPlanned.map(pw => (
+              <PlannedWorkoutCard
+                key={pw.id}
+                planned={pw}
+                expanded={expandedPlanned === pw.id}
+                onToggle={() => setExpandedPlanned(expandedPlanned === pw.id ? null : pw.id)}
+                onLogRun={() => handleLogFromPlanned(pw)}
+                onMarkSkipped={() => handleMarkSkipped(pw)}
               />
             ))}
+
+            {/* Logged workouts for the day (not linked to planned) */}
+            {dayWorkouts
+              .filter(w => !dayPlanned.some(p => p.id === w.planned_workout_id))
+              .map(w => (
+              <div
+                key={w.id}
+                onClick={() => setViewingWorkout(w)}
+                className="bg-secondary/5 border border-secondary/20 rounded-xl p-3 cursor-pointer hover:bg-secondary/10 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-secondary shrink-0" />
+                  <span className="text-sm font-medium">{w.title}</span>
+                  {w.feeling && <span className="text-xs">{{ great: '🔥', good: '💪', okay: '👌', tired: '😓', exhausted: '😵' }[w.feeling]}</span>}
+                </div>
+                <div className="flex gap-3 pl-4">
+                  {w.distance_km && <span className="text-xs text-muted-foreground">{w.distance_km} km</span>}
+                  {w.duration_minutes && <span className="text-xs text-muted-foreground">{w.duration_minutes} min</span>}
+                  {w.avg_pace && <span className="text-xs text-muted-foreground">{w.avg_pace} /km</span>}
+                </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </div>
 
-      <WorkoutForm
-        open={showForm}
-        onClose={() => setShowForm(false)}
-        onSubmit={(data) => createMut.mutate(data)}
+      {/* Forms & drawers */}
+      <RunLogForm
+        open={showLogForm}
+        onClose={() => { setShowLogForm(false); setPreFillPlanned(null); }}
+        onSubmit={handleCreateWorkout}
+        plannedWorkout={preFillPlanned}
       />
-      {editing && (
-        <WorkoutForm
-          open={!!editing}
-          onClose={() => setEditing(null)}
-          onSubmit={(data) => updateMut.mutate({ id: editing.id, data })}
-          workout={editing}
+      {editingWorkout && (
+        <RunLogForm
+          open={!!editingWorkout}
+          onClose={() => setEditingWorkout(null)}
+          onSubmit={(data) => updateWorkoutMut.mutate({ id: editingWorkout.id, data })}
+          workout={editingWorkout}
         />
       )}
+      <RunDetailDrawer
+        workout={viewingWorkout}
+        open={!!viewingWorkout}
+        onClose={() => setViewingWorkout(null)}
+        onEdit={(w) => { setViewingWorkout(null); setEditingWorkout(w); }}
+        onDelete={(id) => deleteWorkoutMut.mutate(id)}
+      />
     </div>
   );
 }
