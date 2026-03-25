@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUnits } from '@/hooks/useUnits';
 
 export default function WeeklyChart({ workouts }) {
+  const { toDisplay, label } = useUnits();
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   
   const data = days.map((day, i) => {
@@ -14,7 +15,7 @@ export default function WeeklyChart({ workouts }) {
     return {
       day,
       duration: dayWorkouts.reduce((sum, w) => sum + (w.duration_minutes || 0), 0),
-      distance: dayWorkouts.reduce((sum, w) => sum + (w.distance_km || 0), 0),
+      distance: toDisplay(dayWorkouts.reduce((sum, w) => sum + (w.distance_km || 0), 0)),
     };
   });
 
@@ -39,7 +40,7 @@ export default function WeeklyChart({ workouts }) {
                 }}
               />
               <Bar dataKey="duration" name="Minutes" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="distance" name="Distance (km)" fill="hsl(var(--secondary))" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="distance" name={`Distance (${label})`} fill="hsl(var(--secondary))" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

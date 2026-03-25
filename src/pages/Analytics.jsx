@@ -12,6 +12,7 @@ const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accen
 
 export default function Analytics() {
   const [period, setPeriod] = useState('30');
+  const { toDisplay, label } = useUnits();
 
   const { data: workouts = [] } = useQuery({
     queryKey: ['workouts'],
@@ -31,7 +32,7 @@ export default function Analytics() {
     });
     return {
       week: format(weekStart, 'MMM d'),
-      distance: Number(weekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0).toFixed(1)),
+      distance: Number(toDisplay(weekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)),
       duration: weekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0),
       count: weekWorkouts.length,
     };
@@ -89,7 +90,7 @@ export default function Analytics() {
           <Card className="rounded-2xl border">
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground">Total Distance</p>
-              <p className="text-2xl font-bold mt-1">{filtered.reduce((s, w) => s + (w.distance_km || 0), 0).toFixed(1)} <span className="text-sm font-normal text-muted-foreground">km</span></p>
+              <p className="text-2xl font-bold mt-1">{toDisplay(filtered.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)} <span className="text-sm font-normal text-muted-foreground">{label}</span></p>
             </CardContent>
           </Card>
           <Card className="rounded-2xl border">
@@ -117,7 +118,7 @@ export default function Analytics() {
                     <XAxis dataKey="week" axisLine={false} tickLine={false} className="text-xs" />
                     <YAxis axisLine={false} tickLine={false} className="text-xs" />
                     <Tooltip contentStyle={tooltipStyle} />
-                    <Area type="monotone" dataKey="distance" name="Distance (km)" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} strokeWidth={2} />
+                    <Area type="monotone" dataKey="distance" name={`Distance (${label})`} stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>

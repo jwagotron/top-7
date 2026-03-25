@@ -30,7 +30,9 @@ export default function Dashboard() {
     return isWithinInterval(d, { start: weekStart, end: weekEnd });
   });
 
-  const totalDistance = thisWeekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0);
+  const { toDisplay, label } = useUnits();
+  const totalDistanceKm = thisWeekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0);
+  const totalDistance = toDisplay(totalDistanceKm);
   const totalDuration = thisWeekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0);
   const totalCalories = thisWeekWorkouts.reduce((s, w) => s + (w.calories || 0), 0);
   const totalWorkouts = thisWeekWorkouts.length;
@@ -41,7 +43,7 @@ export default function Dashboard() {
       <div className="p-6 max-w-7xl mx-auto space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Workouts This Week" value={totalWorkouts} icon={Activity} color="primary" />
-          <StatCard title="Distance This Week" value={totalDistance.toFixed(1)} unit="km" icon={MapPin} color="secondary" />
+          <StatCard title="Distance This Week" value={totalDistance.toFixed(1)} unit={label} icon={MapPin} color="secondary" />
           <StatCard title="Active Time" value={totalDuration} unit="min" icon={Clock} color="accent" />
           <StatCard title="Calories Burned" value={totalCalories} unit="kcal" icon={Flame} color="destructive" />
         </div>

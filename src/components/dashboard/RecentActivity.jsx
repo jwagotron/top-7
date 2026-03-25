@@ -13,6 +13,7 @@ const sportIcons = {
 };
 
 export default function RecentActivity({ workouts }) {
+  const { toDisplay, label } = useUnits();
   const recent = [...workouts]
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 5);
@@ -42,7 +43,7 @@ export default function RecentActivity({ workouts }) {
                   )}
                   {w.distance_km && (
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />{w.distance_km}km
+                      <MapPin className="w-3 h-3" />{toDisplay(w.distance_km)}{label}
                     </span>
                   )}
                   {w.avg_heart_rate && (
