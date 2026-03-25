@@ -45,7 +45,10 @@ export default function CoachPanel() {
   });
 
   const createMut = useMutation({
-    mutationFn: (d) => base44.entities.PlannedWorkout.create(d),
+    mutationFn: (d) =>
+      Array.isArray(d)
+        ? base44.entities.PlannedWorkout.bulkCreate(d)
+        : base44.entities.PlannedWorkout.create(d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['planned-workouts'] }); setShowForm(false); },
   });
 
