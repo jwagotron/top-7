@@ -13,6 +13,7 @@ import { useUnits } from '@/hooks/useUnits';
 
 export default function AccountSettings() {
   const { user } = useAuth();
+  const { units, setUnits } = useUnits();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState({
@@ -73,6 +74,35 @@ export default function AccountSettings() {
             <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
               <strong>Athlete:</strong> View workouts, log activities, connect Garmin.<br />
               <strong>Coach / Admin:</strong> Access Coach Panel, assign workouts, view all athletes.
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Units */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><Ruler className="w-4 h-4" /> Units</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Distance & Pace</p>
+                <p className="text-xs text-muted-foreground">Choose how distances are displayed throughout the app.</p>
+              </div>
+              <div className="flex rounded-lg border border-border overflow-hidden">
+                <button
+                  onClick={() => setUnits('km')}
+                  className={`px-4 py-1.5 text-sm font-medium transition-colors ${units === 'km' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
+                >
+                  km
+                </button>
+                <button
+                  onClick={() => setUnits('mi')}
+                  className={`px-4 py-1.5 text-sm font-medium transition-colors ${units === 'mi' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
+                >
+                  mi
+                </button>
+              </div>
             </div>
           </CardContent>
         </Card>
