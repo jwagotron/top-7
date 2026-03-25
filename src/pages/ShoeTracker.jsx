@@ -17,12 +17,23 @@ import { useUnits } from '@/hooks/useUnits';
 const DEFAULT_MAX_KM = 700;
 const KM_TO_MI = 0.621371;
 
-function ShoeForm({ shoe, onSubmit, onClose }) {
-  const [form, setForm] = useState(shoe || {
-    name: '', brand: '', color: '', mileage_km: 0, max_mileage_km: DEFAULT_MAX,
-    start_date: new Date().toISOString().slice(0, 10), notes: '',
+function ShoeForm({ shoe, onSubmit, onClose, units }) {
+  const defaultMaxDisplay = units === 'mi' ? Math.round(DEFAULT_MAX_KM * KM_TO_MI) : DEFAULT_MAX_KM;
+  const toDisplay = km => units === 'mi' ? Math.round(km * KM_TO_MI * 10) / 10 : km;
+  const toKm = val => units === 'mi' ? Math.round(val / KM_TO_MI * 10) / 10 : val;
+
+  const [form, setForm] = useState(() => {
+    if (shoe) return { ...shoe, _display_mileage: toDisplay(shoe.mileage_km || 0), _display_max: toDisplay(shoe.max_mileage_km || DEFAULT_MAX_KM) };
+    return { name: '', brand: '', color: '', _display_mileage: 0, _display_max: defaultMaxDisplay, start_date: new Date().toISOString().slice(0, 10), notes: '' };
   });
   const set = (f, v) => setForm(p => ({ ...p, [f]: v }));
+
+  const handleSubmit = () => {
+    const { _display_mileage, _display_max, ...rest } = form;
+    onSubmit({ ...rest, mileage_km: toKm(Number(_display_mileage)), max_mileage_km: toKm(Number(_display_max)) });
+  };
+
+  const unitLabel = units === 'mi' ? 'mi' : 'km';
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -49,13 +60,13 @@ function ShoeForm({ shoe, onSubmit, onClose }) {
               <Input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)} />
             </div>
             <div>
-              <Label>Max km (before retire)</Label>
-              <Input type="number" value={form.max_mileage_km} onChange={e => set('max_mileage_km', Number(e.target.value))} placeholder="700" />
+              <Label>Max {unitLabel} (before retire)</Label>
+              <Input type="number" value={form._display_max} onChange={e => set('_display_max', e.target.value)} />
             </div>
             {shoe && (
               <div className="col-span-2">
-                <Label>Current Mileage (km)</Label>
-                <Input type="number" step="0.1" value={form.mileage_km} onChange={e => set('mileage_km', Number(e.target.value))} />
+                <Label>Current Mileage ({unitLabel})</Label>
+                <Input type="number" step="0.1" value={form._display_mileage} onChange={e => set('_display_mileage', e.target.value)} />
               </div>
             )}
           </div>
@@ -65,7 +76,7 @@ function ShoeForm({ shoe, onSubmit, onClose }) {
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={() => onSubmit(form)} disabled={!form.name}>
+            <Button onClick={handleSubmit} disabled={!form.name}>
               {shoe ? 'Save Changes' : 'Add Shoes'}
             </Button>
           </div>
@@ -75,20 +86,25 @@ function ShoeForm({ shoe, onSubmit, onClose }) {
   );
 }
 
-function AddMileageDialog({ shoe, onClose, onAdd }) {
-  const [km, setKm] = useState('');
+function AddMileageDialog({ shoe, onClose, onAdd, units }) {
+  const [val, setVal] = useState('');
+  const unitLabel = units === 'mi' ? 'mi' : 'km';
+  const handleAdd = () => {
+    const km = units === 'mi' ? Number(val) / KM_TO_MI : Number(val);
+    onAdd(km);
+  };
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-xs">
-        <DialogHeader><DialogTitle>Log km on {shoe.name}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Log {unitLabel} on {shoe.name}</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Distance (km)</Label>
-            <Input type="number" step="0.1" value={km} onChange={e => setKm(e.target.value)} placeholder="10.5" autoFocus />
+            <Label>Distance ({unitLabel})</Label>
+            <Input type="number" step="0.1" value={val} onChange={e => setVal(e.target.value)} placeholder="6.5" autoFocus />
           </div>
           <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={() => onAdd(Number(km))} disabled={!km || Number(km) <= 0}>Add km</Button>
+            <Button onClick={handleAdd} disabled={!val || Number(val) <= 0}>Add {unitLabel}</Button>
           </div>
         </div>
       </DialogContent>
@@ -98,6 +114,7 @@ function AddMileageDialog({ shoe, onClose, onAdd }) {
 
 export default function ShoeTracker() {
   const qc = useQueryClient();
+  const { units, toDisplay, label } = useUnits();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [addMileage, setAddMileage] = useState(null);
@@ -174,7 +191,10 @@ export default function ShoeTracker() {
 
         {displayed.map(shoe => {
           const pct = shoe.max_mileage_km ? Math.min(100, ((shoe.mileage_km || 0) / shoe.max_mileage_km) * 100) : 0;
-          const remaining = shoe.max_mileage_km ? Math.max(0, shoe.max_mileage_km - (shoe.mileage_km || 0)) : null;
+          const remainingKm = shoe.max_mileage_km ? Math.max(0, shoe.max_mileage_km - (shoe.mileage_km || 0)) : null;
+          const remaining = remainingKm !== null ? toDisplay(remainingKm) : null;
+          const displayMileage = toDisplay(shoe.mileage_km || 0);
+          const displayMax = toDisplay(shoe.max_mileage_km || 0);
           const isWarning = pct >= 80 && pct < 100;
           const isOver = pct >= 100;
           const isRetired = shoe.status === 'retired';
@@ -203,7 +223,7 @@ export default function ShoeTracker() {
                   <div className="flex gap-1 shrink-0">
                     {!isRetired && (
                       <>
-                        <Button size="sm" variant="outline" onClick={() => setAddMileage(shoe)}>+ km</Button>
+                        <Button size="sm" variant="outline" onClick={() => setAddMileage(shoe)}>+ {label}</Button>
                         <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(shoe)}><Pencil className="w-3.5 h-3.5" /></Button>
                         <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" title="Reset mileage (new shoes)" onClick={() => setConfirmReset(shoe)}>
                           <RotateCcw className="w-3.5 h-3.5" />
@@ -219,10 +239,10 @@ export default function ShoeTracker() {
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="font-medium">{(shoe.mileage_km || 0).toLocaleString()} km logged</span>
+                    <span className="font-medium">{displayMileage.toLocaleString()} {label} logged</span>
                     {remaining !== null && (
                       <span className={`text-xs ${isOver ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
-                        {isOver ? `${Math.abs(remaining)} km over limit` : `${remaining} km remaining`}
+                        {isOver ? `${Math.abs(remaining)} ${label} over limit` : `${remaining} ${label} remaining`}
                       </span>
                     )}
                   </div>
@@ -231,7 +251,7 @@ export default function ShoeTracker() {
                     className={`h-3 ${isOver ? '[&>div]:bg-destructive' : isWarning ? '[&>div]:bg-accent' : ''}`}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {shoe.max_mileage_km ? `Retire at ${shoe.max_mileage_km} km · ${Math.round(pct)}% used` : 'No max mileage set'}
+                    {shoe.max_mileage_km ? `Retire at ${displayMax} ${label} · ${Math.round(pct)}% used` : 'No max mileage set'}
                   </p>
                 </div>
 
@@ -248,21 +268,21 @@ export default function ShoeTracker() {
           <DialogContent className="max-w-sm">
             <DialogHeader><DialogTitle>Reset Mileage?</DialogTitle></DialogHeader>
             <p className="text-sm text-muted-foreground">
-              This will reset <strong>{confirmReset.name}</strong>'s mileage to 0 km and update the start date to today. Use this when you get a new pair of the same model.
+              This will reset <strong>{confirmReset.name}</strong>'s mileage to 0 and update the start date to today. Use this when you get a new pair of the same model.
             </p>
             <div className="flex justify-end gap-3 mt-4">
               <Button variant="outline" onClick={() => setConfirmReset(null)}>Cancel</Button>
               <Button onClick={() => handleReset(confirmReset)} className="gap-2">
-                <RotateCcw className="w-4 h-4" /> Reset to 0 km
+                <RotateCcw className="w-4 h-4" /> Reset to 0
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       )}
 
-      {showForm && <ShoeForm onSubmit={d => createMut.mutate(d)} onClose={() => setShowForm(false)} />}
-      {editing && <ShoeForm shoe={editing} onSubmit={d => updateMut.mutate({ id: editing.id, data: d })} onClose={() => setEditing(null)} />}
-      {addMileage && <AddMileageDialog shoe={addMileage} onClose={() => setAddMileage(null)} onAdd={km => handleAddMileage(addMileage, km)} />}
+      {showForm && <ShoeForm units={units} onSubmit={d => createMut.mutate(d)} onClose={() => setShowForm(false)} />}
+      {editing && <ShoeForm units={units} shoe={editing} onSubmit={d => updateMut.mutate({ id: editing.id, data: d })} onClose={() => setEditing(null)} />}
+      {addMileage && <AddMileageDialog units={units} shoe={addMileage} onClose={() => setAddMileage(null)} onAdd={km => handleAddMileage(addMileage, km)} />}
     </div>
   );
 }
