@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { Check, Users } from 'lucide-react';
 
 const RUN_TYPES = [
   { value: 'easy', label: 'Easy Run', color: 'bg-secondary/10 text-secondary' },
@@ -30,23 +31,42 @@ const defaults = {
 export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, defaultDate, athletes }) {
   const [form, setForm] = useState(defaults);
   const [activeTab, setActiveTab] = useState('details');
+  // Multi-select: array of emails (empty = all / unassigned)
+  const [selectedAthletes, setSelectedAthletes] = useState([]);
 
   useEffect(() => {
     if (open) {
-      if (workout) setForm({ ...defaults, ...workout });
-      else setForm({ ...defaults, scheduled_date: defaultDate || '' });
+      if (workout) {
+        setForm({ ...defaults, ...workout });
+        setSelectedAthletes(workout.assigned_to ? [workout.assigned_to] : []);
+      } else {
+        setForm({ ...defaults, scheduled_date: defaultDate || '' });
+        setSelectedAthletes([]);
+      }
       setActiveTab('details');
     }
   }, [open, workout, defaultDate]);
 
   const set = (f, v) => setForm(p => ({ ...p, [f]: v }));
 
+  const toggleAthlete = (email) => {
+    setSelectedAthletes(prev =>
+      prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
+    );
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const data = { ...form };
-    if (data.target_duration_minutes) data.target_duration_minutes = Number(data.target_duration_minutes);
-    if (data.target_distance_km) data.target_distance_km = Number(data.target_distance_km);
-    onSubmit(data);
+    const base = { ...form };
+    if (base.target_duration_minutes) base.target_duration_minutes = Number(base.target_duration_minutes);
+    if (base.target_distance_km) base.target_distance_km = Number(base.target_distance_km);
+
+    if (selectedAthletes.length > 1) {
+      // Bulk assign — one record per athlete
+      onSubmit(selectedAthletes.map(email => ({ ...base, assigned_to: email })));
+    } else {
+      onSubmit({ ...base, assigned_to: selectedAthletes[0] || '' });
+    }
   };
 
   const tabs = [
@@ -165,21 +185,70 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
           {activeTab === 'assign' && (
             <div className="space-y-4">
               <div>
-                <Label>Assign to Athlete (email)</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Assign to Athletes</Label>
+                  {athletes && athletes.length > 0 && (
+                    <button
+                      type="button"
+                      className="text-xs text-primary hover:underline"
+                      onClick={() => setSelectedAthletes(
+                        selectedAthletes.length === athletes.length ? [] : athletes.map(a => a.email)
+                      )}
+                    >
+                      {selectedAthletes.length === athletes.length ? 'Deselect all' : 'Select all'}
+                    </button>
+                  )}
+                </div>
+
                 {athletes && athletes.length > 0 ? (
-                  <Select value={form.assigned_to || ''} onValueChange={v => set('assigned_to', v)}>
-                    <SelectTrigger><SelectValue placeholder="Select athlete..." /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={null}>All athletes (unassigned)</SelectItem>
-                      {athletes.map(a => (
-                        <SelectItem key={a.email} value={a.email}>{a.full_name} ({a.email})</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                    {athletes.map(a => {
+                      const selected = selectedAthletes.includes(a.email);
+                      return (
+                        <button
+                          key={a.email}
+                          type="button"
+                          onClick={() => toggleAthlete(a.email)}
+                          className={cn(
+                            'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all',
+                            selected
+                              ? 'bg-primary/5 border-primary/30 text-foreground'
+                              : 'bg-muted/30 border-transparent hover:bg-muted/60 text-foreground'
+                          )}
+                        >
+                          <div className={cn(
+                            'w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all',
+                            selected ? 'bg-primary border-primary' : 'border-muted-foreground'
+                          )}>
+                            {selected && <Check className="w-2.5 h-2.5 text-white" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">{a.full_name || a.email}</p>
+                            {a.full_name && <p className="text-xs text-muted-foreground">{a.email}</p>}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 ) : (
-                  <Input value={form.assigned_to} onChange={e => set('assigned_to', e.target.value)} placeholder="athlete@email.com" type="email" />
+                  <Input
+                    value={selectedAthletes[0] || ''}
+                    onChange={e => setSelectedAthletes(e.target.value ? [e.target.value] : [])}
+                    placeholder="athlete@email.com"
+                    type="email"
+                  />
+                )}
+
+                {selectedAthletes.length > 1 && (
+                  <div className="flex items-center gap-2 mt-2 p-2.5 bg-primary/5 border border-primary/20 rounded-lg">
+                    <Users className="w-4 h-4 text-primary shrink-0" />
+                    <p className="text-xs text-primary font-medium">
+                      This workout will be assigned to {selectedAthletes.length} athletes individually.
+                    </p>
+                  </div>
                 )}
               </div>
+
               <div>
                 <Label>Status</Label>
                 <Select value={form.status} onValueChange={v => set('status', v)}>
@@ -196,7 +265,9 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
 
           <div className="flex justify-end gap-3 pt-2 border-t">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit">{workout ? 'Update' : 'Assign Workout'}</Button>
+            <Button type="submit">
+              {workout ? 'Update' : selectedAthletes.length > 1 ? `Assign to ${selectedAthletes.length} Athletes` : 'Assign Workout'}
+            </Button>
           </div>
         </form>
       </DialogContent>
