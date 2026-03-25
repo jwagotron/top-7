@@ -7,6 +7,7 @@ import WeeklyChart from '@/components/dashboard/WeeklyChart';
 import UpcomingWorkouts from '@/components/dashboard/UpcomingWorkouts';
 import RecentActivity from '@/components/dashboard/RecentActivity';
 import { Activity, MapPin, Clock, Flame } from 'lucide-react';
+import { useUnits } from '@/hooks/useUnits';
 import { startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 
 export default function Dashboard() {

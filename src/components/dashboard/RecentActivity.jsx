@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { Bike, Footprints, Waves, Dumbbell, CircleDot, Clock, MapPin, Heart } from 'lucide-react';
+import { useUnits } from '@/hooks/useUnits';
 
 const sportIcons = {
   run: Footprints,

@@ -12,8 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, RotateCcw, Pencil, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useUnits } from '@/hooks/useUnits';
 
-const DEFAULT_MAX = 700;
+const DEFAULT_MAX_KM = 700;
+const KM_TO_MI = 0.621371;
 
 function ShoeForm({ shoe, onSubmit, onClose }) {
   const [form, setForm] = useState(shoe || {

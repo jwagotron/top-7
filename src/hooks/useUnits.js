@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 const STORAGE_KEY = 'enduroflow_units';
 
 export function useUnits() {
-  const [units, setUnitsState] = useState(() => localStorage.getItem(STORAGE_KEY) || 'km');
+  const [units, setUnitsState] = useState(() => localStorage.getItem(STORAGE_KEY) || 'mi');
 
   const setUnits = (value) => {
     localStorage.setItem(STORAGE_KEY, value);
