@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
-import { User, Shield, Bell, Wifi, LogOut } from 'lucide-react';
+import { User, Shield, Wifi, LogOut, Ruler } from 'lucide-react';
+import { useUnits } from '@/hooks/useUnits';
 
 export default function AccountSettings() {
   const { user } = useAuth();
