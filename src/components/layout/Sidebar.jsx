@@ -16,6 +16,7 @@ const athleteItems = [
   { path: '/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/goals', label: 'Goals', icon: Target },
   { path: '/messages', label: 'Messages', icon: MessageSquare },
+  { path: '/shoes', label: 'Shoe Tracker', icon: Activity },
   { path: '/garmin', label: 'Garmin Connect', icon: Wifi },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];

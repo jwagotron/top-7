@@ -19,6 +19,7 @@ import WorkoutBuilder from '@/pages/WorkoutBuilder';
 import AthleteProfile from '@/pages/AthleteProfile';
 import AccountSettings from '@/pages/AccountSettings';
 import AdminPanel from '@/pages/AdminPanel';
+import ShoeTracker from '@/pages/ShoeTracker';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
         <Route path="/athlete-profile" element={<AthleteProfile />} />
         <Route path="/settings" element={<AccountSettings />} />
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/shoes" element={<ShoeTracker />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
