@@ -5,7 +5,13 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
+import AppLayout from '@/components/layout/AppLayout';
+import Dashboard from '@/pages/Dashboard';
+import Workouts from '@/pages/Workouts';
+import TrainingPlans from '@/pages/TrainingPlans';
+import Analytics from '@/pages/Analytics';
+import Goals from '@/pages/Goals';
+import Messages from '@/pages/Messages';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -33,7 +39,14 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/workouts" element={<Workouts />} />
+        <Route path="/plans" element={<TrainingPlans />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/goals" element={<Goals />} />
+        <Route path="/messages" element={<Messages />} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
