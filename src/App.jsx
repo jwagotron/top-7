@@ -13,6 +13,12 @@ import Analytics from '@/pages/Analytics';
 import Goals from '@/pages/Goals';
 import Messages from '@/pages/Messages';
 import CoachPanel from '@/pages/CoachPanel';
+import Activities from '@/pages/Activities';
+import GarminConnect from '@/pages/GarminConnect';
+import WorkoutBuilder from '@/pages/WorkoutBuilder';
+import AthleteProfile from '@/pages/AthleteProfile';
+import AccountSettings from '@/pages/AccountSettings';
+import AdminPanel from '@/pages/AdminPanel';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +54,12 @@ const AuthenticatedApp = () => {
         <Route path="/goals" element={<Goals />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/coach" element={<CoachPanel />} />
+        <Route path="/activities" element={<Activities />} />
+        <Route path="/garmin" element={<GarminConnect />} />
+        <Route path="/workout-builder" element={<WorkoutBuilder />} />
+        <Route path="/athlete-profile" element={<AthleteProfile />} />
+        <Route path="/settings" element={<AccountSettings />} />
+        <Route path="/admin" element={<AdminPanel />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
