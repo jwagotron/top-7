@@ -1,87 +1,107 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { formatTime } from '@/lib/predictionEngine';
+import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
+import { formatTime, formatPacePerKm, DISTANCE_LABELS } from '@/lib/predictionEngine';
 import { cn } from '@/lib/utils';
 
-const confidenceColors = {
-  high:   'bg-secondary/10 text-secondary border-secondary/20',
-  medium: 'bg-accent/10 text-accent border-accent/20',
-  low:    'bg-muted text-muted-foreground border-border',
+const confidenceMeta = {
+  high:   { label: 'High confidence',   cls: 'text-secondary bg-secondary/8 border-secondary/25' },
+  medium: { label: 'Medium confidence', cls: 'text-foreground bg-muted border-border' },
+  low:    { label: 'Low confidence',    cls: 'text-muted-foreground bg-muted border-border' },
 };
 
-const trendConfig = {
-  improving: { icon: TrendingUp,   color: 'text-secondary', label: 'Improving' },
-  steady:    { icon: Minus,        color: 'text-muted-foreground', label: 'Steady' },
-  declining: { icon: TrendingDown, color: 'text-destructive', label: 'Declining' },
+const trendMeta = {
+  improving: { Icon: TrendingUp,   color: 'text-secondary', label: '↑ Improving' },
+  steady:    { Icon: Minus,        color: 'text-muted-foreground', label: '— Steady' },
+  declining: { Icon: TrendingDown, color: 'text-destructive', label: '↓ Declining' },
 };
 
-export default function RacePredictorCard({ distance, prediction, previousPrediction }) {
+const readinessLabel = (s) =>
+  s >= 80 ? 'Race-ready' : s >= 60 ? 'On track' : s >= 35 ? 'Building' : 'Low volume';
+
+export default function RacePredictorCard({ distance, prediction }) {
   const [expanded, setExpanded] = useState(false);
   if (!prediction) return null;
 
-  const { predicted_time_sec, confidence, explanation, readiness_score, trend } = prediction;
-  const prevSec = previousPrediction?.predicted_time_sec;
-  const diffSec = prevSec ? prevSec - predicted_time_sec : null;
+  const {
+    predicted_time_sec, previous_time_sec, confidence = 'low',
+    explanation, readiness_score = 0, trend = 'steady', paceSecPerKm,
+  } = prediction;
 
-  const TrendIcon = trendConfig[trend || 'steady'].icon;
-  const trendColor = trendConfig[trend || 'steady'].color;
+  const diffSec = previous_time_sec ? previous_time_sec - predicted_time_sec : null;
+  const trendCfg = trendMeta[trend] || trendMeta.steady;
+  const confMeta = confidenceMeta[confidence] || confidenceMeta.low;
 
   const readinessColor =
-    (readiness_score || 0) >= 70 ? 'bg-secondary' :
-    (readiness_score || 0) >= 40 ? 'bg-accent' : 'bg-destructive/60';
+    readiness_score >= 70 ? 'bg-secondary' :
+    readiness_score >= 40 ? 'bg-primary' :
+    'bg-muted-foreground/40';
+
+  const TrendIconComp = trendCfg.Icon;
 
   return (
-    <Card className="border hover:shadow-md transition-all">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{distance}</p>
-            <p className="text-2xl font-bold tracking-tight mt-0.5">{formatTime(predicted_time_sec)}</p>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <Badge className={cn('text-xs border', confidenceColors[confidence || 'low'])}>
-              {confidence} confidence
-            </Badge>
-            <div className={cn('flex items-center gap-1 text-xs font-medium', trendColor)}>
-              <TrendIcon className="w-3.5 h-3.5" />
-              {trendConfig[trend || 'steady'].label}
-            </div>
-          </div>
+    <Card className="border bg-card hover:shadow-sm transition-all">
+      <CardContent className="p-4 space-y-3">
+
+        {/* Distance + time */}
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+            {DISTANCE_LABELS[distance] || distance}
+          </p>
+          <p className="text-3xl font-bold tracking-tight leading-none tabular-nums">
+            {formatTime(predicted_time_sec)}
+          </p>
+          {paceSecPerKm && (
+            <p className="text-xs text-muted-foreground mt-1">{formatPacePerKm(paceSecPerKm)} avg pace</p>
+          )}
         </div>
 
-        {diffSec !== null && (
-          <p className={cn('text-xs font-medium mb-2', diffSec > 5 ? 'text-secondary' : diffSec < -5 ? 'text-destructive' : 'text-muted-foreground')}>
-            {diffSec > 5 ? `▲ ${formatTime(Math.abs(diffSec))} faster than last week` :
-             diffSec < -5 ? `▼ ${formatTime(Math.abs(diffSec))} slower than last week` :
-             'No change from last week'}
-          </p>
-        )}
+        {/* Trend + delta */}
+        <div className="flex items-center justify-between">
+          <div className={cn('flex items-center gap-1 text-xs font-medium', trendCfg.color)}>
+            <TrendIconComp className="w-3.5 h-3.5" />
+            {trendCfg.label}
+          </div>
+          {diffSec !== null && Math.abs(diffSec) >= 8 && (
+            <span className={cn('text-xs font-medium', diffSec > 0 ? 'text-secondary' : 'text-destructive')}>
+              {diffSec > 0 ? `−${formatTime(Math.abs(diffSec))}` : `+${formatTime(Math.abs(diffSec))}`}
+            </span>
+          )}
+        </div>
 
         {/* Readiness bar */}
-        <div className="mb-3">
-          <div className="flex justify-between text-xs text-muted-foreground mb-1">
-            <span>Race Readiness</span>
-            <span>{readiness_score || 0}%</span>
+        <div>
+          <div className="flex justify-between text-[11px] text-muted-foreground mb-1.5">
+            <span>Readiness</span>
+            <span className="font-medium">{readinessLabel(readiness_score)}</span>
           </div>
-          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div className={cn('h-full rounded-full transition-all', readinessColor)} style={{ width: `${readiness_score || 0}%` }} />
+          <div className="h-1 rounded-full bg-border overflow-hidden">
+            <div
+              className={cn('h-full rounded-full transition-all duration-500', readinessColor)}
+              style={{ width: `${readiness_score}%` }}
+            />
           </div>
         </div>
 
-        {/* Expandable explanation */}
+        {/* Confidence badge */}
+        <Badge className={cn('text-[11px] border w-full justify-center py-0.5', confMeta.cls)}>
+          {confMeta.label}
+        </Badge>
+
+        {/* Explanation toggle */}
         <button
           onClick={() => setExpanded(v => !v)}
-          className="flex items-center gap-1 text-xs text-primary hover:underline"
+          className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full"
         >
-          {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          Why this prediction?
+          <Info className="w-3 h-3" />
+          How was this calculated?
+          {expanded ? <ChevronUp className="w-3 h-3 ml-auto" /> : <ChevronDown className="w-3 h-3 ml-auto" />}
         </button>
 
         {expanded && (
-          <p className="mt-2 text-xs text-muted-foreground leading-relaxed bg-muted/50 rounded-lg p-3">
-            {explanation || 'Prediction based on your recent training data.'}
+          <p className="text-[11px] text-muted-foreground leading-relaxed bg-muted/60 rounded-lg p-3 border border-border/60">
+            {explanation || 'Based on recent training data.'}
           </p>
         )}
       </CardContent>

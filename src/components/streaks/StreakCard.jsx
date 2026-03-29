@@ -1,22 +1,20 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, AlertTriangle, Flame } from 'lucide-react';
-import { STREAK_TYPES, getMilestoneLabel } from '@/lib/streakEngine';
+import { ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { STREAK_TYPES, getMilestoneTier } from '@/lib/streakEngine';
 import { cn } from '@/lib/utils';
 
-const riskColors = {
-  none:   '',
-  low:    'border-accent/40',
-  medium: 'border-accent',
-  high:   'border-destructive',
+const statusWeekConfig = {
+  pass:    { Icon: CheckCircle2, color: 'text-secondary', bg: 'bg-secondary/8 border-secondary/25' },
+  pending: { Icon: Clock,        color: 'text-muted-foreground', bg: 'bg-muted/60 border-border' },
+  fail:    { Icon: XCircle,      color: 'text-destructive', bg: 'bg-destructive/5 border-destructive/25' },
 };
 
-const statusColors = {
-  active:   'bg-secondary/10 text-secondary border-secondary/20',
-  at_risk:  'bg-accent/10 text-accent border-accent/20',
-  broken:   'bg-destructive/10 text-destructive border-destructive/20',
-  paused:   'bg-muted text-muted-foreground border-border',
+const riskBorder = {
+  none:   'border-border',
+  low:    'border-border',
+  medium: 'border-amber-400/60',
+  high:   'border-destructive/50',
 };
 
 export default function StreakCard({ streakType, streakData }) {
@@ -24,58 +22,81 @@ export default function StreakCard({ streakType, streakData }) {
   const meta = STREAK_TYPES[streakType];
   if (!meta || !streakData) return null;
 
-  const { current_count = 0, best_count = 0, status = 'active', risk_level = 'none', explanation } = streakData;
-  const milestone = getMilestoneLabel(current_count);
+  const {
+    current_count = 0, best_count = 0,
+    status = 'active', risk_level = 'none',
+    explanation, this_week_status = 'pending',
+  } = streakData;
+
   const isBroken = status === 'broken';
-  const isAtRisk = risk_level === 'medium' || risk_level === 'high';
+  const tier = getMilestoneTier(current_count);
+  const weekCfg = statusWeekConfig[this_week_status] || statusWeekConfig.pending;
+  const WeekIconComp = weekCfg.Icon;
 
   return (
-    <Card className={cn('border transition-all hover:shadow-md', riskColors[risk_level])}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{meta.icon}</span>
-            <div>
-              <p className="text-sm font-semibold leading-tight">{meta.label}</p>
-              <p className="text-xs text-muted-foreground">{meta.unit}</p>
-            </div>
+    <Card className={cn('border transition-all hover:shadow-sm', riskBorder[risk_level], isBroken && 'opacity-70')}>
+      <CardContent className="p-4 space-y-3">
+
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-1">
+          <p className="text-sm font-semibold leading-tight">{meta.label}</p>
+          <div className={cn('flex items-center gap-1 shrink-0 rounded-full px-2 py-0.5 border text-[11px] font-medium', weekCfg.bg, weekCfg.color)}>
+            <WeekIconComp className="w-3 h-3" />
+            {this_week_status === 'pass' ? 'Done' : this_week_status === 'fail' ? 'Missed' : 'Pending'}
           </div>
-          <Badge className={cn('text-xs border', statusColors[status])}>
-            {status === 'active' && current_count > 0 ? `${current_count} ${meta.unit}` : status}
-          </Badge>
         </div>
 
-        <div className="flex items-end justify-between mb-3">
+        {/* Streak count */}
+        <div className="flex items-end justify-between">
           <div>
-            <div className="flex items-center gap-1.5">
-              {!isBroken && current_count > 0 && <Flame className="w-4 h-4 text-accent" />}
-              <span className="text-3xl font-bold tracking-tight">{current_count}</span>
+            <span className={cn('text-3xl font-bold tracking-tight tabular-nums', isBroken && 'text-muted-foreground')}>
+              {current_count}
+            </span>
+            <span className="text-xs text-muted-foreground ml-1">{meta.unit}</span>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Best: {best_count}</p>
+          </div>
+          {tier.rank > 0 && (
+            <div className="text-right">
+              <p className="text-[11px] font-semibold text-muted-foreground">{tier.label}</p>
             </div>
-            <p className="text-xs text-muted-foreground">Best: {best_count}</p>
-          </div>
-          <div className="text-right">
-            <span className="text-lg">{milestone.emoji}</span>
-            <p className="text-xs text-muted-foreground">{milestone.label}</p>
-          </div>
+          )}
         </div>
 
-        {isAtRisk && (
-          <div className="flex items-center gap-1.5 text-xs text-accent mb-2 bg-accent/5 rounded-lg px-2 py-1.5">
-            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-            <span>Streak at risk — take action today.</span>
+        {/* Streak progress bar */}
+        {!isBroken && current_count > 0 && (() => {
+          const nextMilestone = [4, 8, 12, 26, 52].find(m => m > current_count) || 52;
+          const prevMilestone = [4, 8, 12, 26, 52].reverse().find(m => m <= current_count) || 0;
+          const pct = Math.min(100, ((current_count - prevMilestone) / (nextMilestone - prevMilestone)) * 100);
+          return (
+            <div>
+              <div className="h-1 rounded-full bg-border overflow-hidden">
+                <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">{nextMilestone - current_count} more to next milestone</p>
+            </div>
+          );
+        })()}
+
+        {/* At-risk warning */}
+        {(risk_level === 'high' || risk_level === 'medium') && !isBroken && (
+          <div className="flex items-center gap-1.5 text-[11px] text-amber-600 bg-amber-50 dark:bg-amber-950/30 rounded-lg px-2.5 py-1.5 border border-amber-200 dark:border-amber-800">
+            <AlertTriangle className="w-3 h-3 shrink-0" />
+            {risk_level === 'high' ? 'Streak in danger — act today.' : 'Streak at risk this week.'}
           </div>
         )}
 
+        {/* Explanation toggle */}
         <button
           onClick={() => setExpanded(v => !v)}
-          className="flex items-center gap-1 text-xs text-primary hover:underline"
+          className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full"
         >
-          {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          Details
+          {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          {expanded ? 'Hide detail' : 'This week'}
+          <span className="ml-auto" />
         </button>
 
         {expanded && (
-          <p className="mt-2 text-xs text-muted-foreground leading-relaxed bg-muted/50 rounded-lg p-3">
+          <p className="text-[11px] text-muted-foreground leading-relaxed bg-muted/50 rounded-lg p-2.5 border border-border/60">
             {explanation || meta.description}
           </p>
         )}

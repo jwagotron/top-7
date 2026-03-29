@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Users, CheckCircle2, Calendar, TrendingUp, ShieldCheck } from 'lucide-react';
+import AthleteRoster from '@/components/coach/AthleteRoster';
 import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -173,6 +174,9 @@ export default function CoachPanel() {
             />
           </div>
         </div>
+
+        {/* Athlete Roster */}
+        {athletes.length > 0 && <AthleteRoster athletes={athletes} />}
 
         {/* Upcoming workouts list */}
         <div>

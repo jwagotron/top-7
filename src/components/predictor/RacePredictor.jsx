@@ -3,11 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Zap } from 'lucide-react';
+import { RefreshCw, LineChart, AlertCircle } from 'lucide-react';
 import RacePredictorCard from './RacePredictorCard';
 import {
   generatePredictions, generateExplanation, computeTrend,
-  computeReadiness, RACE_DISTANCES, formatTime
+  computeReadiness, RACE_DISTANCES,
 } from '@/lib/predictionEngine';
 import { format } from 'date-fns';
 
@@ -31,18 +31,18 @@ export default function RacePredictor({ userEmail }) {
     enabled: !!userEmail,
   });
 
-  const { data: existingPredictions = [], isLoading } = useQuery({
+  const { data: existingPredictions = [] } = useQuery({
     queryKey: ['race-predictions', userEmail],
-    queryFn: () => base44.entities.RacePrediction.filter({ athlete_email: userEmail }, '-prediction_date', 20),
+    queryFn: () => base44.entities.RacePrediction.filter({ athlete_email: userEmail }, '-prediction_date', 30),
     enabled: !!userEmail,
   });
 
-  const savePrediction = useMutation({
+  const saveMut = useMutation({
     mutationFn: (data) => base44.entities.RacePrediction.create(data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['race-predictions', userEmail] }),
   });
 
-  // Latest prediction per distance
+  // Latest saved prediction per distance
   const latestByDistance = useMemo(() => {
     const map = {};
     existingPredictions.forEach(p => {
@@ -52,13 +52,13 @@ export default function RacePredictor({ userEmail }) {
     return map;
   }, [existingPredictions]);
 
-  // Generate fresh predictions from data
+  // Compute fresh predictions from training data
   const freshPredictions = useMemo(() => {
-    if (workouts.length === 0 && activities.length === 0) return null;
+    if (!workouts.length && !activities.length && !benchmarks.length) return null;
     return generatePredictions({ workouts, activities, benchmarks });
   }, [workouts, activities, benchmarks]);
 
-  const handleRefresh = () => {
+  const handleRecalculate = () => {
     if (!freshPredictions || !userEmail) return;
     const today = format(new Date(), 'yyyy-MM-dd');
     Object.entries(RACE_DISTANCES).forEach(([dist, km]) => {
@@ -69,9 +69,9 @@ export default function RacePredictor({ userEmail }) {
       const readiness = computeReadiness(workouts, km);
       const explanation = generateExplanation(
         dist, p.predicted_time_sec, prev?.predicted_time_sec,
-        p.confidence, p.flags, p.best_evidence
+        p.confidence, p.flags, p.topEvidence
       );
-      savePrediction.mutate({
+      saveMut.mutate({
         athlete_email: userEmail,
         prediction_date: today,
         distance: dist,
@@ -81,20 +81,21 @@ export default function RacePredictor({ userEmail }) {
         trend,
         readiness_score: readiness,
         explanation,
-        evidence_summary: p.best_evidence,
+        evidence_summary: p.topEvidence?.join('; '),
         data_quality_flags: p.flags,
       });
     });
   };
 
-  // Build display map: prefer saved predictions, enrich with fresh if available
+  // Display: prefer saved, fall back to computed-on-the-fly
   const displayPredictions = useMemo(() => {
     const map = {};
     Object.keys(RACE_DISTANCES).forEach(dist => {
       const saved = latestByDistance[dist];
       const fresh = freshPredictions?.[dist];
       if (saved) {
-        map[dist] = saved;
+        // Enrich saved with fresh readiness if available
+        map[dist] = { ...saved, paceSecPerKm: saved.predicted_time_sec ? Math.round(saved.predicted_time_sec / RACE_DISTANCES[dist]) : null };
       } else if (fresh) {
         const km = RACE_DISTANCES[dist];
         map[dist] = {
@@ -103,57 +104,85 @@ export default function RacePredictor({ userEmail }) {
           confidence: fresh.confidence,
           trend: 'steady',
           readiness_score: computeReadiness(workouts, km),
-          explanation: generateExplanation(dist, fresh.predicted_time_sec, null, fresh.confidence, fresh.flags, fresh.best_evidence),
+          paceSecPerKm: fresh.paceSecPerKm,
+          explanation: generateExplanation(dist, fresh.predicted_time_sec, null, fresh.confidence, fresh.flags, fresh.topEvidence),
         };
       }
     });
     return map;
   }, [latestByDistance, freshPredictions, workouts]);
 
-  const hasAnyData = Object.values(displayPredictions).some(Boolean);
+  const hasData = Object.values(displayPredictions).some(Boolean);
   const lastUpdated = existingPredictions[0]?.prediction_date;
+  const hasEnoughData = workouts.filter(w => w.sport === 'run').length >= 3 || benchmarks.length >= 1;
 
   return (
     <Card className="border rounded-2xl">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-primary" />
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <LineChart className="w-4.5 h-4.5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-base">Race Predictor</CardTitle>
-              {lastUpdated && (
-                <p className="text-xs text-muted-foreground">Updated {format(new Date(lastUpdated), 'MMM d')}</p>
-              )}
+              <CardTitle className="text-base font-semibold">Race Predictor</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {lastUpdated
+                  ? `Calculated ${format(new Date(lastUpdated), 'MMM d, yyyy')} · Multi-signal weighted model`
+                  : 'Multi-signal weighted model · Riegel-based projection'}
+              </p>
             </div>
           </div>
-          <Button size="sm" variant="outline" onClick={handleRefresh} disabled={savePrediction.isPending}>
-            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${savePrediction.isPending ? 'animate-spin' : ''}`} />
+          <Button
+            size="sm" variant="outline"
+            onClick={handleRecalculate}
+            disabled={saveMut.isPending || !hasEnoughData}
+            className="shrink-0"
+          >
+            <RefreshCw className={cn('w-3.5 h-3.5 mr-1.5', saveMut.isPending && 'animate-spin')} />
             Recalculate
           </Button>
         </div>
       </CardHeader>
+
       <CardContent>
-        {!hasAnyData && (
-          <div className="text-center py-8 text-sm text-muted-foreground">
-            <p className="mb-3">Log workouts or races to generate predictions.</p>
-            <Button size="sm" onClick={handleRefresh} disabled={workouts.length === 0}>
-              Generate First Prediction
+        {!hasData && (
+          <div className="py-10 flex flex-col items-center gap-3 text-center">
+            <AlertCircle className="w-8 h-8 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">Not enough data yet</p>
+              <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                Log at least 3 runs — including a race, time trial, or tempo — to generate meaningful predictions.
+              </p>
+            </div>
+            <Button size="sm" onClick={handleRecalculate} disabled={!hasEnoughData}>
+              Try anyway
             </Button>
           </div>
         )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-          {Object.entries(displayPredictions).map(([dist, pred]) => (
-            <RacePredictorCard
-              key={dist}
-              distance={dist}
-              prediction={pred}
-              previousPrediction={null}
-            />
-          ))}
-        </div>
+
+        {hasData && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {Object.entries(displayPredictions).map(([dist, pred]) =>
+              pred ? (
+                <RacePredictorCard key={dist} distance={dist} prediction={pred} />
+              ) : (
+                <div key={dist} className="border rounded-xl p-4 flex flex-col gap-2 bg-muted/30">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    {dist.replace('_', ' ')}
+                  </p>
+                  <p className="text-xl font-bold text-muted-foreground">--</p>
+                  <p className="text-[11px] text-muted-foreground">Insufficient data</p>
+                </div>
+              )
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
+}
+
+function cn(...classes) {
+  return classes.filter(Boolean).join(' ');
 }
