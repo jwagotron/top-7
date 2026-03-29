@@ -47,15 +47,15 @@ export default function Dashboard() {
   return (
     <div>
       <TopBar title="Dashboard" />
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Workouts This Week" value={totalWorkouts} icon={Activity} color="primary" />
-          <StatCard title="Distance This Week" value={totalDistance.toFixed(1)} unit={label} icon={MapPin} color="secondary" />
-          <StatCard title="Active Time" value={totalDuration} unit="min" icon={Clock} color="accent" />
-          <StatCard title="Calories Burned" value={totalCalories} unit="kcal" icon={Flame} color="destructive" />
+      <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-4 lg:space-y-6 pb-24 lg:pb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard title="Workouts" value={totalWorkouts} icon={Activity} color="primary" />
+          <StatCard title="Distance" value={totalDistance.toFixed(1)} unit={label} icon={MapPin} color="secondary" />
+          <StatCard title="Time" value={totalDuration} unit="min" icon={Clock} color="accent" />
+          <StatCard title="Calories" value={totalCalories} unit="kcal" icon={Flame} color="destructive" />
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
           <WeeklyChart workouts={thisWeekWorkouts} />
           <UpcomingWorkouts plannedWorkouts={plannedWorkouts} />
         </div>

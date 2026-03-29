@@ -10,10 +10,10 @@ export default function StatCard({ title, value, unit, icon: Icon, trend, color 
   };
 
   return (
-    <div className="bg-card rounded-2xl p-5 border border-border hover:shadow-lg transition-all duration-300">
-      <div className="flex items-start justify-between mb-3">
-        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", colorMap[color])}>
-          <Icon className="w-5 h-5" />
+    <div className="bg-card rounded-2xl p-3 lg:p-5 border border-border hover:shadow-lg transition-all duration-300">
+      <div className="flex items-start justify-between mb-2 lg:mb-3">
+        <div className={cn("w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0", colorMap[color])}>
+          <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
         </div>
         {trend && (
           <span className={cn(
@@ -24,8 +24,8 @@ export default function StatCard({ title, value, unit, icon: Icon, trend, color 
           </span>
         )}
       </div>
-      <p className="text-2xl font-bold tracking-tight">{value}<span className="text-sm font-normal text-muted-foreground ml-1">{unit}</span></p>
-      <p className="text-xs text-muted-foreground mt-1">{title}</p>
+      <p className="text-xl lg:text-2xl font-bold tracking-tight leading-none">{value}<span className="text-xs font-normal text-muted-foreground ml-1">{unit}</span></p>
+      <p className="text-[10px] lg:text-xs text-muted-foreground mt-1 leading-tight">{title}</p>
     </div>
   );
 }

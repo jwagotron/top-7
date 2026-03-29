@@ -64,7 +64,7 @@ export default function Activities() {
     <div className="min-h-screen bg-background">
       <PullToRefreshIndicator {...ptr} />
       <TopBar title="Activity History" />
-      <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-5">
+      <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-4 pb-24 lg:pb-6">
 
         {/* Summary */}
         <div className="grid grid-cols-3 gap-3">
@@ -86,18 +86,18 @@ export default function Activities() {
         </div>
 
         {/* Filters */}
-        <div className="flex gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-48">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input className="pl-9" placeholder="Search activities…" value={search} onChange={e => setSearch(e.target.value)} />
-          </div>
-          <div className="flex gap-1">
-            {['all', 'run', 'bike', 'swim', 'strength'].map(s => (
-              <Button key={s} size="sm" variant={sportFilter === s ? 'default' : 'outline'} onClick={() => setSportFilter(s)}>
-                {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
-              </Button>
-            ))}
-          </div>
+        <div className="space-y-2">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input className="pl-9" placeholder="Search activities…" value={search} onChange={e => setSearch(e.target.value)} />
+        </div>
+        <div className="flex gap-1 flex-wrap">
+          {['all', 'run', 'bike', 'swim', 'strength'].map(s => (
+            <Button key={s} size="sm" variant={sportFilter === s ? 'default' : 'outline'} onClick={() => setSportFilter(s)} className="text-xs">
+              {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+            </Button>
+          ))}
+        </div>
         </div>
 
         {/* Activity list */}
@@ -124,7 +124,7 @@ export default function Activities() {
                       <p className="text-xs text-muted-foreground">{format(new Date(a.started_at), 'EEEE, MMMM d, yyyy · h:mm a')}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 shrink-0 flex-wrap justify-end">
+                  <div className="flex items-center gap-2 lg:gap-4 shrink-0 flex-wrap justify-end">
                     {a.distance_m && (
                       <div className="text-right">
                         <p className="text-sm font-semibold">{(a.distance_m / 1000).toFixed(2)}</p>

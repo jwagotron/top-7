@@ -19,7 +19,6 @@ export default function AppLayout() {
           "transition-all duration-300 min-h-screen",
           collapsed ? "lg:ml-[72px]" : "lg:ml-[240px]"
         )}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <Outlet />
       </main>

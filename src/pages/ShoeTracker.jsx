@@ -166,12 +166,12 @@ export default function ShoeTracker() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopBar title="Shoe Mileage Tracker">
-        <Button variant="outline" size="sm" onClick={() => setShowRetired(v => !v)}>
-          {showRetired ? 'Hide Retired' : `Show Retired (${retired.length})`}
+      <TopBar title="Shoes">
+        <Button variant="outline" size="sm" onClick={() => setShowRetired(v => !v)} className="text-xs px-2 lg:px-3">
+          {showRetired ? 'Hide Retired' : `Retired (${retired.length})`}
         </Button>
-        <Button onClick={() => setShowForm(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> New Shoes
+        <Button onClick={() => setShowForm(true)} className="gap-1 lg:gap-2">
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New </span>Shoes
         </Button>
       </TopBar>
 
@@ -220,20 +220,24 @@ export default function ShoeTracker() {
                     </div>
                   </div>
 
-                  <div className="flex gap-1 shrink-0">
+                  <div className="flex flex-col gap-1 shrink-0 items-end">
                     {!isRetired && (
-                      <>
-                        <Button size="sm" variant="outline" onClick={() => setAddMileage(shoe)}>+ {label}</Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(shoe)}><Pencil className="w-3.5 h-3.5" /></Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" title="Reset mileage (new shoes)" onClick={() => setConfirmReset(shoe)}>
-                          <RotateCcw className="w-3.5 h-3.5" />
-                        </Button>
-                      </>
+                      <Button size="sm" variant="outline" onClick={() => setAddMileage(shoe)} className="text-xs px-2">+ {label}</Button>
                     )}
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" title={isRetired ? 'Re-activate' : 'Retire'} onClick={() => handleRetire(shoe)}>
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteMut.mutate(shoe.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                    <div className="flex gap-0.5">
+                      {!isRetired && (
+                        <>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(shoe)}><Pencil className="w-3.5 h-3.5" /></Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" title="Reset mileage" onClick={() => setConfirmReset(shoe)}>
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </Button>
+                        </>
+                      )}
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" title={isRetired ? 'Re-activate' : 'Retire'} onClick={() => handleRetire(shoe)}>
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteMut.mutate(shoe.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                    </div>
                   </div>
                 </div>
 

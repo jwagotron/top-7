@@ -53,8 +53,8 @@ export default function Messages() {
           <Plus className="w-4 h-4" /> Compose
         </Button>
       </TopBar>
-      <div className="p-6 max-w-6xl mx-auto">
-        <div className="grid lg:grid-cols-5 gap-6">
+      <div className="p-4 lg:p-6 max-w-6xl mx-auto pb-24 lg:pb-6">
+        <div className="grid lg:grid-cols-5 gap-4 lg:gap-6">
           <div className="lg:col-span-2 space-y-2">
             {isLoading ? (
               <div className="flex justify-center py-20">

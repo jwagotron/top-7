@@ -70,7 +70,7 @@ export default function Analytics() {
     <div>
       <TopBar title="Analytics">
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-28 lg:w-36"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="7">Last 7 days</SelectItem>
             <SelectItem value="30">Last 30 days</SelectItem>
@@ -79,35 +79,35 @@ export default function Analytics() {
           </SelectContent>
         </Select>
       </TopBar>
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="p-4 lg:p-6 max-w-7xl mx-auto pb-24 lg:pb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 lg:mb-6">
           <Card className="rounded-2xl border">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">Total Workouts</p>
-              <p className="text-2xl font-bold mt-1">{filtered.length}</p>
+            <CardContent className="p-3 lg:p-4">
+              <p className="text-xs text-muted-foreground">Workouts</p>
+              <p className="text-xl lg:text-2xl font-bold mt-1">{filtered.length}</p>
             </CardContent>
           </Card>
           <Card className="rounded-2xl border">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">Total Distance</p>
-              <p className="text-2xl font-bold mt-1">{toDisplay(filtered.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)} <span className="text-sm font-normal text-muted-foreground">{label}</span></p>
+            <CardContent className="p-3 lg:p-4">
+              <p className="text-xs text-muted-foreground">Distance</p>
+              <p className="text-xl lg:text-2xl font-bold mt-1">{toDisplay(filtered.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)} <span className="text-xs font-normal text-muted-foreground">{label}</span></p>
             </CardContent>
           </Card>
           <Card className="rounded-2xl border">
-            <CardContent className="p-4">
+            <CardContent className="p-3 lg:p-4">
               <p className="text-xs text-muted-foreground">Total Time</p>
-              <p className="text-2xl font-bold mt-1">{Math.round(filtered.reduce((s, w) => s + (w.duration_minutes || 0), 0) / 60)} <span className="text-sm font-normal text-muted-foreground">hrs</span></p>
+              <p className="text-xl lg:text-2xl font-bold mt-1">{Math.round(filtered.reduce((s, w) => s + (w.duration_minutes || 0), 0) / 60)} <span className="text-xs font-normal text-muted-foreground">hrs</span></p>
             </CardContent>
           </Card>
           <Card className="rounded-2xl border">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">Avg Heart Rate</p>
-              <p className="text-2xl font-bold mt-1">{filtered.filter(w => w.avg_heart_rate).length > 0 ? Math.round(filtered.filter(w => w.avg_heart_rate).reduce((s, w) => s + w.avg_heart_rate, 0) / filtered.filter(w => w.avg_heart_rate).length) : '—'} <span className="text-sm font-normal text-muted-foreground">bpm</span></p>
+            <CardContent className="p-3 lg:p-4">
+              <p className="text-xs text-muted-foreground">Avg HR</p>
+              <p className="text-xl lg:text-2xl font-bold mt-1">{filtered.filter(w => w.avg_heart_rate).length > 0 ? Math.round(filtered.filter(w => w.avg_heart_rate).reduce((s, w) => s + w.avg_heart_rate, 0) / filtered.filter(w => w.avg_heart_rate).length) : '—'} <span className="text-xs font-normal text-muted-foreground">bpm</span></p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6 mb-4 lg:mb-6">
           <Card className="rounded-2xl border">
             <CardHeader className="pb-2"><CardTitle className="text-base">Weekly Volume</CardTitle></CardHeader>
             <CardContent>
@@ -146,7 +146,7 @@ export default function Analytics() {
           </Card>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
           <Card className="rounded-2xl border">
             <CardHeader className="pb-2"><CardTitle className="text-base">Heart Rate Trend</CardTitle></CardHeader>
             <CardContent>

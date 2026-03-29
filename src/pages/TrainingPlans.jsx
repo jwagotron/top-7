@@ -66,7 +66,7 @@ export default function TrainingPlans() {
           <Plus className="w-4 h-4" /> New Plan
         </Button>
       </TopBar>
-      <div className="p-6 max-w-5xl mx-auto space-y-4">
+      <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-4 pb-24 lg:pb-6">
         {isLoading ? (
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -80,17 +80,19 @@ export default function TrainingPlans() {
           const planWorkouts = allPlannedWorkouts.filter(w => w.plan_id === plan.id);
           return (
             <Card key={plan.id} className="border border-border rounded-2xl overflow-hidden">
-              <CardHeader className="cursor-pointer" onClick={() => setExpandedPlan(isExpanded ? null : plan.id)}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <CardTitle className="text-base">{plan.name}</CardTitle>
-                    <Badge variant="outline" className={cn("text-[10px] capitalize", statusColors[plan.status])}>
-                      {plan.status}
-                    </Badge>
-                    <Badge variant="outline" className="text-[10px] capitalize">{plan.sport}</Badge>
+              <CardHeader className="cursor-pointer p-4 lg:p-6" onClick={() => setExpandedPlan(isExpanded ? null : plan.id)}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CardTitle className="text-base">{plan.name}</CardTitle>
+                      <Badge variant="outline" className={cn("text-[10px] capitalize", statusColors[plan.status])}>
+                        {plan.status}
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px] capitalize">{plan.sport}</Badge>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">{planWorkouts.length} workouts</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs text-muted-foreground">{planWorkouts.length}</span>
                     {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </div>
                 </div>
@@ -102,8 +104,8 @@ export default function TrainingPlans() {
                 </div>
               </CardHeader>
               {isExpanded && (
-                <CardContent className="pt-0 space-y-2">
-                  <div className="flex gap-2 mb-3">
+                <CardContent className="pt-0 space-y-2 px-4 lg:px-6">
+                  <div className="flex gap-2 mb-3 flex-wrap">
                     <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setShowWorkoutForm(plan.id); }} className="gap-1">
                       <Plus className="w-3 h-3" /> Add Workout
                     </Button>
@@ -117,17 +119,17 @@ export default function TrainingPlans() {
                   {planWorkouts.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4 text-center">No workouts scheduled for this plan</p>
                   ) : planWorkouts.map(w => (
-                    <div key={w.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 group">
-                      <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <div key={w.id} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 group">
+                      <Calendar className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{w.title}</span>
+                        <p className="text-sm font-medium truncate">{w.title}</p>
+                        <div className="flex flex-wrap gap-1 mt-0.5">
                           <Badge variant="outline" className="text-[10px] capitalize">{w.intensity?.replace('_', ' ')}</Badge>
                           <Badge variant="outline" className={cn("text-[10px]", w.status === 'completed' ? 'bg-secondary/10 text-secondary' : w.status === 'skipped' ? 'bg-destructive/10 text-destructive' : '')}>
                             {w.status}
                           </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground">{format(new Date(w.scheduled_date), 'EEE, MMM d')}
+                        <p className="text-xs text-muted-foreground mt-0.5">{format(new Date(w.scheduled_date), 'EEE, MMM d')}
                           {w.target_distance_km ? ` · ${w.target_distance_km} km` : ''}
                           {w.target_duration_minutes ? ` · ${w.target_duration_minutes} min` : ''}
                         </p>

@@ -55,7 +55,7 @@ export default function Goals() {
           <Plus className="w-4 h-4" /> New Goal
         </Button>
       </TopBar>
-      <div className="p-6 max-w-5xl mx-auto">
+      <div className="p-4 lg:p-6 max-w-5xl mx-auto pb-24 lg:pb-6">
         {isLoading ? (
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -66,7 +66,7 @@ export default function Goals() {
             <p className="text-muted-foreground">Set your first goal to start tracking progress!</p>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-2 gap-3 lg:gap-4">
             {goals.map(goal => {
               const Icon = categoryIcons[goal.category] || Target;
               const progress = goal.target_value ? Math.min(100, ((goal.current_value || 0) / goal.target_value) * 100) : 0;
@@ -85,7 +85,7 @@ export default function Goals() {
                           </Badge>
                         </div>
                       </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditing(goal)}>
                           <Pencil className="w-3 h-3" />
                         </Button>
