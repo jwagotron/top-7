@@ -64,7 +64,7 @@ export default function Dashboard() {
 
         <RacePredictor userEmail={userEmail} />
 
-        <StreakPanel userEmail={userEmail} />
+
       </div>
     </div>
   );
