@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
@@ -6,11 +6,18 @@ import StatCard from '@/components/dashboard/StatCard';
 import WeeklyChart from '@/components/dashboard/WeeklyChart';
 import UpcomingWorkouts from '@/components/dashboard/UpcomingWorkouts';
 import RecentActivity from '@/components/dashboard/RecentActivity';
+import RacePredictor from '@/components/predictor/RacePredictor';
+import StreakPanel from '@/components/streaks/StreakPanel';
 import { Activity, MapPin, Clock, Flame } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 
 export default function Dashboard() {
+  const [userEmail, setUserEmail] = useState(null);
+  useEffect(() => {
+    base44.auth.me().then(u => setUserEmail(u?.email)).catch(() => {});
+  }, []);
+
   const { data: workouts = [] } = useQuery({
     queryKey: ['workouts'],
     queryFn: () => base44.entities.Workout.list('-date', 100),
@@ -54,6 +61,10 @@ export default function Dashboard() {
         </div>
 
         <RecentActivity workouts={workouts} />
+
+        <RacePredictor userEmail={userEmail} />
+
+        <StreakPanel userEmail={userEmail} />
       </div>
     </div>
   );

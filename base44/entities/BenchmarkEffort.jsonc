@@ -1,0 +1,51 @@
+{
+  "name": "BenchmarkEffort",
+  "type": "object",
+  "properties": {
+    "athlete_email": {
+      "type": "string"
+    },
+    "effort_type": {
+      "type": "string",
+      "enum": [
+        "race",
+        "time_trial",
+        "interval",
+        "tempo",
+        "long_run",
+        "easy_aerobic"
+      ]
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "distance_km": {
+      "type": "number"
+    },
+    "time_sec": {
+      "type": "number"
+    },
+    "avg_hr": {
+      "type": "number"
+    },
+    "avg_pace_sec_per_km": {
+      "type": "number"
+    },
+    "confidence_score": {
+      "type": "number",
+      "description": "0-100"
+    },
+    "source_workout_id": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "athlete_email",
+    "effort_type",
+    "date"
+  ]
+}

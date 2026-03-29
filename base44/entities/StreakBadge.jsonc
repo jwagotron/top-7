@@ -1,0 +1,33 @@
+{
+  "name": "StreakBadge",
+  "type": "object",
+  "properties": {
+    "athlete_email": {
+      "type": "string"
+    },
+    "badge_type": {
+      "type": "string"
+    },
+    "streak_type": {
+      "type": "string"
+    },
+    "milestone_value": {
+      "type": "number"
+    },
+    "awarded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "label": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "athlete_email",
+    "badge_type",
+    "awarded_at"
+  ]
+}

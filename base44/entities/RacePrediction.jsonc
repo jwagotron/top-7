@@ -1,0 +1,63 @@
+{
+  "name": "RacePrediction",
+  "type": "object",
+  "properties": {
+    "athlete_email": {
+      "type": "string"
+    },
+    "prediction_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "distance": {
+      "type": "string",
+      "enum": [
+        "1mi",
+        "5K",
+        "10K",
+        "half_marathon",
+        "marathon"
+      ]
+    },
+    "predicted_time_sec": {
+      "type": "number"
+    },
+    "previous_time_sec": {
+      "type": "number"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    "trend": {
+      "type": "string",
+      "enum": [
+        "improving",
+        "steady",
+        "declining"
+      ]
+    },
+    "readiness_score": {
+      "type": "number",
+      "description": "0-100"
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "evidence_summary": {
+      "type": "string"
+    },
+    "data_quality_flags": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "athlete_email",
+    "prediction_date",
+    "distance"
+  ]
+}

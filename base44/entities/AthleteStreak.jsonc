@@ -1,0 +1,72 @@
+{
+  "name": "AthleteStreak",
+  "type": "object",
+  "properties": {
+    "athlete_email": {
+      "type": "string"
+    },
+    "streak_type": {
+      "type": "string",
+      "enum": [
+        "completed_planned_workouts",
+        "hit_target_pace",
+        "hit_heart_rate_zone",
+        "long_run_completion",
+        "weekly_consistency",
+        "recovery_discipline",
+        "coach_feedback_submission",
+        "no_missed_key_workouts"
+      ]
+    },
+    "current_count": {
+      "type": "number",
+      "default": 0
+    },
+    "best_count": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "at_risk",
+        "broken",
+        "paused"
+      ],
+      "default": "active"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "last_qualified_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "grace_used": {
+      "type": "boolean",
+      "default": false
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "none"
+    },
+    "last_qualifying_workout_id": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "athlete_email",
+    "streak_type"
+  ]
+}
