@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import usePullToRefresh from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/ui/PullToRefreshIndicator';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import WorkoutCalendar from '@/components/workouts/WorkoutCalendar';
@@ -26,6 +28,14 @@ export default function Workouts() {
   const [preFillPlanned, setPreFillPlanned] = useState(null);
   const [showGpxImport, setShowGpxImport] = useState(false);
   const qc = useQueryClient();
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ['workouts'] }),
+      qc.invalidateQueries({ queryKey: ['planned-workouts'] }),
+    ]);
+  }, [qc]);
+  const ptr = usePullToRefresh(handleRefresh);
 
   const { data: workouts = [] } = useQuery({
     queryKey: ['workouts'],
@@ -97,6 +107,7 @@ export default function Workouts() {
 
   return (
     <div className="min-h-screen bg-background">
+      <PullToRefreshIndicator {...ptr} />
       <TopBar title="My Runs">
         <Button variant="outline" onClick={() => setShowGpxImport(true)} className="gap-2">
           <Upload className="w-4 h-4" /> Import GPX

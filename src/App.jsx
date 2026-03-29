@@ -1,76 +1,98 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from '@/components/layout/AppLayout';
-import Dashboard from '@/pages/Dashboard';
-import Workouts from '@/pages/Workouts';
-import TrainingPlans from '@/pages/TrainingPlans';
-import Analytics from '@/pages/Analytics';
-import Goals from '@/pages/Goals';
-import Messages from '@/pages/Messages';
-import CoachPanel from '@/pages/CoachPanel';
-import Activities from '@/pages/Activities';
-import GarminConnect from '@/pages/GarminConnect';
-import WorkoutBuilder from '@/pages/WorkoutBuilder';
-import AthleteProfile from '@/pages/AthleteProfile';
-import AccountSettings from '@/pages/AccountSettings';
-import AdminPanel from '@/pages/AdminPanel';
-import ShoeTracker from '@/pages/ShoeTracker';
+
+const Dashboard      = lazy(() => import('@/pages/Dashboard'));
+const Workouts       = lazy(() => import('@/pages/Workouts'));
+const TrainingPlans  = lazy(() => import('@/pages/TrainingPlans'));
+const Analytics      = lazy(() => import('@/pages/Analytics'));
+const Goals          = lazy(() => import('@/pages/Goals'));
+const Messages       = lazy(() => import('@/pages/Messages'));
+const CoachPanel     = lazy(() => import('@/pages/CoachPanel'));
+const Activities     = lazy(() => import('@/pages/Activities'));
+const GarminConnect  = lazy(() => import('@/pages/GarminConnect'));
+const WorkoutBuilder = lazy(() => import('@/pages/WorkoutBuilder'));
+const AthleteProfile = lazy(() => import('@/pages/AthleteProfile'));
+const AccountSettings = lazy(() => import('@/pages/AccountSettings'));
+const AdminPanel     = lazy(() => import('@/pages/AdminPanel'));
+const ShoeTracker    = lazy(() => import('@/pages/ShoeTracker'));
+
+const pageVariants = {
+  initial: { opacity: 0, x: 12 },
+  animate: { opacity: 1, x: 0 },
+  exit:    { opacity: 0, x: -12 },
+};
+
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={{ duration: 0.18, ease: 'easeInOut' }}
+        className="min-h-screen"
+      >
+        <Suspense fallback={
+          <div className="fixed inset-0 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+          </div>
+        }>
+          <Routes location={location}>
+            <Route element={<AppLayout />}>
+              <Route path="/"                element={<Dashboard />} />
+              <Route path="/workouts"        element={<Workouts />} />
+              <Route path="/plans"           element={<TrainingPlans />} />
+              <Route path="/analytics"       element={<Analytics />} />
+              <Route path="/goals"           element={<Goals />} />
+              <Route path="/messages"        element={<Messages />} />
+              <Route path="/coach"           element={<CoachPanel />} />
+              <Route path="/activities"      element={<Activities />} />
+              <Route path="/garmin"          element={<GarminConnect />} />
+              <Route path="/workout-builder" element={<WorkoutBuilder />} />
+              <Route path="/athlete-profile" element={<AthleteProfile />} />
+              <Route path="/settings"        element={<AccountSettings />} />
+              <Route path="/admin"           element={<AdminPanel />} />
+              <Route path="/shoes"           element={<ShoeTracker />} />
+            </Route>
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+        </Suspense>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
       </div>
     );
   }
 
-  // Handle authentication errors
   if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
-    }
+    if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
+    if (authError.type === 'auth_required') { navigateToLogin(); return null; }
   }
 
-  // Render the main app
-  return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/workouts" element={<Workouts />} />
-        <Route path="/plans" element={<TrainingPlans />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/goals" element={<Goals />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/coach" element={<CoachPanel />} />
-        <Route path="/activities" element={<Activities />} />
-        <Route path="/garmin" element={<GarminConnect />} />
-        <Route path="/workout-builder" element={<WorkoutBuilder />} />
-        <Route path="/athlete-profile" element={<AthleteProfile />} />
-        <Route path="/settings" element={<AccountSettings />} />
-        <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/shoes" element={<ShoeTracker />} />
-      </Route>
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
-  );
+  return <AnimatedRoutes />;
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
@@ -80,7 +102,7 @@ function App() {
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Dumbbell, Calendar, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -12,7 +12,17 @@ const tabs = [
 
 export default function MobileNav() {
   const location = useLocation();
+  const navigate = useNavigate();
   const isActive = (path) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+
+  const handleTab = (path) => {
+    if (isActive(path)) {
+      // Already on this tab root — reset to root path
+      navigate(path, { replace: true });
+    } else {
+      navigate(path);
+    }
+  };
 
   return (
     <nav
@@ -20,9 +30,9 @@ export default function MobileNav() {
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {tabs.map(({ path, label, icon: Icon }) => (
-        <Link
+        <button
           key={path}
-          to={path}
+          onClick={() => handleTab(path)}
           className={cn(
             'flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-[10px] font-medium transition-colors select-none',
             isActive(path)
@@ -32,7 +42,7 @@ export default function MobileNav() {
         >
           <Icon className="w-5 h-5" />
           {label}
-        </Link>
+        </button>
       ))}
     </nav>
   );

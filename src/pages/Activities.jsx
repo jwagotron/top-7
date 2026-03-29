@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import usePullToRefresh from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/ui/PullToRefreshIndicator';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import TopBar from '@/components/layout/TopBar';
@@ -34,8 +36,14 @@ function formatPace(secPerKm) {
 
 export default function Activities() {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [sportFilter, setSportFilter] = useState('all');
+
+  const handleRefresh = useCallback(async () => {
+    await qc.invalidateQueries({ queryKey: ['my-activities', user?.email] });
+  }, [qc, user?.email]);
+  const ptr = usePullToRefresh(handleRefresh);
 
   const { data: activities = [], isLoading } = useQuery({
     queryKey: ['my-activities', user?.email],
@@ -54,6 +62,7 @@ export default function Activities() {
 
   return (
     <div className="min-h-screen bg-background">
+      <PullToRefreshIndicator {...ptr} />
       <TopBar title="Activity History" />
       <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-5">
 
