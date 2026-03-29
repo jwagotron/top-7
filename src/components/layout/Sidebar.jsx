@@ -2,8 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Dumbbell, Calendar, BarChart3, 
-  Target, MessageSquare, ChevronLeft, ChevronRight, Activity, ShieldCheck,
-  History, Wifi, Hammer, Settings, Shield
+  Target, MessageSquare, ChevronLeft, ChevronRight, ShieldCheck,
+  History, Wifi, Hammer, Settings, Shield, Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
@@ -61,10 +61,10 @@ export default function Sidebar({ collapsed, onToggle }) {
     )}>
       <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
         <div className="w-9 h-9 rounded-xl bg-sidebar-primary flex items-center justify-center shrink-0">
-          <Activity className="w-5 h-5 text-sidebar-primary-foreground" />
+          <span style={{ fontFamily: "'Bebas Neue', 'Anton', 'Impact', sans-serif", fontSize: '22px', fontWeight: 900, color: 'white', lineHeight: 1, letterSpacing: '-1px' }}>7</span>
         </div>
         {!collapsed && (
-          <span className="font-bold text-lg text-sidebar-primary-foreground tracking-tight">EnduroFlow</span>
+          <span className="font-bold text-lg text-sidebar-primary-foreground tracking-tight">Top 7</span>
         )}
       </div>
 
