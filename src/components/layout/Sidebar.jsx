@@ -60,8 +60,8 @@ export default function Sidebar({ collapsed, onToggle }) {
       collapsed ? "w-[72px]" : "w-[240px]"
     )}>
       <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
-        <div className="w-9 h-9 rounded-xl bg-sidebar-primary flex items-center justify-center shrink-0">
-          <span style={{ fontFamily: "'Bebas Neue', 'Anton', 'Impact', sans-serif", fontSize: '22px', fontWeight: 900, color: 'white', lineHeight: 1, letterSpacing: '-1px' }}>7</span>
+        <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
+          <img src="https://media.base44.com/images/public/69c32a03dfe10b4cd6245abe/cbf2fa9c6_image.png" alt="Top 7 Logo" className="w-full h-full object-cover" />
         </div>
         {!collapsed && (
           <span className="font-bold text-lg text-sidebar-primary-foreground tracking-tight">Top 7</span>
