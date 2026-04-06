@@ -42,7 +42,7 @@ export default function AccountSettings() {
         {/* Profile */}
         <Card>
           <CardHeader className="pb-4">
-            <CardTitle className="text-base flex items-center gap-2"><User className="w-4 h-4" /> Profile</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><User className="w-4 h-4 shrink-0" /> Profile</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="flex items-center gap-4">
@@ -67,7 +67,7 @@ export default function AccountSettings() {
         {/* Role */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><Shield className="w-4 h-4" /> Role & Access</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Shield className="w-4 h-4 shrink-0" /> Role & Access</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-start justify-between gap-3">
@@ -87,7 +87,7 @@ export default function AccountSettings() {
         {/* Units */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><Ruler className="w-4 h-4" /> Units</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Ruler className="w-4 h-4 shrink-0" /> Units</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
@@ -119,7 +119,7 @@ export default function AccountSettings() {
         {/* Garmin quick status */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><Wifi className="w-4 h-4" /> Integrations</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Wifi className="w-4 h-4 shrink-0" /> Integrations</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-3 justify-between">

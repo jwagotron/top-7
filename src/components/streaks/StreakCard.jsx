@@ -41,7 +41,7 @@ export default function StreakCard({ streakType, streakData }) {
         <div className="flex items-start justify-between gap-1">
           <p className="text-sm font-semibold leading-tight">{meta.label}</p>
           <div className={cn('flex items-center gap-1 shrink-0 rounded-full px-2 py-0.5 border text-[11px] font-medium', weekCfg.bg, weekCfg.color)}>
-            <WeekIconComp className="w-3 h-3" />
+            <WeekIconComp className="w-3.5 h-3.5" />
             {this_week_status === 'pass' ? 'Done' : this_week_status === 'fail' ? 'Missed' : 'Pending'}
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function StreakCard({ streakType, streakData }) {
         {/* At-risk warning */}
         {(risk_level === 'high' || risk_level === 'medium') && !isBroken && (
           <div className="flex items-center gap-1.5 text-[11px] text-amber-600 bg-amber-50 dark:bg-amber-950/30 rounded-lg px-2.5 py-1.5 border border-amber-200 dark:border-amber-800">
-            <AlertTriangle className="w-3 h-3 shrink-0" />
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
             {risk_level === 'high' ? 'Streak in danger — act today.' : 'Streak at risk this week.'}
           </div>
         )}
@@ -90,7 +90,7 @@ export default function StreakCard({ streakType, streakData }) {
           onClick={() => setExpanded(v => !v)}
           className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full"
         >
-          {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           {expanded ? 'Hide detail' : 'This week'}
           <span className="ml-auto" />
         </button>
