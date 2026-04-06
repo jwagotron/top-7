@@ -98,12 +98,14 @@ export default function TrainingPlans() {
                     {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </div>
                 </div>
-                {plan.description && <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>}
-                <div className="flex gap-4 mt-2 text-[11px] text-muted-foreground/60">
-                  {plan.duration_weeks && <span>{plan.duration_weeks} weeks</span>}
-                  {plan.goal_event && <span>Goal: {plan.goal_event}</span>}
-                  {plan.difficulty && <span className="capitalize">{plan.difficulty}</span>}
-                </div>
+                {plan.description && <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{plan.description}</p>}
+                {(plan.duration_weeks || plan.goal_event || plan.difficulty) && (
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 pt-3 border-t border-border/20 text-[11px] text-muted-foreground/50 font-medium tracking-wide">
+                    {plan.duration_weeks && <span><span className="uppercase">Weeks</span> · {plan.duration_weeks}</span>}
+                    {plan.goal_event && <span><span className="uppercase">Goal</span> · {plan.goal_event}</span>}
+                    {plan.difficulty && <span><span className="uppercase">Level</span> · <span className="capitalize">{plan.difficulty}</span></span>}
+                  </div>
+                )}
               </CardHeader>
               {isExpanded && (
                 <CardContent className="pt-0 space-y-3 px-4 lg:px-6 pb-5">
