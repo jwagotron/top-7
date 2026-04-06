@@ -35,6 +35,17 @@ export default function AssignmentSelector({ value, onChange }) {
 
   const athletes = relationships.map(r => ({ email: r.athlete_email, name: r.athlete_name }));
 
+  // Fetch pending invitations for display
+  const { data: pendingInvites = [] } = useQuery({
+    queryKey: ['pending-invites', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const all = await base44.entities.AthleteInvitation.list();
+      return all.filter(inv => inv.coach_email === user.email && inv.status === 'pending');
+    },
+    enabled: !!user?.email,
+  });
+
   const handleSelectChange = (v) => {
     if (v === 'all') {
       onChange({ type: 'all', athletes: [] });
@@ -105,36 +116,60 @@ export default function AssignmentSelector({ value, onChange }) {
             <DialogHeader>
               <DialogTitle>Assign to Athletes</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              {athletes.length === 0 ? (
-                <div className="py-6 text-center space-y-2">
-                  <p className="text-sm font-medium text-foreground">No athletes yet</p>
-                  <p className="text-xs text-muted-foreground">Invite athletes to assign plans</p>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {athletes.length === 0 && pendingInvites.length === 0 ? (
+                <div className="py-8 text-center space-y-3">
+                  <p className="text-sm font-medium text-foreground">No active athletes yet</p>
+                  <p className="text-xs text-muted-foreground">Invite athletes to get started</p>
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={() => { setShowMultiSelect(false); setShowInvite(true); }}
-                    className="gap-1 mt-4"
+                    className="gap-1 mt-4 w-full"
                   >
                     <Plus className="w-4 h-4" /> Invite Athlete
                   </Button>
                 </div>
               ) : (
-                athletes.map(athlete => (
-                  <div key={athlete.email} className="flex items-center gap-2">
-                    <Checkbox
-                      checked={selected.includes(athlete.email)}
-                      onCheckedChange={(checked) => handleMultiSelectChange(athlete.email, checked)}
-                      id={athlete.email}
-                    />
-                    <label htmlFor={athlete.email} className="text-sm cursor-pointer flex-1">
-                      {athlete.name}
-                    </label>
-                  </div>
-                ))
+                <>
+                  {/* Active Athletes Section */}
+                  {athletes.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Active Athletes</p>
+                      <div className="space-y-2">
+                        {athletes.map(athlete => (
+                          <div key={athlete.email} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/30 transition-colors">
+                            <Checkbox
+                              checked={selected.includes(athlete.email)}
+                              onCheckedChange={(checked) => handleMultiSelectChange(athlete.email, checked)}
+                              id={athlete.email}
+                            />
+                            <label htmlFor={athlete.email} className="text-sm cursor-pointer flex-1">
+                              {athlete.name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pending Invites Section */}
+                  {pendingInvites.length > 0 && (
+                    <div className="border-t border-border/50 pt-3">
+                      <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Pending Invites</p>
+                      <div className="space-y-2">
+                        {pendingInvites.map(inv => (
+                          <div key={inv.athlete_email} className="p-2 rounded-lg bg-muted/20 border border-border/30">
+                            <p className="text-sm text-muted-foreground">{inv.athlete_name}</p>
+                            <p className="text-xs text-muted-foreground/70">{inv.athlete_email}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
-            <div className="flex justify-between gap-3 pt-4">
+            <div className="flex justify-between gap-3 pt-4 border-t border-border/30">
               <Button
                 size="sm"
                 variant="outline"
