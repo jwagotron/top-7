@@ -11,7 +11,7 @@ const defaults = {
   duration_weeks: '', start_date: '', goal_event: '', status: 'draft'
 };
 
-export default function PlanForm({ open, onClose, onSubmit, plan }) {
+export default function PlanForm({ open, onClose, onSubmit, plan, assignment }) {
   const [form, setForm] = useState(plan || defaults);
   const handleChange = (f, v) => setForm(p => ({ ...p, [f]: v }));
 
@@ -19,6 +19,18 @@ export default function PlanForm({ open, onClose, onSubmit, plan }) {
     e.preventDefault();
     const data = { ...form };
     if (data.duration_weeks) data.duration_weeks = Number(data.duration_weeks);
+    
+    // Apply assignment if creating new plan
+    if (!plan && assignment) {
+      if (assignment.type === 'all') {
+        data.assigned_to = null; // null means all athletes
+      } else if (assignment.type === 'multiple' && assignment.athletes.length > 0) {
+        // Create one plan per selected athlete
+        assignment.athletes.forEach(email => onSubmit({ ...data, assigned_to: email }));
+        return;
+      }
+    }
+    
     onSubmit(data);
   };
 

@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import PlanForm from '@/components/plans/PlanForm';
 import PlannedWorkoutForm from '@/components/plans/PlannedWorkoutForm';
+import AssignmentSelector from '@/components/plans/AssignmentSelector';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,7 @@ export default function TrainingPlans() {
   const [editingPlan, setEditingPlan] = useState(null);
   const [expandedPlan, setExpandedPlan] = useState(null);
   const [showWorkoutForm, setShowWorkoutForm] = useState(null);
+  const [assignment, setAssignment] = useState({ type: 'all', athletes: [] });
   const qc = useQueryClient();
 
   const { data: allPlans = [], isLoading } = useQuery({
@@ -75,9 +77,12 @@ export default function TrainingPlans() {
     <div>
       <TopBar title={canCreate ? "Training Plans" : "My Plans"}>
         {canCreate && (
-          <Button onClick={() => setShowPlanForm(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> New Plan
-          </Button>
+          <div className="flex items-center gap-2">
+            <AssignmentSelector value={assignment} onChange={setAssignment} />
+            <Button onClick={() => setShowPlanForm(true)} size="sm" className="gap-1 h-8 px-2 lg:px-4">
+              <Plus className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">New Plan</span>
+            </Button>
+          </div>
         )}
       </TopBar>
       <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-5 pb-24 lg:pb-8">
@@ -100,12 +105,17 @@ export default function TrainingPlans() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <CardTitle className="text-base font-bold tracking-tight">{plan.name}</CardTitle>
-                      <Badge variant="outline" className={cn("text-[10px] capitalize", statusColors[plan.status])}>
-                        {plan.status}
-                      </Badge>
-                      <Badge variant="outline" className="text-[10px] capitalize">{plan.sport}</Badge>
-                    </div>
+                       <CardTitle className="text-base font-bold tracking-tight">{plan.name}</CardTitle>
+                       <Badge variant="outline" className={cn("text-[10px] capitalize", statusColors[plan.status])}>
+                         {plan.status}
+                       </Badge>
+                       <Badge variant="outline" className="text-[10px] capitalize">{plan.sport}</Badge>
+                       {plan.assigned_to && (
+                         <Badge variant="outline" className="text-[10px] bg-secondary/10 text-secondary">
+                           Assigned
+                         </Badge>
+                       )}
+                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-xs text-muted-foreground">{planWorkouts.length}</span>
@@ -172,7 +182,7 @@ export default function TrainingPlans() {
 
       {canCreate && (
         <>
-          <PlanForm open={showPlanForm} onClose={() => setShowPlanForm(false)} onSubmit={(d) => createPlanMut.mutate(d)} />
+          <PlanForm open={showPlanForm} onClose={() => setShowPlanForm(false)} onSubmit={(d) => createPlanMut.mutate(d)} assignment={assignment} />
           {editingPlan && (
             <PlanForm open={!!editingPlan} onClose={() => setEditingPlan(null)} onSubmit={(d) => updatePlanMut.mutate({ id: editingPlan.id, data: d })} plan={editingPlan} />
           )}
