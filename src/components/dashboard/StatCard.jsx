@@ -15,7 +15,7 @@ export default function StatCard({ title, value, unit, icon: Icon, trend, color 
   return (
     <div className={cn(
       // Elevated primary card: brighter bg + directional gradient + stronger shadow
-      "relative overflow-hidden rounded-2xl p-3 lg:p-5 flex flex-col min-w-0",
+      "relative overflow-hidden rounded-2xl p-4 lg:p-5 flex flex-col min-w-0",
       "bg-card shadow-lg",
       c.glow,
       "border border-border/40",
@@ -27,7 +27,7 @@ export default function StatCard({ title, value, unit, icon: Icon, trend, color 
         c.from
       )} />
 
-      <div className="relative flex items-start justify-between mb-3">
+      <div className="relative flex items-start justify-between mb-4">
         <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", c.icon)}>
           <Icon className="w-4 h-4" />
         </div>
@@ -45,7 +45,7 @@ export default function StatCard({ title, value, unit, icon: Icon, trend, color 
         {value}
         {unit && <span className="text-xs font-normal text-muted-foreground/70 ml-1">{unit}</span>}
       </p>
-      <p className="relative text-[11px] font-medium text-muted-foreground/60 mt-1 leading-tight truncate uppercase tracking-wide">{title}</p>
+      <p className="relative text-[11px] font-medium text-muted-foreground/60 mt-1.5 leading-tight truncate uppercase tracking-wide">{title}</p>
     </div>
   );
 }

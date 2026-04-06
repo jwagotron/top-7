@@ -119,13 +119,13 @@ export default function Workouts() {
 
       <div className="p-4 lg:p-6 max-w-7xl mx-auto pb-24 lg:pb-6">
         {/* Weekly summary strip */}
-        <div className="grid grid-cols-3 gap-2 lg:gap-3 mb-5">
+        <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-6">
           {[
             { icon: Footprints, color: 'bg-primary/10 text-primary', value: weekWorkouts.length, label2: 'Runs' },
             { icon: MapPin, color: 'bg-secondary/10 text-secondary', value: toDisplay(weekKm).toFixed(1), label2: label },
             { icon: Clock, color: 'bg-accent/10 text-accent', value: Math.round(weekMin / 60 * 10) / 10, label2: 'hrs' },
           ].map(({ icon: Icon, color, value, label2 }) => (
-            <div key={label2} className="relative overflow-hidden bg-card rounded-xl p-3 flex flex-col gap-1 min-w-0 shadow-md border border-border/40 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+            <div key={label2} className="relative overflow-hidden bg-card rounded-xl p-4 flex flex-col gap-1.5 min-w-0 shadow-md border border-border/40 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
                 <Icon className="w-3.5 h-3.5" />
               </div>
@@ -135,7 +135,7 @@ export default function Workouts() {
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-5 lg:gap-6">
           {/* Calendar */}
           <div className="lg:col-span-2">
             <WorkoutCalendar
@@ -149,7 +149,7 @@ export default function Workouts() {
           </div>
 
           {/* Day panel */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm">{format(selectedDate, 'EEEE, MMM d')}</h3>
               <button
