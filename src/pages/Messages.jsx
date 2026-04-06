@@ -54,8 +54,8 @@ export default function Messages() {
         </Button>
       </TopBar>
       <div className="p-4 lg:p-6 max-w-6xl mx-auto pb-28 lg:pb-8">
-        <div className="grid lg:grid-cols-5 gap-4 lg:gap-6">
-          <div className="lg:col-span-2 space-y-2">
+        <div className="flex flex-col lg:grid lg:grid-cols-5 gap-4 lg:gap-6">
+          <div className={`lg:col-span-2 space-y-2 ${selected ? 'hidden lg:block' : 'block'}`}>
             {isLoading ? (
               <div className="flex justify-center py-20">
                 <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -87,17 +87,22 @@ export default function Messages() {
             ))}
           </div>
 
-          <div className="lg:col-span-3">
+          <div className={`lg:col-span-3 ${selected ? 'block' : 'hidden lg:flex lg:flex-col lg:items-center lg:justify-center'}`}>
             {selected ? (
               <Card className="rounded-2xl border">
                 <CardContent className="p-4 lg:p-6">
                   <div className="flex items-start gap-3 justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8 shrink-0" onClick={() => setSelected(null)}>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                      </Button>
+                    </div>
                     <div className="flex-1 min-w-0">
                       <h2 className="font-semibold text-base leading-tight break-words">{selected.subject || 'No Subject'}</h2>
-                      <p className="text-xs text-muted-foreground mt-1 break-all">
+                      <p className="text-xs text-muted-foreground mt-1 break-words">
                         From: {selected.sender_name || selected.sender_email} · {format(new Date(selected.created_date), 'MMM d, yyyy h:mm a')}
                       </p>
-                      <p className="text-xs text-muted-foreground break-all">To: {selected.recipient_email}</p>
+                      <p className="text-xs text-muted-foreground break-words">To: {selected.recipient_email}</p>
                     </div>
                     <Button variant="ghost" size="icon" className="text-destructive shrink-0" onClick={() => deleteMut.mutate(selected.id)}>
                       <Trash2 className="w-4 h-4" />

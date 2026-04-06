@@ -93,10 +93,10 @@ export default function CoachPanel() {
   return (
     <div className="min-h-screen bg-background">
       <TopBar title="Coach Panel">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Select value={athleteFilter} onValueChange={setAthleteFilter}>
-            <SelectTrigger className="w-44">
-              <Users className="w-4 h-4 mr-1 text-muted-foreground" />
+            <SelectTrigger className="w-32 lg:w-44">
+              <Users className="w-4 h-4 mr-1 text-muted-foreground shrink-0" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -106,48 +106,35 @@ export default function CoachPanel() {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={() => setShowForm(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> Assign Workout
+          <Button onClick={() => setShowForm(true)} size="sm" className="gap-1.5 shrink-0">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Assign Workout</span>
           </Button>
         </div>
       </TopBar>
 
-      <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-5">
+      <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-4 lg:space-y-5 pb-24 lg:pb-8">
         {/* Month summary */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Calendar className="w-5 h-5 text-primary" />
+        <div className="grid grid-cols-3 gap-2 lg:gap-3">
+          {[
+            { icon: Calendar, color: 'text-primary', bg: 'bg-primary/10', value: upcoming, label: 'Upcoming' },
+            { icon: CheckCircle2, color: 'text-secondary', bg: 'bg-secondary/10', value: completed, label: 'Completed' },
+            { icon: TrendingUp, color: 'text-accent', bg: 'bg-accent/10', value: `${monthWorkouts.length > 0 ? Math.round((completed / monthWorkouts.length) * 100) : 0}%`, label: 'Rate' },
+          ].map(({ icon: Icon, color, bg, value, label }) => (
+            <div key={label} className="bg-card border border-border rounded-xl p-3 lg:p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <div className={`w-8 h-8 lg:w-9 lg:h-9 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
+                <Icon className={`w-4 h-4 lg:w-5 lg:h-5 ${color}`} />
+              </div>
+              <div>
+                <p className="text-lg lg:text-xl font-bold leading-none">{value}</p>
+                <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5">{label}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xl font-bold">{upcoming}</p>
-              <p className="text-xs text-muted-foreground">Upcoming this month</p>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5 text-secondary" />
-            </div>
-            <div>
-              <p className="text-xl font-bold">{completed}</p>
-              <p className="text-xs text-muted-foreground">Completed this month</p>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-              <TrendingUp className="w-5 h-5 text-accent" />
-            </div>
-            <div>
-              <p className="text-xl font-bold">
-                {monthWorkouts.length > 0 ? Math.round((completed / monthWorkouts.length) * 100) : 0}%
-              </p>
-              <p className="text-xs text-muted-foreground">Completion rate</p>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Calendar + Day panel */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-4 lg:gap-6">
           <div className="lg:col-span-2">
             {isLoading ? (
               <div className="flex justify-center py-20 bg-card border border-border rounded-2xl">
