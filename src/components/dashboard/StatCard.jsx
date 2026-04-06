@@ -41,11 +41,11 @@ export default function StatCard({ title, value, unit, icon: Icon, trend, color 
         )}
       </div>
 
-      <p className="relative text-xl lg:text-2xl font-bold tracking-tight leading-tight break-all">
+      <p className="relative text-2xl lg:text-3xl font-bold tracking-tight leading-none text-foreground break-all">
         {value}
-        {unit && <span className="text-[10px] lg:text-xs font-normal text-muted-foreground ml-1">{unit}</span>}
+        {unit && <span className="text-xs font-normal text-muted-foreground/70 ml-1">{unit}</span>}
       </p>
-      <p className="relative text-[10px] text-muted-foreground mt-0.5 leading-tight truncate">{title}</p>
+      <p className="relative text-[11px] font-medium text-muted-foreground/60 mt-1 leading-tight truncate uppercase tracking-wide">{title}</p>
     </div>
   );
 }

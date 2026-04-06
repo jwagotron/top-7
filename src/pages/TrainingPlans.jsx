@@ -86,7 +86,7 @@ export default function TrainingPlans() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <CardTitle className="text-base">{plan.name}</CardTitle>
+                      <CardTitle className="text-base font-bold tracking-tight">{plan.name}</CardTitle>
                       <Badge variant="outline" className={cn("text-[10px] capitalize", statusColors[plan.status])}>
                         {plan.status}
                       </Badge>
@@ -99,7 +99,7 @@ export default function TrainingPlans() {
                   </div>
                 </div>
                 {plan.description && <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>}
-                <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                <div className="flex gap-4 mt-2 text-[11px] text-muted-foreground/60">
                   {plan.duration_weeks && <span>{plan.duration_weeks} weeks</span>}
                   {plan.goal_event && <span>Goal: {plan.goal_event}</span>}
                   {plan.difficulty && <span className="capitalize">{plan.difficulty}</span>}
@@ -124,7 +124,7 @@ export default function TrainingPlans() {
                     <div key={w.id} className="flex items-start gap-3 p-3 rounded-xl bg-background/50 border border-border/30 group">
                       <Calendar className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{w.title}</p>
+                        <p className="text-sm font-semibold text-foreground truncate">{w.title}</p>
                         <div className="flex flex-wrap gap-1 mt-0.5">
                           <Badge variant="outline" className="text-[10px] capitalize">{w.intensity?.replace('_', ' ')}</Badge>
                           <Badge variant="outline" className={cn("text-[10px]", w.status === 'completed' ? 'bg-secondary/10 text-secondary' : w.status === 'skipped' ? 'bg-destructive/10 text-destructive' : '')}>

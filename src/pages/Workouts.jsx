@@ -129,8 +129,8 @@ export default function Workouts() {
               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
                 <Icon className="w-3.5 h-3.5" />
               </div>
-              <p className="text-base font-bold leading-tight truncate">{value}</p>
-              <p className="text-[10px] text-muted-foreground leading-tight">{label2} this week</p>
+              <p className="text-xl font-bold tracking-tight text-foreground leading-none">{value}</p>
+              <p className="text-[11px] font-medium text-muted-foreground/60 mt-0.5 leading-tight uppercase tracking-wide">{label2} this week</p>
             </div>
           ))}
         </div>

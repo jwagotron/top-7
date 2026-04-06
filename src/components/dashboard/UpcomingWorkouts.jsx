@@ -32,7 +32,7 @@ export default function UpcomingWorkouts({ plannedWorkouts }) {
   return (
     <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold">Upcoming Workouts</CardTitle>
+        <CardTitle className="text-lg font-bold tracking-tight">Upcoming Workouts</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {upcoming.length === 0 ? (
@@ -46,14 +46,14 @@ export default function UpcomingWorkouts({ plannedWorkouts }) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start gap-2 justify-between">
-                  <p className="text-sm font-medium leading-tight flex-1 min-w-0 break-words">{w.title}</p>
+                  <p className="text-sm font-semibold text-foreground leading-tight flex-1 min-w-0 break-words">{w.title}</p>
                   {w.intensity && (
                     <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", intensityColors[w.intensity])}>
                       {w.intensity.replace('_', ' ')}
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5 break-words">
+                <p className="text-[11px] text-muted-foreground/70 mt-0.5 break-words">
                   {format(new Date(w.scheduled_date), 'EEE, MMM d')}
                   {w.target_distance_km ? ` · ${toDisplay(w.target_distance_km)} ${label}` : ''}
                   {w.target_duration_minutes ? ` · ${w.target_duration_minutes} min` : ''}

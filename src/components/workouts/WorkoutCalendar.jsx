@@ -41,7 +41,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
     <div className="bg-card border border-border rounded-2xl overflow-hidden">
       {/* Month navigation */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-        <h2 className="font-bold text-base">{format(currentMonth, 'MMMM yyyy')}</h2>
+        <h2 className="font-bold text-lg tracking-tight">{format(currentMonth, 'MMMM yyyy')}</h2>
         <div className="flex gap-1">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onMonthChange(-1)}>
             <ChevronLeft className="w-4 h-4" />

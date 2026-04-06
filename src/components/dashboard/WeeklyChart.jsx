@@ -22,7 +22,7 @@ export default function WeeklyChart({ workouts }) {
   return (
     <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold">Weekly Activity</CardTitle>
+        <CardTitle className="text-lg font-bold tracking-tight">Weekly Activity</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[220px]">
