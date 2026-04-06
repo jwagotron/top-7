@@ -119,34 +119,20 @@ export default function Workouts() {
 
       <div className="p-4 lg:p-6 max-w-7xl mx-auto pb-24 lg:pb-6">
         {/* Weekly summary strip */}
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          <div className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Footprints className="w-4 h-4 text-primary" />
+        <div className="grid grid-cols-3 gap-2 lg:gap-3 mb-5">
+          {[
+            { icon: Footprints, color: 'bg-primary/10 text-primary', value: weekWorkouts.length, label2: 'Runs' },
+            { icon: MapPin, color: 'bg-secondary/10 text-secondary', value: toDisplay(weekKm).toFixed(1), label2: label },
+            { icon: Clock, color: 'bg-accent/10 text-accent', value: Math.round(weekMin / 60 * 10) / 10, label2: 'hrs' },
+          ].map(({ icon: Icon, color, value, label2 }) => (
+            <div key={label2} className="bg-card border border-border rounded-xl p-3 flex flex-col gap-1 min-w-0">
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
+                <Icon className="w-3.5 h-3.5" />
+              </div>
+              <p className="text-base font-bold leading-tight truncate">{value}</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">{label2} this week</p>
             </div>
-            <div>
-              <p className="text-lg font-bold">{weekWorkouts.length}</p>
-              <p className="text-[11px] text-muted-foreground">Runs this week</p>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
-              <MapPin className="w-4 h-4 text-secondary" />
-            </div>
-            <div>
-              <p className="text-lg font-bold">{toDisplay(weekKm).toFixed(1)}</p>
-              <p className="text-[11px] text-muted-foreground">{label} this week</p>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-              <Clock className="w-4 h-4 text-accent" />
-            </div>
-            <div>
-              <p className="text-lg font-bold">{Math.round(weekMin / 60 * 10) / 10}</p>
-              <p className="text-[11px] text-muted-foreground">hrs this week</p>
-            </div>
-          </div>
+          ))}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">

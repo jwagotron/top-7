@@ -55,7 +55,7 @@ export default function Goals() {
           <Plus className="w-4 h-4" /> New Goal
         </Button>
       </TopBar>
-      <div className="p-4 lg:p-6 max-w-5xl mx-auto pb-24 lg:pb-6">
+      <div className="p-4 lg:p-6 max-w-5xl mx-auto pb-24 lg:pb-8">
         {isLoading ? (
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -73,25 +73,25 @@ export default function Goals() {
               return (
                 <Card key={goal.id} className="border rounded-2xl group hover:shadow-md transition-all">
                   <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <Icon className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-sm">{goal.title}</h3>
-                          <Badge variant="outline" className={cn("text-[10px] capitalize mt-1", statusColors[goal.status])}>
-                            {goal.status?.replace('_', ' ')}
-                          </Badge>
-                        </div>
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <Icon className="w-5 h-5 text-primary" />
                       </div>
-                      <div className="flex gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditing(goal)}>
-                          <Pencil className="w-3 h-3" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteMut.mutate(goal.id)}>
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-1">
+                          <h3 className="font-semibold text-sm leading-tight flex-1 min-w-0 break-words">{goal.title}</h3>
+                          <div className="flex gap-1 shrink-0 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditing(goal)}>
+                              <Pencil className="w-3 h-3" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteMut.mutate(goal.id)}>
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className={cn("text-[10px] capitalize mt-1", statusColors[goal.status])}>
+                          {goal.status?.replace('_', ' ')}
+                        </Badge>
                       </div>
                     </div>
                     {goal.description && <p className="text-xs text-muted-foreground mb-3">{goal.description}</p>}

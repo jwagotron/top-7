@@ -64,25 +64,19 @@ export default function StreakPanel({ userEmail }) {
       </CardHeader>
 
       <CardContent>
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-5">
           {/* Discipline score */}
-          <div className="shrink-0 flex flex-col items-center justify-start pt-2">
+          <div className="shrink-0 flex flex-row lg:flex-col items-center gap-5 lg:gap-0 lg:justify-start lg:pt-2">
             <DisciplineScore score={disciplineScore} />
-            <div className="mt-4 w-full max-w-[120px] space-y-1.5 text-center">
-              <div className="text-[11px] text-muted-foreground">
-                <span className="font-medium text-secondary">{passingCount}</span> on track
-              </div>
-              <div className="text-[11px] text-muted-foreground">
-                <span className="font-medium text-destructive">{atRiskCount}</span> at risk
-              </div>
-              <div className="text-[11px] text-muted-foreground">
-                <span className="font-medium">{Object.keys(computed).length - passingCount - atRiskCount}</span> pending
-              </div>
+            <div className="flex flex-row lg:flex-col lg:mt-4 gap-3 lg:gap-1.5 lg:text-center">
+              <div className="text-[11px] text-muted-foreground"><span className="font-medium text-secondary">{passingCount}</span> on track</div>
+              <div className="text-[11px] text-muted-foreground"><span className="font-medium text-destructive">{atRiskCount}</span> at risk</div>
+              <div className="text-[11px] text-muted-foreground"><span className="font-medium">{Object.keys(computed).length - passingCount - atRiskCount}</span> pending</div>
             </div>
           </div>
 
           {/* Streak grid */}
-          <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {sortedEntries.map(([type, data]) => (
               <StreakCard key={type} streakType={type} streakData={data} />
             ))}

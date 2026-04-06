@@ -8,7 +8,7 @@ export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Sidebar — desktop only */}
       <div className="hidden lg:block">
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
@@ -16,7 +16,7 @@ export default function AppLayout() {
 
       <main
         className={cn(
-          "transition-all duration-300 min-h-screen",
+          "transition-all duration-300 min-h-screen overflow-x-hidden",
           collapsed ? "lg:ml-[72px]" : "lg:ml-[240px]"
         )}
       >

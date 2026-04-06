@@ -53,7 +53,7 @@ export default function Messages() {
           <Plus className="w-4 h-4" /> Compose
         </Button>
       </TopBar>
-      <div className="p-4 lg:p-6 max-w-6xl mx-auto pb-24 lg:pb-6">
+      <div className="p-4 lg:p-6 max-w-6xl mx-auto pb-28 lg:pb-8">
         <div className="grid lg:grid-cols-5 gap-4 lg:gap-6">
           <div className="lg:col-span-2 space-y-2">
             {isLoading ? (
@@ -90,16 +90,16 @@ export default function Messages() {
           <div className="lg:col-span-3">
             {selected ? (
               <Card className="rounded-2xl border">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h2 className="font-semibold text-lg">{selected.subject || 'No Subject'}</h2>
-                      <p className="text-sm text-muted-foreground">
-                        From: {selected.sender_name || selected.sender_email} · {format(new Date(selected.created_date), 'MMMM d, yyyy h:mm a')}
+                <CardContent className="p-4 lg:p-6">
+                  <div className="flex items-start gap-3 justify-between mb-4">
+                    <div className="flex-1 min-w-0">
+                      <h2 className="font-semibold text-base leading-tight break-words">{selected.subject || 'No Subject'}</h2>
+                      <p className="text-xs text-muted-foreground mt-1 break-all">
+                        From: {selected.sender_name || selected.sender_email} · {format(new Date(selected.created_date), 'MMM d, yyyy h:mm a')}
                       </p>
-                      <p className="text-sm text-muted-foreground">To: {selected.recipient_email}</p>
+                      <p className="text-xs text-muted-foreground break-all">To: {selected.recipient_email}</p>
                     </div>
-                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteMut.mutate(selected.id)}>
+                    <Button variant="ghost" size="icon" className="text-destructive shrink-0" onClick={() => deleteMut.mutate(selected.id)}>
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>

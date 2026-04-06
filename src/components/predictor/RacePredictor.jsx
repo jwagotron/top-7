@@ -119,17 +119,17 @@ export default function RacePredictor({ userEmail }) {
   return (
     <Card className="border rounded-2xl">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-start gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <LineChart className="w-4.5 h-4.5 text-primary" />
+              <LineChart className="w-4 h-4 text-primary" />
             </div>
-            <div>
+            <div className="min-w-0">
               <CardTitle className="text-base font-semibold">Race Predictor</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
                 {lastUpdated
-                  ? `Calculated ${format(new Date(lastUpdated), 'MMM d, yyyy')} · Multi-signal weighted model`
-                  : 'Multi-signal weighted model · Riegel-based projection'}
+                  ? `Calculated ${format(new Date(lastUpdated), 'MMM d, yyyy')}`
+                  : 'Multi-signal weighted model'}
               </p>
             </div>
           </div>

@@ -175,7 +175,7 @@ export default function ShoeTracker() {
         </Button>
       </TopBar>
 
-      <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-4">
+      <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-4 pb-24 lg:pb-6">
         {isLoading && (
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -201,52 +201,49 @@ export default function ShoeTracker() {
 
           return (
             <Card key={shoe.id} className={`transition-all ${isRetired ? 'opacity-60' : 'hover:shadow-md'}`}>
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">👟</span>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold">{shoe.name}</h3>
-                        {shoe.brand && <span className="text-sm text-muted-foreground">{shoe.brand}</span>}
-                        {shoe.color && <Badge variant="outline" className="text-xs">{shoe.color}</Badge>}
-                        {isRetired && <Badge className="bg-muted text-muted-foreground text-xs">Retired</Badge>}
-                        {isOver && !isRetired && <Badge className="bg-destructive/10 text-destructive text-xs flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Replace Soon</Badge>}
-                        {isWarning && !isRetired && <Badge className="bg-accent/10 text-accent text-xs">Almost Done</Badge>}
-                      </div>
-                      {shoe.start_date && (
-                        <p className="text-xs text-muted-foreground mt-0.5">In service since {format(new Date(shoe.start_date), 'MMM d, yyyy')}</p>
-                      )}
+              <CardContent className="p-4 lg:p-5">
+                {/* Top row: shoe info + action buttons */}
+                <div className="flex items-start gap-3 mb-4">
+                  <span className="text-2xl shrink-0 mt-0.5">👟</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <h3 className="font-semibold leading-tight">{shoe.name}</h3>
+                      {shoe.brand && <span className="text-sm text-muted-foreground">{shoe.brand}</span>}
+                      {shoe.color && <Badge variant="outline" className="text-xs">{shoe.color}</Badge>}
+                      {isRetired && <Badge className="bg-muted text-muted-foreground text-xs">Retired</Badge>}
+                      {isOver && !isRetired && <Badge className="bg-destructive/10 text-destructive text-xs flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Replace</Badge>}
+                      {isWarning && !isRetired && <Badge className="bg-accent/10 text-accent text-xs">Almost Done</Badge>}
                     </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1 shrink-0 items-end">
-                    {!isRetired && (
-                      <Button size="sm" variant="outline" onClick={() => setAddMileage(shoe)} className="text-xs px-2">+ {label}</Button>
+                    {shoe.start_date && (
+                      <p className="text-xs text-muted-foreground mt-0.5">Since {format(new Date(shoe.start_date), 'MMM d, yyyy')}</p>
                     )}
-                    <div className="flex gap-0.5">
-                      {!isRetired && (
-                        <>
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(shoe)}><Pencil className="w-3.5 h-3.5" /></Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" title="Reset mileage" onClick={() => setConfirmReset(shoe)}>
-                            <RotateCcw className="w-3.5 h-3.5" />
-                          </Button>
-                        </>
-                      )}
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" title={isRetired ? 'Re-activate' : 'Retire'} onClick={() => handleRetire(shoe)}>
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteMut.mutate(shoe.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
-                    </div>
                   </div>
+                </div>
+                {/* Action buttons row */}
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  {!isRetired && (
+                    <Button size="sm" variant="outline" onClick={() => setAddMileage(shoe)} className="text-xs h-7 px-2">+ {label}</Button>
+                  )}
+                  {!isRetired && (
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(shoe)}><Pencil className="w-3.5 h-3.5" /></Button>
+                  )}
+                  {!isRetired && (
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Reset mileage" onClick={() => setConfirmReset(shoe)}>
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground" title={isRetired ? 'Re-activate' : 'Retire'} onClick={() => handleRetire(shoe)}>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteMut.mutate(shoe.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium">{displayMileage.toLocaleString()} {label} logged</span>
+                  <div className="flex flex-wrap justify-between gap-x-2 gap-y-0.5 text-sm">
+                    <span className="font-medium">{displayMileage.toLocaleString()} {label}</span>
                     {remaining !== null && (
                       <span className={`text-xs ${isOver ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
-                        {isOver ? `${Math.abs(remaining)} ${label} over limit` : `${remaining} ${label} remaining`}
+                        {isOver ? `${Math.abs(remaining)} ${label} over` : `${remaining} ${label} left`}
                       </span>
                     )}
                   </div>

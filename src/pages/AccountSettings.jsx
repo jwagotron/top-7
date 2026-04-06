@@ -36,7 +36,7 @@ export default function AccountSettings() {
   return (
     <div className="min-h-screen bg-background">
       <TopBar title="Account Settings" />
-      <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-5">
+      <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-5 pb-24 lg:pb-6">
 
         {/* Profile */}
         <Card>
@@ -69,12 +69,12 @@ export default function AccountSettings() {
             <CardTitle className="text-base flex items-center gap-2"><Shield className="w-4 h-4" /> Role & Access</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">Current Role</p>
                 <p className="text-xs text-muted-foreground">Your role controls what features you can access.</p>
               </div>
-              <Badge className="capitalize">{user?.role || 'user'}</Badge>
+              <Badge className="capitalize shrink-0">{user?.role || 'user'}</Badge>
             </div>
             <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
               <strong>Athlete:</strong> View workouts, log activities, connect Garmin.<br />
@@ -118,15 +118,15 @@ export default function AccountSettings() {
             <CardTitle className="text-base flex items-center gap-2"><Wifi className="w-4 h-4" /> Integrations</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-lg">⌚</div>
-                <div>
+            <div className="flex items-center gap-3 justify-between">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-lg shrink-0">⌚</div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium">Garmin Connect</p>
-                  <p className="text-xs text-muted-foreground">Sync activities and push structured workouts</p>
+                  <p className="text-xs text-muted-foreground leading-tight">Sync activities and push structured workouts</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={() => window.location.href = '/garmin'}>Manage</Button>
+              <Button variant="outline" size="sm" className="shrink-0" onClick={() => window.location.href = '/garmin'}>Manage</Button>
             </div>
           </CardContent>
         </Card>
