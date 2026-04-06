@@ -123,8 +123,9 @@ export default function WorkoutBuilder() {
   return (
     <div className="min-h-screen bg-background">
       <TopBar title="Workout Builder">
-        <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2">
-          <Plus className="w-4 h-4" /> New Workout
+        <Button onClick={() => { resetForm(); setShowForm(true); }} size="sm" className="gap-1.5 h-8 px-2 sm:px-4">
+          <Plus className="w-4 h-4 shrink-0" />
+          <span className="hidden sm:inline">New Workout</span>
         </Button>
       </TopBar>
 

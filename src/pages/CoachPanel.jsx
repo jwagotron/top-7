@@ -96,24 +96,22 @@ export default function CoachPanel() {
   return (
     <div className="min-h-screen bg-background">
       <TopBar title="Coach Panel">
-        <div className="flex items-center gap-2">
-          <Select value={athleteFilter} onValueChange={setAthleteFilter}>
-            <SelectTrigger className="w-32 lg:w-44">
-              <Users className="w-4 h-4 mr-1 text-muted-foreground shrink-0" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Athletes</SelectItem>
-              {athletes.map(a => (
-                <SelectItem key={a.id} value={a.email}>{a.full_name || a.email}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button onClick={() => setShowForm(true)} size="sm" className="gap-1.5 shrink-0">
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Assign Workout</span>
-          </Button>
-        </div>
+        <Select value={athleteFilter} onValueChange={setAthleteFilter}>
+          <SelectTrigger className="w-[7.5rem] sm:w-36 lg:w-44 text-xs sm:text-sm h-8 px-2">
+            <Users className="w-3.5 h-3.5 mr-1 text-muted-foreground shrink-0" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Athletes</SelectItem>
+            {athletes.map(a => (
+              <SelectItem key={a.id} value={a.email}>{a.full_name || a.email}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button onClick={() => setShowForm(true)} size="sm" className="gap-1 h-8 px-2 sm:px-3 shrink-0">
+          <Plus className="w-4 h-4 shrink-0" />
+          <span className="hidden sm:inline">Assign</span>
+        </Button>
       </TopBar>
 
       <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-4 lg:space-y-5 pb-24 lg:pb-8">
