@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Palette, Sun, Moon, Pipette } from 'lucide-react';
+import { Sun, Moon, Sparkles } from 'lucide-react';
 import { useTheme } from '@/lib/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const PRESET_COLORS = [
-  '#1a1a2e', '#16213e', '#0f3460', '#1b4332', '#2d3436',
-  '#2c3e50', '#6b2d8b', '#8b2252', '#b34700', '#7a5c00',
-];
-
-const MODE_OPTIONS = [
-  { value: 'light',  label: 'Light',  icon: Sun,     preview: '#f4f5f7' },
-  { value: 'dark',   label: 'Dark',   icon: Moon,    preview: '#141822' },
-  { value: 'custom', label: 'Custom', icon: Pipette, preview: null },
+  { hex: '#141822', label: 'Midnight' },
+  { hex: '#0f1117', label: 'Obsidian' },
+  { hex: '#0d1b2a', label: 'Navy' },
+  { hex: '#1b4332', label: 'Forest' },
+  { hex: '#1a1a2e', label: 'Indigo' },
+  { hex: '#2d1b4e', label: 'Plum' },
+  { hex: '#3b1f14', label: 'Espresso' },
+  { hex: '#1c1c1c', label: 'Charcoal' },
+  { hex: '#f4f5f7', label: 'Snow' },
+  { hex: '#faf7f2', label: 'Cream' },
+  { hex: '#f0f4f8', label: 'Cloud' },
+  { hex: '#e8f4f8', label: 'Ice' },
 ];
 
 function hexToRgb(hex) {
@@ -27,157 +31,168 @@ function luminance({ r, g, b }) {
 }
 function isDarkColor(hex) { return luminance(hexToRgb(hex)) < 0.35; }
 
+function MiniPreview({ bg }) {
+  const dark = isDarkColor(bg);
+  const surface = dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.85)';
+  const text = dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)';
+  const textMuted = dark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)';
+  const border = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)';
+
+  return (
+    <div className="rounded-xl overflow-hidden border border-border/40 shadow-md" style={{ background: bg }}>
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: border, background: dark ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.4)' }}>
+        <div className="flex gap-1.5">
+          <div className="w-5 h-1.5 rounded-full" style={{ background: text }} />
+          <div className="w-3.5 h-1.5 rounded-full" style={{ background: textMuted }} />
+          <div className="w-4 h-1.5 rounded-full" style={{ background: textMuted }} />
+        </div>
+        <div className="w-4 h-4 rounded-full" style={{ background: 'hsl(var(--primary))' }} />
+      </div>
+      {/* Content */}
+      <div className="p-2.5 space-y-2">
+        <div className="rounded-lg p-2.5" style={{ background: surface, border: `1px solid ${border}` }}>
+          <div className="w-16 h-1.5 rounded-full mb-1.5" style={{ background: text }} />
+          <div className="w-10 h-1 rounded-full mb-1" style={{ background: textMuted }} />
+          <div className="w-12 h-1 rounded-full" style={{ background: textMuted }} />
+        </div>
+        <div className="flex gap-1.5">
+          <div className="flex-1 h-5 rounded-md" style={{ background: 'hsl(var(--primary))', opacity: 0.9 }} />
+          <div className="flex-1 h-5 rounded-md" style={{ background: surface, border: `1px solid ${border}` }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AppearanceCard() {
   const { theme, setTheme, resolveBg } = useTheme();
-  const [customInput, setCustomInput] = useState(theme.customColor || '#4a90e2');
+  const [customInput, setCustomInput] = useState(theme.customColor || '#141822');
 
   const currentBg = resolveBg(theme);
-  const dark = isDarkColor(currentBg);
 
-  const handleModeChange = (mode) => {
-    if (mode === 'custom') {
-      setTheme({ mode, customColor: customInput });
-    } else {
-      setTheme({ mode });
-    }
+  const handlePreset = (hex) => {
+    setCustomInput(hex);
+    setTheme({ mode: 'custom', customColor: hex });
   };
 
-  const handleCustomColor = (color) => {
-    setCustomInput(color);
-    if (theme.mode === 'custom') {
-      setTheme({ mode: 'custom', customColor: color });
+  const handleCustomHex = (val) => {
+    setCustomInput(val);
+    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+      setTheme({ mode: 'custom', customColor: val });
     }
   };
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <Palette className="w-4 h-4" /> Appearance
+          <Sparkles className="w-4 h-4 text-primary" /> Appearance
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-6">
 
-        {/* Mode selector */}
+        {/* Theme mode toggle */}
         <div>
-          <p className="text-sm font-medium mb-2">Background Color</p>
-          <div className="grid grid-cols-3 gap-2">
-            {MODE_OPTIONS.map(({ value, label, icon: Icon, preview }) => {
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Theme</p>
+          <div className="flex gap-2">
+            {[
+              { value: 'light', label: 'Light', icon: Sun,  bg: '#f4f5f7' },
+              { value: 'dark',  label: 'Dark',  icon: Moon, bg: '#141822' },
+            ].map(({ value, label, icon: Icon, bg }) => {
               const active = theme.mode === value;
               return (
                 <button
                   key={value}
-                  onClick={() => handleModeChange(value)}
+                  onClick={() => setTheme({ mode: value })}
                   className={cn(
-                    'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all text-xs font-medium',
-                    active
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border hover:border-primary/40 text-muted-foreground hover:text-foreground'
+                    'flex-1 relative rounded-xl overflow-hidden border-2 transition-all duration-200',
+                    active ? 'border-primary shadow-md shadow-primary/20' : 'border-border hover:border-primary/40'
                   )}
                 >
-                  {preview ? (
-                    <div
-                      className="w-8 h-8 rounded-lg border border-border/60 shadow-sm flex items-center justify-center"
-                      style={{ background: preview }}
-                    >
-                      <Icon className="w-3.5 h-3.5" style={{ color: isDarkColor(preview) ? '#fff' : '#333' }} />
-                    </div>
-                  ) : (
-                    <div className="w-8 h-8 rounded-lg border border-border/60 bg-muted flex items-center justify-center">
-                      <Icon className="w-3.5 h-3.5" />
-                    </div>
+                  {/* Preview swatch */}
+                  <div className="h-16 flex items-center justify-center" style={{ background: bg }}>
+                    <Icon className="w-5 h-5" style={{ color: isDarkColor(bg) ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)' }} />
+                  </div>
+                  <div className={cn(
+                    'py-1.5 text-xs font-medium text-center transition-colors',
+                    active ? 'bg-primary/10 text-primary' : 'text-muted-foreground'
+                  )}>
+                    {label}
+                  </div>
+                  {active && (
+                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary shadow-sm" />
                   )}
-                  {label}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Custom color controls */}
-        {theme.mode === 'custom' && (
-          <div className="space-y-3">
-            <p className="text-sm font-medium">Custom Color</p>
-            <div className="flex items-center gap-3">
+        {/* Color presets */}
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Color Presets</p>
+          <div className="grid grid-cols-6 gap-2">
+            {PRESET_COLORS.map(({ hex, label }) => {
+              const active = theme.mode === 'custom' && theme.customColor === hex;
+              return (
+                <button
+                  key={hex}
+                  onClick={() => handlePreset(hex)}
+                  title={label}
+                  className={cn(
+                    'aspect-square rounded-lg border-2 transition-all duration-150 hover:scale-110',
+                    active ? 'border-primary scale-110 shadow-md' : 'border-transparent hover:border-border'
+                  )}
+                  style={{ background: hex }}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Custom hex input */}
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Custom Color</p>
+          <div className="flex items-center gap-3">
+            <div className="relative">
               <input
                 type="color"
                 value={customInput}
-                onChange={e => handleCustomColor(e.target.value)}
-                className="w-10 h-10 rounded-lg border border-border cursor-pointer bg-transparent p-0.5"
+                onChange={e => handleCustomHex(e.target.value)}
+                className="w-10 h-10 rounded-lg border border-border cursor-pointer opacity-0 absolute inset-0"
               />
-              <input
-                type="text"
-                value={customInput}
-                onChange={e => {
-                  const v = e.target.value;
-                  setCustomInput(v);
-                  if (/^#[0-9a-fA-F]{6}$/.test(v)) handleCustomColor(v);
-                }}
-                className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm font-mono"
-                placeholder="#1a1a2e"
-                maxLength={7}
+              <div
+                className="w-10 h-10 rounded-lg border-2 border-border shadow-sm cursor-pointer"
+                style={{ background: customInput }}
               />
             </div>
-            {/* Preset swatches */}
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Presets</p>
-              <div className="flex flex-wrap gap-2">
-                {PRESET_COLORS.map(color => (
-                  <button
-                    key={color}
-                    onClick={() => handleCustomColor(color)}
-                    style={{ background: color }}
-                    className={cn(
-                      'w-7 h-7 rounded-md border-2 transition-transform hover:scale-110',
-                      customInput === color ? 'border-primary scale-110' : 'border-transparent'
-                    )}
-                    title={color}
-                  />
-                ))}
-              </div>
-            </div>
+            <input
+              type="text"
+              value={customInput}
+              onChange={e => handleCustomHex(e.target.value)}
+              className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm font-mono tracking-wider"
+              placeholder="#141822"
+              maxLength={7}
+            />
+            <button
+              onClick={() => setTheme({ mode: 'custom', customColor: customInput })}
+              className={cn(
+                'h-9 px-4 rounded-md text-xs font-medium transition-colors',
+                theme.mode === 'custom' && theme.customColor === customInput
+                  ? 'bg-primary/10 text-primary border border-primary/30'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              )}
+            >
+              Apply
+            </button>
           </div>
-        )}
+        </div>
 
         {/* Live preview */}
         <div>
-          <p className="text-sm font-medium mb-2">Preview</p>
-          <div
-            className="rounded-xl overflow-hidden border border-border/50 shadow-sm transition-colors duration-200"
-            style={{ background: currentBg }}
-          >
-            {/* Mock nav bar */}
-            <div
-              className="px-4 py-2.5 flex items-center justify-between border-b"
-              style={{
-                background: `${currentBg}cc`,
-                borderColor: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-              }}
-            >
-              <div className="flex gap-1.5">
-                {[1,2,3].map(i => (
-                  <div key={i} className="h-1.5 rounded-full" style={{ width: i === 1 ? 32 : i === 2 ? 22 : 16, background: dark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.25)' }} />
-                ))}
-              </div>
-              <div className="w-5 h-5 rounded-full" style={{ background: 'hsl(var(--primary))' }} />
-            </div>
-            {/* Mock content */}
-            <div className="p-3 space-y-2">
-              {/* Mock card */}
-              <div
-                className="rounded-lg p-3 space-y-1.5"
-                style={{ background: dark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.75)', border: `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)'}` }}
-              >
-                <div className="h-2 rounded-full w-24" style={{ background: dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }} />
-                <div className="h-1.5 rounded-full w-16" style={{ background: dark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)' }} />
-                <div className="h-1.5 rounded-full w-20" style={{ background: dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' }} />
-              </div>
-              <div className="flex gap-2">
-                <div className="flex-1 h-6 rounded-md" style={{ background: 'hsl(var(--primary))', opacity: 0.85 }} />
-                <div className="flex-1 h-6 rounded-md" style={{ background: dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)' }} />
-              </div>
-            </div>
-          </div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Preview</p>
+          <MiniPreview bg={currentBg} />
         </div>
 
       </CardContent>
