@@ -48,14 +48,14 @@ export default function StreakPanel({ userEmail }) {
   });
 
   return (
-    <Card className="border rounded-2xl">
-      <CardHeader className="pb-4">
+    <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
+      <CardHeader className="pb-4 px-5 pt-5">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center shrink-0">
             <Target className="w-4 h-4 text-foreground" />
           </div>
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-base font-semibold">Discipline & Execution</CardTitle>
+            <CardTitle className="text-lg font-bold tracking-tight">Discipline & Execution</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
               {passingCount} passing · {atRiskCount > 0 ? `${atRiskCount} need attention` : 'nothing at risk this week'}
             </p>

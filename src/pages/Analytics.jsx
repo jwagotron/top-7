@@ -79,26 +79,26 @@ export default function Analytics() {
           </SelectContent>
         </Select>
       </TopBar>
-      <div className="p-4 lg:p-6 max-w-7xl mx-auto pb-24 lg:pb-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 lg:mb-6">
+      <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-6 pb-24 lg:pb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: 'Workouts', value: filtered.length, unit: '' },
             { label: 'Distance', value: toDisplay(filtered.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1), unit: label },
             { label: 'Total Time', value: Math.round(filtered.reduce((s, w) => s + (w.duration_minutes || 0), 0) / 60), unit: 'hrs' },
             { label: 'Avg HR', value: filtered.filter(w => w.avg_heart_rate).length > 0 ? Math.round(filtered.filter(w => w.avg_heart_rate).reduce((s, w) => s + w.avg_heart_rate, 0) / filtered.filter(w => w.avg_heart_rate).length) : '—', unit: 'bpm' },
           ].map(s => (
-            <Card key={s.label} className="rounded-2xl border min-w-0">
-              <CardContent className="p-3 lg:p-4">
-                <p className="text-[11px] text-muted-foreground truncate">{s.label}</p>
-                <p className="text-xl font-bold mt-1 leading-tight break-all">{s.value} <span className="text-xs font-normal text-muted-foreground">{s.unit}</span></p>
+            <Card key={s.label} className="rounded-2xl border min-w-0 bg-muted/40 border-border/30">
+              <CardContent className="p-4">
+                <p className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wide truncate">{s.label}</p>
+                <p className="text-2xl font-bold mt-2 leading-none break-all text-foreground">{s.value} <span className="text-xs font-normal text-muted-foreground/70">{s.unit}</span></p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6 mb-4 lg:mb-6">
-          <Card className="rounded-2xl border">
-            <CardHeader className="pb-2"><CardTitle className="text-base">Weekly Volume</CardTitle></CardHeader>
+        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
+          <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
+            <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-lg font-bold tracking-tight">Weekly Volume</CardTitle></CardHeader>
             <CardContent>
               <div className="h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -114,8 +114,8 @@ export default function Analytics() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border">
-            <CardHeader className="pb-2"><CardTitle className="text-base">Sport Distribution</CardTitle></CardHeader>
+          <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
+            <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-lg font-bold tracking-tight">Sport Distribution</CardTitle></CardHeader>
             <CardContent>
               <div className="h-[250px] flex items-center justify-center">
                 {pieData.length === 0 ? (
@@ -136,8 +136,8 @@ export default function Analytics() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
-          <Card className="rounded-2xl border">
-            <CardHeader className="pb-2"><CardTitle className="text-base">Heart Rate Trend</CardTitle></CardHeader>
+          <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
+            <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-lg font-bold tracking-tight">Heart Rate Trend</CardTitle></CardHeader>
             <CardContent>
               <div className="h-[250px]">
                 {hrData.length === 0 ? (
@@ -158,8 +158,8 @@ export default function Analytics() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border">
-            <CardHeader className="pb-2"><CardTitle className="text-base">Effort Distribution</CardTitle></CardHeader>
+          <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
+            <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-lg font-bold tracking-tight">Effort Distribution</CardTitle></CardHeader>
             <CardContent>
               <div className="h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">

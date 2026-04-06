@@ -37,7 +37,7 @@ export default function AccountSettings() {
   return (
     <div className="min-h-screen bg-background">
       <TopBar title="Account Settings" />
-      <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-5 pb-24 lg:pb-6">
+      <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-5 pb-24 lg:pb-8">
 
         {/* Profile */}
         <Card>

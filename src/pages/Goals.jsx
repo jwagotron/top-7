@@ -66,14 +66,14 @@ export default function Goals() {
             <p className="text-muted-foreground">Set your first goal to start tracking progress!</p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 gap-3 lg:gap-4">
+          <div className="grid sm:grid-cols-2 gap-4 lg:gap-5">
             {goals.map(goal => {
               const Icon = categoryIcons[goal.category] || Target;
               const progress = goal.target_value ? Math.min(100, ((goal.current_value || 0) / goal.target_value) * 100) : 0;
               return (
                 <Card key={goal.id} className="border rounded-2xl group hover:shadow-md transition-all">
                   <CardContent className="p-5">
-                    <div className="flex items-start gap-3 mb-3">
+                    <div className="flex items-start gap-3 mb-4">
                       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                         <Icon className="w-5 h-5 text-primary" />
                       </div>
@@ -94,7 +94,7 @@ export default function Goals() {
                         </Badge>
                       </div>
                     </div>
-                    {goal.description && <p className="text-xs text-muted-foreground mb-3">{goal.description}</p>}
+                    {goal.description && <p className="text-xs text-muted-foreground/70 mb-4">{goal.description}</p>}
                     {goal.target_value && (
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs">

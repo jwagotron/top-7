@@ -68,7 +68,7 @@ export default function TrainingPlans() {
           <Plus className="w-4 h-4" /> New Plan
         </Button>
       </TopBar>
-      <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-4 pb-24 lg:pb-6">
+      <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-5 pb-24 lg:pb-8">
         {isLoading ? (
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -106,8 +106,8 @@ export default function TrainingPlans() {
                 </div>
               </CardHeader>
               {isExpanded && (
-                <CardContent className="pt-0 space-y-2 px-4 lg:px-6">
-                  <div className="flex gap-2 mb-3 flex-wrap">
+                <CardContent className="pt-0 space-y-3 px-4 lg:px-6 pb-5">
+                  <div className="flex gap-2 mb-4 flex-wrap">
                     <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setShowWorkoutForm(plan.id); }} className="gap-1">
                       <Plus className="w-3 h-3" /> Add Workout
                     </Button>
