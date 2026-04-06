@@ -1,35 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, Dumbbell, Calendar, BarChart3, 
-  Target, MessageSquare, ChevronLeft, ChevronRight, ShieldCheck,
-  History, Wifi, Hammer, Settings, Shield, Activity
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/lib/AuthContext';
 import { useRole } from '@/lib/RoleContext';
-
-const athleteItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/workouts', label: 'My Runs', icon: Dumbbell },
-  { path: '/activities', label: 'Activity History', icon: History },
-  { path: '/plans', label: 'Training Plans', icon: Calendar },
-  { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-  { path: '/goals', label: 'Goals', icon: Target },
-  { path: '/messages', label: 'Messages', icon: MessageSquare },
-  { path: '/shoes', label: 'Shoe Tracker', icon: Activity },
-  { path: '/garmin', label: 'Garmin Connect', icon: Wifi },
-  { path: '/settings', label: 'Settings', icon: Settings },
-];
-
-const coachItems = [
-  { path: '/coach', label: 'Coach Panel', icon: ShieldCheck },
-  { path: '/workout-builder', label: 'Workout Builder', icon: Hammer },
-];
-
-const adminItems = [
-  { path: '/admin', label: 'Admin Panel', icon: Shield },
-];
+import { NAV_ITEMS } from '@/lib/roleConfig';
 
 function NavLink({ path, label, icon: Icon, collapsed, isActive }) {
   return (
@@ -50,53 +24,53 @@ function NavLink({ path, label, icon: Icon, collapsed, isActive }) {
 
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
-  const { user } = useAuth();
   const { role } = useRole();
-  // Use local role (from RoleContext) first, fallback to auth user role
-  const effectiveRole = role || user?.role || 'athlete';
-  const isCoachOrAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
+  const items = NAV_ITEMS[role] || NAV_ITEMS.athlete;
 
-  const isActive = (path) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+  const isActive = (path) =>
+    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
   return (
     <aside className={cn(
       "fixed left-0 top-0 h-screen bg-sidebar text-sidebar-foreground z-40 transition-all duration-300 flex flex-col",
       collapsed ? "w-[72px]" : "w-[240px]"
     )}>
+      {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
         <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
-          <img src="https://media.base44.com/images/public/69c32a03dfe10b4cd6245abe/cbf2fa9c6_image.png" alt="Top 7 Logo" className="w-full h-full object-cover" />
+          <img
+            src="https://media.base44.com/images/public/69c32a03dfe10b4cd6245abe/cbf2fa9c6_image.png"
+            alt="Top 7"
+            className="w-full h-full object-cover"
+          />
         </div>
         {!collapsed && (
           <span className="font-bold text-lg text-sidebar-primary-foreground tracking-tight">Top 7</span>
         )}
       </div>
 
+      {/* Role label */}
+      {!collapsed && (
+        <div className="px-4 py-2 border-b border-sidebar-border/50">
+          <span className="text-[10px] uppercase tracking-widest text-sidebar-foreground/40 font-semibold capitalize">
+            {role} mode
+          </span>
+        </div>
+      )}
+
+      {/* Nav */}
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-        {athleteItems.map(item => (
-          <NavLink key={item.path} {...item} collapsed={collapsed} isActive={isActive(item.path)} />
+        {items.map(item => (
+          <NavLink
+            key={item.path}
+            {...item}
+            collapsed={collapsed}
+            isActive={isActive(item.path)}
+          />
         ))}
-
-        {isCoachOrAdmin && (
-          <>
-            {!collapsed && <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/30 px-3 pt-3 pb-1">Coaching</p>}
-            {collapsed && <div className="h-px bg-sidebar-border my-2" />}
-            {coachItems.map(item => (
-              <NavLink key={item.path} {...item} collapsed={collapsed} isActive={isActive(item.path)} />
-            ))}
-          </>
-        )}
-
-        {effectiveRole === 'admin' && (
-          <>
-            {!collapsed && <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/30 px-3 pt-3 pb-1">Admin</p>}
-            {adminItems.map(item => (
-              <NavLink key={item.path} {...item} collapsed={collapsed} isActive={isActive(item.path)} />
-            ))}
-          </>
-        )}
       </nav>
 
+      {/* Collapse toggle */}
       <button
         onClick={onToggle}
         className="mx-3 mb-4 p-2.5 rounded-lg hover:bg-sidebar-accent transition-colors flex items-center justify-center"

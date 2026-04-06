@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import StatCard from '@/components/dashboard/StatCard';
@@ -10,9 +11,20 @@ import RacePredictor from '@/components/predictor/RacePredictor';
 import StreakPanel from '@/components/streaks/StreakPanel';
 import { Activity, MapPin, Clock, Flame } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
+import { useRole } from '@/lib/RoleContext';
+import { DEFAULT_ROUTE } from '@/lib/roleConfig';
 import { startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 
 export default function Dashboard() {
+  const { role } = useRole();
+  const navigate = useNavigate();
+
+  // Redirect non-athletes away from athlete dashboard
+  useEffect(() => {
+    if (role && role !== 'athlete') {
+      navigate(DEFAULT_ROUTE[role], { replace: true });
+    }
+  }, [role]);
   const [userEmail, setUserEmail] = useState(null);
   useEffect(() => {
     base44.auth.me().then(u => setUserEmail(u?.email)).catch(() => {});

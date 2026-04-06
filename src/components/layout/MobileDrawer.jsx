@@ -1,41 +1,12 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import {
-  LayoutDashboard, Dumbbell, Calendar, Settings,
-  History, BarChart3, Target, MessageSquare,
-  Activity, Wifi, Hammer, ShieldCheck, Shield,
-  X, LogOut, HelpCircle, ChevronRight
-} from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { X, LogOut, HelpCircle, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
 import { useDrawer } from '@/lib/DrawerContext';
 import { base44 } from '@/api/base44Client';
 import { useRole } from '@/lib/RoleContext';
-
-const mainNav = [
-  { path: '/',         label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/workouts', label: 'Runs',      icon: Dumbbell },
-  { path: '/plans',    label: 'Plans',     icon: Calendar },
-  { path: '/settings', label: 'Settings',  icon: Settings },
-];
-
-const toolsNav = [
-  { path: '/activities',      label: 'Activity History', icon: History },
-  { path: '/analytics',       label: 'Analytics',        icon: BarChart3 },
-  { path: '/goals',           label: 'Goals',            icon: Target },
-  { path: '/messages',        label: 'Messages',         icon: MessageSquare },
-  { path: '/shoes',           label: 'Shoe Tracker',     icon: Activity },
-  { path: '/garmin',          label: 'Garmin Connect',   icon: Wifi },
-];
-
-const coachNav = [
-  { path: '/coach',           label: 'Coach Panel',      icon: ShieldCheck },
-  { path: '/workout-builder', label: 'Workout Builder',  icon: Hammer },
-];
-
-const adminNav = [
-  { path: '/admin',           label: 'Admin Panel',      icon: Shield },
-];
+import { NAV_ITEMS } from '@/lib/roleConfig';
 
 function DrawerLink({ path, label, icon: Icon, onClick }) {
   const location = useLocation();
@@ -54,26 +25,13 @@ function DrawerLink({ path, label, icon: Icon, onClick }) {
     >
       <div className={cn(
         'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-200',
-        isActive
-          ? 'bg-white/20'
-          : 'bg-sidebar-accent/60 group-hover:bg-sidebar-accent'
+        isActive ? 'bg-white/20' : 'bg-sidebar-accent/60 group-hover:bg-sidebar-accent'
       )}>
         <Icon className="w-4 h-4" />
       </div>
       <span className="flex-1 leading-none">{label}</span>
       {isActive && <div className="w-1.5 h-1.5 rounded-full bg-white/70 shrink-0" />}
     </Link>
-  );
-}
-
-function SectionLabel({ children }) {
-  return (
-    <div className="flex items-center gap-2 px-3 pt-5 pb-2">
-      <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground/30">
-        {children}
-      </span>
-      <div className="flex-1 h-px bg-sidebar-border/50" />
-    </div>
   );
 }
 
@@ -86,8 +44,7 @@ export default function MobileDrawer() {
   const { open, close } = useDrawer();
   const { user } = useAuth();
   const { role } = useRole();
-  const effectiveRole = role || user?.role || 'athlete';
-  const isCoachOrAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
+  const items = NAV_ITEMS[role] || NAV_ITEMS.athlete;
 
   const handleLogout = () => {
     close();
@@ -129,7 +86,10 @@ export default function MobileDrawer() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="font-bold text-[15px] text-sidebar-foreground tracking-tight">Top 7</span>
+            <div>
+              <span className="font-bold text-[15px] text-sidebar-foreground tracking-tight block leading-tight">Top 7</span>
+              <span className="text-[10px] text-sidebar-foreground/40 uppercase tracking-widest capitalize">{role} mode</span>
+            </div>
           </div>
           <button
             onClick={close}
@@ -149,63 +109,32 @@ export default function MobileDrawer() {
               onClick={close}
               className="group flex items-center gap-3.5 mx-0 mt-4 mb-1 px-3 py-3.5 rounded-2xl bg-sidebar-accent/40 hover:bg-sidebar-accent transition-all duration-200 active:scale-[0.98]"
             >
-              {/* Avatar */}
               <div className="w-11 h-11 rounded-full bg-gradient-to-br from-sidebar-primary/60 to-sidebar-primary flex items-center justify-center shrink-0 text-white font-bold text-sm shadow-md">
                 {getInitials(user.full_name)}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-sidebar-foreground truncate leading-tight">
-                  {user.full_name || 'Athlete'}
+                  {user.full_name || 'User'}
                 </p>
-                <p className="text-xs text-sidebar-foreground/45 truncate mt-0.5">
-                  {user.email}
-                </p>
+                <p className="text-xs text-sidebar-foreground/45 truncate mt-0.5">{user.email}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-sidebar-foreground/30 group-hover:text-sidebar-foreground/60 transition-colors shrink-0" />
             </Link>
           )}
 
-          {/* Main nav */}
-          <SectionLabel>Navigation</SectionLabel>
+          {/* Nav items for current role */}
+          <div className="flex items-center gap-2 px-3 pt-5 pb-2">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground/30">
+              Navigation
+            </span>
+            <div className="flex-1 h-px bg-sidebar-border/50" />
+          </div>
           <div className="space-y-0.5">
-            {mainNav.map(item => (
+            {items.map(item => (
               <DrawerLink key={item.path} {...item} onClick={close} />
             ))}
           </div>
 
-          {/* Tools */}
-          <SectionLabel>Tools</SectionLabel>
-          <div className="space-y-0.5">
-            {toolsNav.map(item => (
-              <DrawerLink key={item.path} {...item} onClick={close} />
-            ))}
-          </div>
-
-          {/* Coach */}
-          {isCoachOrAdmin && (
-            <>
-              <SectionLabel>Coaching</SectionLabel>
-              <div className="space-y-0.5">
-                {coachNav.map(item => (
-                  <DrawerLink key={item.path} {...item} onClick={close} />
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Admin */}
-          {effectiveRole === 'admin' && (
-            <>
-              <SectionLabel>Admin</SectionLabel>
-              <div className="space-y-0.5">
-                {adminNav.map(item => (
-                  <DrawerLink key={item.path} {...item} onClick={close} />
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Spacer before footer items in scroll area */}
           <div className="h-4" />
         </div>
 

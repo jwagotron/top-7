@@ -1,15 +1,31 @@
-import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
 import MobileDrawer from './MobileDrawer';
 import { DrawerProvider } from '@/lib/DrawerContext';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/lib/RoleContext';
+import { DEFAULT_ROUTE, isRouteAllowed } from '@/lib/roleConfig';
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const { role } = useRole();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Redirect when role changes or route is not allowed for current role
+  useEffect(() => {
+    if (!role) return;
+    const allowed = isRouteAllowed(role, location.pathname);
+    const defaultRoute = DEFAULT_ROUTE[role] || '/';
+
+    console.log(`[RoleGuard] role=${role} route=${location.pathname} allowed=${allowed} mode=${role}`);
+
+    if (!allowed) {
+      navigate(defaultRoute, { replace: true });
+    }
+  }, [role, location.pathname]);
 
   return (
     <DrawerProvider>

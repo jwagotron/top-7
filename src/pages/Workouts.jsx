@@ -15,9 +15,12 @@ import { format, isSameDay, addMonths, subMonths } from 'date-fns';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
+import { useRole } from '@/lib/RoleContext';
 
 export default function Workouts() {
   const { user } = useAuth();
+  const { role } = useRole();
+  const isAthlete = role === 'athlete';
   const { toDisplay, label } = useUnits();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -109,12 +112,16 @@ export default function Workouts() {
     <div className="min-h-screen bg-background">
       <PullToRefreshIndicator {...ptr} />
       <TopBar title="My Runs">
-        <Button variant="outline" onClick={() => setShowGpxImport(true)} className="gap-1 lg:gap-2 px-2 lg:px-4">
-          <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import </span>GPX
-        </Button>
-        <Button onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }} className="gap-1 lg:gap-2 px-3 lg:px-4">
-          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Log </span>Run
-        </Button>
+        {isAthlete && (
+          <Button variant="outline" onClick={() => setShowGpxImport(true)} className="gap-1 lg:gap-2 px-2 lg:px-4">
+            <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import </span>GPX
+          </Button>
+        )}
+        {isAthlete && (
+          <Button onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }} className="gap-1 lg:gap-2 px-3 lg:px-4">
+            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Log </span>Run
+          </Button>
+        )}
       </TopBar>
 
       <div className="p-4 lg:p-6 max-w-7xl mx-auto pb-24 lg:pb-6">
@@ -152,12 +159,14 @@ export default function Workouts() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm">{format(selectedDate, 'EEEE, MMM d')}</h3>
-              <button
-                onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }}
-                className="text-xs text-primary hover:underline flex items-center gap-1"
-              >
-                <Plus className="w-3 h-3" /> Log run
-              </button>
+              {isAthlete && (
+                <button
+                  onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }}
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" /> Log run
+                </button>
+              )}
             </div>
 
             {dayPlanned.length === 0 && dayWorkouts.length === 0 && (

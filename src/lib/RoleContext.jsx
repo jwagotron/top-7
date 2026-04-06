@@ -15,6 +15,7 @@ export function RoleProvider({ children }) {
     if (!VALID_ROLES.includes(newRole)) return;
     localStorage.setItem(ROLE_KEY, newRole);
     setRoleState(newRole);
+    console.log(`[RoleContext] role changed → ${newRole}`);
   };
 
   const clearRole = () => {

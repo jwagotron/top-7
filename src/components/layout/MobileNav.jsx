@@ -1,20 +1,17 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Dumbbell, Calendar, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const tabs = [
-  { path: '/',         label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/workouts', label: 'Runs',      icon: Dumbbell },
-  { path: '/plans',    label: 'Plans',     icon: Calendar },
-  { path: '/settings', label: 'Settings',  icon: Settings },
-];
+import { useRole } from '@/lib/RoleContext';
+import { MOBILE_NAV_TABS } from '@/lib/roleConfig';
 
 export default function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { role } = useRole();
+  const tabs = MOBILE_NAV_TABS[role] || MOBILE_NAV_TABS.athlete;
 
-  const isActive = (path) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+  const isActive = (path) =>
+    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
   return (
     <nav
