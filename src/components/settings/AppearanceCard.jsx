@@ -154,31 +154,33 @@ export default function AppearanceCard() {
         {/* Custom hex input */}
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Custom Color</p>
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <div className="relative shrink-0">
+                <input
+                  type="color"
+                  value={customInput}
+                  onChange={e => handleCustomHex(e.target.value)}
+                  className="w-10 h-10 rounded-lg border border-border cursor-pointer opacity-0 absolute inset-0"
+                />
+                <div
+                  className="w-10 h-10 rounded-lg border-2 border-border shadow-sm cursor-pointer"
+                  style={{ background: customInput }}
+                />
+              </div>
               <input
-                type="color"
+                type="text"
                 value={customInput}
                 onChange={e => handleCustomHex(e.target.value)}
-                className="w-10 h-10 rounded-lg border border-border cursor-pointer opacity-0 absolute inset-0"
-              />
-              <div
-                className="w-10 h-10 rounded-lg border-2 border-border shadow-sm cursor-pointer"
-                style={{ background: customInput }}
+                className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm font-mono tracking-wider"
+                placeholder="#141822"
+                maxLength={7}
               />
             </div>
-            <input
-              type="text"
-              value={customInput}
-              onChange={e => handleCustomHex(e.target.value)}
-              className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm font-mono tracking-wider"
-              placeholder="#141822"
-              maxLength={7}
-            />
             <button
               onClick={() => setTheme({ mode: 'custom', customColor: customInput })}
               className={cn(
-                'h-9 px-4 rounded-md text-xs font-medium transition-colors',
+                'w-full h-9 rounded-md text-xs font-medium transition-colors',
                 theme.mode === 'custom' && theme.customColor === customInput
                   ? 'bg-primary/10 text-primary border border-primary/30'
                   : 'bg-primary text-primary-foreground hover:bg-primary/90'
