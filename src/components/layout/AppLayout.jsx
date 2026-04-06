@@ -16,7 +16,7 @@ export default function AppLayout() {
 
       <main
         className={cn(
-          "transition-all duration-300 min-h-screen overflow-x-hidden",
+          "transition-all duration-300 min-h-screen overflow-x-hidden pb-20 lg:pb-0",
           collapsed ? "lg:ml-[72px]" : "lg:ml-[240px]"
         )}
       >
