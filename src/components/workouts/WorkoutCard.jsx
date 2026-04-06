@@ -21,7 +21,7 @@ export default function WorkoutCard({ workout, onEdit, onDelete }) {
   const { toDisplay, label, convertPaceLabel, toDisplayElevation, elevationLabel } = useUnits();
 
   return (
-    <Card className="border border-border rounded-2xl hover:shadow-md transition-all duration-200 group">
+    <Card className="border border-border rounded-2xl hover:shadow-md active:scale-[0.99] active:shadow-sm transition-all duration-150 group cursor-pointer">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${sportColors[workout.sport]}`}>

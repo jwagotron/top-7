@@ -28,14 +28,14 @@ export default function MobileNav() {
             key={path}
             onClick={() => navigate(path)}
             className={cn(
-              'flex-1 flex flex-col items-center justify-center py-3 gap-1.5 text-[10px] font-semibold tracking-wide transition-all duration-200 select-none',
+              'flex-1 flex flex-col items-center justify-center py-3 gap-1.5 text-[10px] font-semibold tracking-wide transition-all duration-150 select-none active:opacity-70',
               active
                 ? 'text-sidebar-primary'
                 : 'text-sidebar-foreground/40 hover:text-sidebar-foreground/70'
             )}
           >
             <span className={cn(
-              'flex items-center justify-center w-9 h-6 rounded-lg transition-all duration-200',
+              'flex items-center justify-center w-9 h-6 rounded-lg transition-all duration-150 active:scale-90',
               active ? 'bg-sidebar-primary/15 shadow-[0_0_8px_0_hsl(var(--sidebar-primary)/0.3)]' : ''
             )}>
               <Icon className={cn('transition-all duration-200', active ? 'w-5 h-5' : 'w-[18px] h-[18px]')} />

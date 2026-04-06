@@ -29,7 +29,7 @@ export default function RecentActivity({ workouts }) {
         ) : recent.map((w) => {
           const SportIcon = sportIcons[w.sport] || CircleDot;
           return (
-            <div key={w.id} className="flex items-start gap-3 p-3 rounded-xl bg-background/60 border border-border/30 hover:bg-background/90 transition-colors">
+            <div key={w.id} className="flex items-start gap-3 p-3 rounded-xl bg-background/60 border border-border/30 hover:bg-background/90 active:scale-[0.99] active:bg-background transition-all duration-150">
               <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0 mt-0.5">
                 <SportIcon className="w-4 h-4 text-secondary" />
               </div>

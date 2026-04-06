@@ -19,7 +19,7 @@ export default function StatCard({ title, value, unit, icon: Icon, trend, color 
       "bg-card shadow-lg",
       c.glow,
       "border border-border/40",
-      "transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
+      "transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] active:shadow-md"
     )}>
       {/* Subtle background gradient bloom */}
       <div className={cn(
