@@ -16,9 +16,13 @@ import {
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useUnits } from '@/hooks/useUnits';
+import { useRole } from '@/lib/RoleContext';
+
+const ROLE_LABELS = { athlete: 'Athlete', coach: 'Coach', admin: 'Admin' };
 
 export default function AccountSettings() {
   const { user } = useAuth();
+  const { role, setRole } = useRole();
   const { units, setUnits } = useUnits();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -69,17 +73,30 @@ export default function AccountSettings() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2"><Shield className="w-4 h-4 shrink-0" /> Role & Access</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">Current Role</p>
-                <p className="text-xs text-muted-foreground">Your role controls what features you can access.</p>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm font-medium mb-1">Switch Role</p>
+              <p className="text-xs text-muted-foreground mb-3">Your role controls which features and navigation items are visible.</p>
+              <div className="flex rounded-xl border border-border overflow-hidden">
+                {['athlete', 'coach', 'admin'].map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setRole(r)}
+                    className={`flex-1 py-2.5 text-sm font-semibold capitalize transition-all duration-200 ${
+                      role === r
+                        ? 'bg-primary text-primary-foreground shadow-inner'
+                        : 'bg-background text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {ROLE_LABELS[r]}
+                  </button>
+                ))}
               </div>
-              <Badge className="capitalize shrink-0">{user?.role || 'user'}</Badge>
             </div>
-            <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
-              <strong>Athlete:</strong> View workouts, log activities, connect Garmin.<br />
-              <strong>Coach / Admin:</strong> Access Coach Panel, assign workouts, view all athletes.
+            <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground space-y-1">
+              <p><strong>Athlete:</strong> View workouts, log activities, connect Garmin.</p>
+              <p><strong>Coach:</strong> Manage athletes, assign workouts, build plans.</p>
+              <p><strong>Admin:</strong> Full access including admin panel and all tools.</p>
             </div>
           </CardContent>
         </Card>

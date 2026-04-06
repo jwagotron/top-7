@@ -5,9 +5,11 @@ import MobileNav from './MobileNav';
 import MobileDrawer from './MobileDrawer';
 import { DrawerProvider } from '@/lib/DrawerContext';
 import { cn } from '@/lib/utils';
+import { useRole } from '@/lib/RoleContext';
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const { role } = useRole();
 
   return (
     <DrawerProvider>
@@ -31,6 +33,14 @@ export default function AppLayout() {
 
         {/* Bottom tab bar — mobile only */}
         <MobileNav />
+
+        {/* Debug role badge */}
+        <div className="fixed top-2 right-2 z-50 pointer-events-none">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-mono font-medium backdrop-blur-sm select-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+            {role}
+          </span>
+        </div>
       </div>
     </DrawerProvider>
   );

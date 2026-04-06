@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
 import { useDrawer } from '@/lib/DrawerContext';
 import { base44 } from '@/api/base44Client';
+import { useRole } from '@/lib/RoleContext';
 
 const mainNav = [
   { path: '/',         label: 'Dashboard', icon: LayoutDashboard },
@@ -84,7 +85,9 @@ function getInitials(name) {
 export default function MobileDrawer() {
   const { open, close } = useDrawer();
   const { user } = useAuth();
-  const isCoachOrAdmin = user?.role === 'admin' || user?.role === 'coach';
+  const { role } = useRole();
+  const effectiveRole = role || user?.role || 'athlete';
+  const isCoachOrAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
 
   const handleLogout = () => {
     close();
@@ -191,7 +194,7 @@ export default function MobileDrawer() {
           )}
 
           {/* Admin */}
-          {user?.role === 'admin' && (
+          {effectiveRole === 'admin' && (
             <>
               <SectionLabel>Admin</SectionLabel>
               <div className="space-y-0.5">

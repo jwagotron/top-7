@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
+import { useRole } from '@/lib/RoleContext';
 
 const athleteItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -50,7 +51,10 @@ function NavLink({ path, label, icon: Icon, collapsed, isActive }) {
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
   const { user } = useAuth();
-  const isCoachOrAdmin = user?.role === 'admin' || user?.role === 'coach';
+  const { role } = useRole();
+  // Use local role (from RoleContext) first, fallback to auth user role
+  const effectiveRole = role || user?.role || 'athlete';
+  const isCoachOrAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
 
   const isActive = (path) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
@@ -83,7 +87,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           </>
         )}
 
-        {user?.role === 'admin' && (
+        {effectiveRole === 'admin' && (
           <>
             {!collapsed && <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/30 px-3 pt-3 pb-1">Admin</p>}
             {adminItems.map(item => (

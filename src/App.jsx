@@ -9,6 +9,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from '@/components/layout/AppLayout';
 import { ThemeProvider } from '@/lib/ThemeContext';
+import { RoleProvider, useRole } from '@/lib/RoleContext';
+import RoleSelectionScreen from '@/components/RoleSelectionScreen';
 
 const Dashboard      = lazy(() => import('@/pages/Dashboard'));
 const Workouts       = lazy(() => import('@/pages/Workouts'));
@@ -76,6 +78,7 @@ function AnimatedRoutes() {
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { role } = useRole();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -90,20 +93,25 @@ const AuthenticatedApp = () => {
     if (authError.type === 'auth_required') { navigateToLogin(); return null; }
   }
 
+  // Gate on role selection — works in preview without auth
+  if (!role) return <RoleSelectionScreen />;
+
   return <AnimatedRoutes />;
 };
 
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <Router>
-            <AuthenticatedApp />
-          </Router>
-          <Toaster />
-        </QueryClientProvider>
-      </AuthProvider>
+      <RoleProvider>
+        <AuthProvider>
+          <QueryClientProvider client={queryClientInstance}>
+            <Router>
+              <AuthenticatedApp />
+            </Router>
+            <Toaster />
+          </QueryClientProvider>
+        </AuthProvider>
+      </RoleProvider>
     </ThemeProvider>
   );
 }
