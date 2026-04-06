@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
@@ -14,15 +14,18 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Redirect when role changes or route is not allowed for current role
+  // On role change → always redirect to that role's default home
+  const prevRoleRef = useRef(role);
   useEffect(() => {
     if (!role) return;
-    const allowed = isRouteAllowed(role, location.pathname);
     const defaultRoute = DEFAULT_ROUTE[role] || '/';
-
-    console.log(`[RoleGuard] role=${role} route=${location.pathname} allowed=${allowed} mode=${role}`);
-
-    if (!allowed) {
+    if (prevRoleRef.current !== role) {
+      prevRoleRef.current = role;
+      navigate(defaultRoute, { replace: true });
+      return;
+    }
+    // Guard: redirect if current route not allowed for this role
+    if (!isRouteAllowed(role, location.pathname)) {
       navigate(defaultRoute, { replace: true });
     }
   }, [role, location.pathname]);
