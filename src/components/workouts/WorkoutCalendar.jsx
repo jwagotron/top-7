@@ -38,9 +38,9 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
   const getPlannedForDay = (date) => plannedWorkouts.filter(w => isSameDay(new Date(w.scheduled_date), date));
 
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden">
+    <div className="bg-card border border-border/40 rounded-2xl overflow-hidden shadow-sm">
       {/* Month navigation */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
         <h2 className="font-bold text-lg tracking-tight">{format(currentMonth, 'MMMM yyyy')}</h2>
         <div className="flex gap-1">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onMonthChange(-1)}>
@@ -56,9 +56,9 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
       </div>
 
       {/* Day headers */}
-      <div className="grid grid-cols-7 border-b border-border">
+      <div className="grid grid-cols-7 border-b border-border/20">
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-          <div key={d} className="py-2 text-center text-xs font-semibold text-muted-foreground">{d}</div>
+          <div key={d} className="py-2.5 text-center text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wide">{d}</div>
         ))}
       </div>
 
@@ -78,23 +78,24 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
               key={i}
               onClick={() => onSelectDate(day)}
               className={cn(
-                'min-h-[80px] p-1.5 cursor-pointer transition-all border-b border-r border-border/50 relative',
-                !isCurrentMonth && 'opacity-30',
-                isSelected && 'bg-primary/5 ring-1 ring-inset ring-primary/30',
-                !isSelected && 'hover:bg-muted/40',
+                'min-h-[90px] p-2 cursor-pointer transition-all border-b border-r border-border/15 relative',
+                !isCurrentMonth && 'opacity-25',
+                isSelected && 'bg-primary/8 ring-1 ring-inset ring-primary/40',
+                !isSelected && 'hover:bg-muted/30',
                 todayDay && !isSelected && 'bg-secondary/5',
               )}
             >
               {/* Day number */}
               <div className={cn(
-                'w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium mb-1',
-                todayDay ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                'w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium mb-1.5',
+                todayDay ? 'bg-primary text-primary-foreground shadow-sm' : 'text-foreground',
+                isSelected && !todayDay ? 'ring-2 ring-primary/40 bg-primary/10 font-semibold' : ''
               )}>
                 {format(day, 'd')}
               </div>
 
               {/* Workout dots / pills */}
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 {dayPlanned.slice(0, 2).map(pw => (
                   <div
                     key={pw.id}
