@@ -1,19 +1,32 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ChevronDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ChevronDown, Plus } from 'lucide-react';
 
 export default function AssignmentSelector({ value, onChange }) {
+  const { user } = useAuth();
   const [showMultiSelect, setShowMultiSelect] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteName, setInviteName] = useState('');
   const [selected, setSelected] = useState(value.type === 'multiple' ? value.athletes : []);
 
-  const { data: relationships = [] } = useQuery({
-    queryKey: ['coach-athletes'],
-    queryFn: () => base44.entities.CoachAthleteRelationship.list('athlete_name', 100),
+  // Fetch athletes linked to current coach
+  const { data: relationships = [], refetch: refetchRelationships } = useQuery({
+    queryKey: ['coach-athletes', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const all = await base44.entities.CoachAthleteRelationship.list();
+      return all.filter(r => r.coach_email === user.email && r.status === 'active');
+    },
+    enabled: !!user?.email,
   });
 
   const athletes = relationships.map(r => ({ email: r.athlete_email, name: r.athlete_name }));
@@ -35,6 +48,23 @@ export default function AssignmentSelector({ value, onChange }) {
   const handleMultiSelectSave = () => {
     onChange({ type: 'multiple', athletes: selected });
     setShowMultiSelect(false);
+  };
+
+  const handleInviteAthlete = async () => {
+    if (!inviteEmail.trim() || !user?.email) return;
+    
+    // Create relationship linking athlete to coach
+    await base44.entities.CoachAthleteRelationship.create({
+      coach_email: user.email,
+      athlete_email: inviteEmail.toLowerCase(),
+      athlete_name: inviteName.trim() || inviteEmail.split('@')[0],
+      status: 'active'
+    });
+    
+    setInviteEmail('');
+    setInviteName('');
+    setShowInvite(false);
+    refetchRelationships();
   };
 
   const getDisplayLabel = () => {
@@ -65,7 +95,18 @@ export default function AssignmentSelector({ value, onChange }) {
             </DialogHeader>
             <div className="space-y-3">
               {athletes.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4">No athletes found</p>
+                <div className="py-6 text-center space-y-2">
+                  <p className="text-sm font-medium text-foreground">No athletes yet</p>
+                  <p className="text-xs text-muted-foreground">Invite athletes to assign plans</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => { setShowMultiSelect(false); setShowInvite(true); }}
+                    className="gap-1 mt-4"
+                  >
+                    <Plus className="w-4 h-4" /> Invite Athlete
+                  </Button>
+                </div>
               ) : (
                 athletes.map(athlete => (
                   <div key={athlete.email} className="flex items-center gap-2">
@@ -81,12 +122,65 @@ export default function AssignmentSelector({ value, onChange }) {
                 ))
               )}
             </div>
+            <div className="flex justify-between gap-3 pt-4">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowInvite(true)}
+                className="gap-1"
+              >
+                <Plus className="w-4 h-4" /> Invite
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setShowMultiSelect(false)}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleMultiSelectSave} disabled={selected.length === 0}>
+                  Save ({selected.length})
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {showInvite && (
+        <Dialog open onOpenChange={() => setShowInvite(false)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Invite Athlete</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-xs font-medium">Email</Label>
+                <Input
+                  type="email"
+                  placeholder="athlete@example.com"
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-medium">Name (optional)</Label>
+                <Input
+                  placeholder="Athlete Name"
+                  value={inviteName}
+                  onChange={e => setInviteName(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
             <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" size="sm" onClick={() => setShowMultiSelect(false)}>
+              <Button variant="outline" size="sm" onClick={() => setShowInvite(false)}>
                 Cancel
               </Button>
-              <Button size="sm" onClick={handleMultiSelectSave} disabled={selected.length === 0}>
-                Save ({selected.length})
+              <Button
+                size="sm"
+                onClick={handleInviteAthlete}
+                disabled={!inviteEmail.trim()}
+              >
+                Add Athlete
               </Button>
             </div>
           </DialogContent>

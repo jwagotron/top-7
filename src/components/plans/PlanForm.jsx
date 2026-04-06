@@ -23,11 +23,9 @@ export default function PlanForm({ open, onClose, onSubmit, plan, assignment }) 
     // Apply assignment if creating new plan
     if (!plan && assignment) {
       if (assignment.type === 'all') {
-        data.assigned_to = null; // null means all athletes
+        data.assigned_to = []; // empty array means template for all
       } else if (assignment.type === 'multiple' && assignment.athletes.length > 0) {
-        // Create one plan per selected athlete
-        assignment.athletes.forEach(email => onSubmit({ ...data, assigned_to: email }));
-        return;
+        data.assigned_to = assignment.athletes;
       }
     }
     

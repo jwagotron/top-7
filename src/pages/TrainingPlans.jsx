@@ -38,14 +38,20 @@ export default function TrainingPlans() {
   const qc = useQueryClient();
 
   const { data: allPlans = [], isLoading } = useQuery({
-    queryKey: ['plans'],
-    queryFn: () => base44.entities.TrainingPlan.list('-created_date', 50),
+    queryKey: ['plans', user?.email],
+    queryFn: async () => {
+      const all = await base44.entities.TrainingPlan.list('-created_date', 50);
+      // Coaches see only their own plans
+      if (canCreate) {
+        return all.filter(p => p.coach_email === user?.email);
+      }
+      // Athletes see plans assigned to them
+      return all.filter(p => p.assigned_to && p.assigned_to.includes(user?.email));
+    },
+    enabled: !!user?.email,
   });
 
-  // Athletes only see plans assigned to them
-  const plans = canCreate
-    ? allPlans
-    : allPlans.filter(p => !p.assigned_to || p.assigned_to === user?.email);
+  const plans = allPlans;
 
   const { data: allPlannedWorkouts = [] } = useQuery({
     queryKey: ['planned-workouts'],
@@ -53,16 +59,16 @@ export default function TrainingPlans() {
   });
 
   const createPlanMut = useMutation({
-    mutationFn: (d) => base44.entities.TrainingPlan.create(d),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['plans'] }); setShowPlanForm(false); },
+    mutationFn: (d) => base44.entities.TrainingPlan.create({ ...d, coach_email: user?.email }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['plans', user?.email] }); setShowPlanForm(false); },
   });
   const updatePlanMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.TrainingPlan.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['plans'] }); setEditingPlan(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['plans', user?.email] }); setEditingPlan(null); },
   });
   const deletePlanMut = useMutation({
     mutationFn: (id) => base44.entities.TrainingPlan.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['plans'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['plans', user?.email] }),
   });
   const createWorkoutMut = useMutation({
     mutationFn: (d) => base44.entities.PlannedWorkout.create(d),
@@ -110,9 +116,9 @@ export default function TrainingPlans() {
                          {plan.status}
                        </Badge>
                        <Badge variant="outline" className="text-[10px] capitalize">{plan.sport}</Badge>
-                       {plan.assigned_to && (
+                       {plan.assigned_to && plan.assigned_to.length > 0 && (
                          <Badge variant="outline" className="text-[10px] bg-secondary/10 text-secondary">
-                           Assigned
+                           {plan.assigned_to.length === 1 ? '1 athlete' : `${plan.assigned_to.length} athletes`}
                          </Badge>
                        )}
                      </div>

@@ -1,0 +1,73 @@
+{
+  "name": "TrainingPlan",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Plan name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Plan description"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "run",
+        "bike",
+        "swim",
+        "triathlon",
+        "general"
+      ],
+      "description": "Target sport"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced"
+      ],
+      "description": "Difficulty level"
+    },
+    "duration_weeks": {
+      "type": "number",
+      "description": "Plan duration in weeks"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Plan start date"
+    },
+    "goal_event": {
+      "type": "string",
+      "description": "Target event or race"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "paused",
+        "draft"
+      ],
+      "default": "draft",
+      "description": "Plan status"
+    },
+    "assigned_to": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of athlete emails assigned to this plan"
+    },
+    "coach_email": {
+      "type": "string",
+      "description": "Email of the coach"
+    }
+  },
+  "required": [
+    "name",
+    "sport"
+  ]
+}
