@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Dumbbell, Calendar, Settings,
   History, BarChart3, Target, MessageSquare,
   Activity, Wifi, Hammer, ShieldCheck, Shield,
-  X, LogOut, HelpCircle, User
+  X, LogOut, HelpCircle, ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
@@ -45,24 +45,40 @@ function DrawerLink({ path, label, icon: Icon, onClick }) {
       to={path}
       onClick={onClick}
       className={cn(
-        'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
+        'group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 active:scale-[0.98]',
         isActive
-          ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
-          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+          ? 'bg-sidebar-primary/90 text-white shadow-lg shadow-sidebar-primary/20'
+          : 'text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground'
       )}
     >
-      <Icon className="w-5 h-5 shrink-0" />
-      {label}
+      <div className={cn(
+        'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-200',
+        isActive
+          ? 'bg-white/20'
+          : 'bg-sidebar-accent/60 group-hover:bg-sidebar-accent'
+      )}>
+        <Icon className="w-4 h-4" />
+      </div>
+      <span className="flex-1 leading-none">{label}</span>
+      {isActive && <div className="w-1.5 h-1.5 rounded-full bg-white/70 shrink-0" />}
     </Link>
   );
 }
 
 function SectionLabel({ children }) {
   return (
-    <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/30 px-3 pt-4 pb-1">
-      {children}
-    </p>
+    <div className="flex items-center gap-2 px-3 pt-5 pb-2">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground/30">
+        {children}
+      </span>
+      <div className="flex-1 h-px bg-sidebar-border/50" />
+    </div>
   );
+}
+
+function getInitials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
 export default function MobileDrawer() {
@@ -80,64 +96,71 @@ export default function MobileDrawer() {
       {/* Backdrop */}
       <div
         className={cn(
-          'lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300',
+          'lg:hidden fixed inset-0 z-50 transition-all duration-300',
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
+        style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: open ? 'blur(2px)' : 'none' }}
         onClick={close}
       />
 
       {/* Drawer panel */}
       <div
         className={cn(
-          'lg:hidden fixed left-0 top-0 h-full z-50 bg-sidebar flex flex-col transition-transform duration-300 ease-in-out shadow-2xl',
+          'lg:hidden fixed left-0 top-0 h-full z-[60] bg-sidebar flex flex-col',
+          'transition-transform duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)]',
+          'shadow-[4px_0_40px_rgba(0,0,0,0.4)]',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
-        style={{ width: 'min(80vw, 300px)' }}
+        style={{ width: 'min(82vw, 310px)' }}
       >
-        {/* Header */}
+        {/* Branding header */}
         <div
-          className="flex items-center justify-between px-4 border-b border-sidebar-border shrink-0"
+          className="flex items-center justify-between px-5 shrink-0 border-b border-sidebar-border/60"
           style={{ paddingTop: 'env(safe-area-inset-top)', minHeight: '4rem' }}
         >
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-md">
               <img
                 src="https://media.base44.com/images/public/69c32a03dfe10b4cd6245abe/cbf2fa9c6_image.png"
                 alt="Top 7"
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="font-bold text-base text-sidebar-primary-foreground tracking-tight">Top 7</span>
+            <span className="font-bold text-[15px] text-sidebar-foreground tracking-tight">Top 7</span>
           </div>
           <button
             onClick={close}
-            className="p-1.5 rounded-lg text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-150"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto py-3 px-3">
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-3">
 
-          {/* User profile */}
+          {/* User card */}
           {user && (
             <Link
               to="/athlete-profile"
               onClick={close}
-              className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-sidebar-accent transition-colors mb-2"
+              className="group flex items-center gap-3.5 mx-0 mt-4 mb-1 px-3 py-3.5 rounded-2xl bg-sidebar-accent/40 hover:bg-sidebar-accent transition-all duration-200 active:scale-[0.98]"
             >
-              <div className="w-10 h-10 rounded-full bg-sidebar-primary/20 flex items-center justify-center shrink-0">
-                <User className="w-5 h-5 text-sidebar-primary" />
+              {/* Avatar */}
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-sidebar-primary/60 to-sidebar-primary flex items-center justify-center shrink-0 text-white font-bold text-sm shadow-md">
+                {getInitials(user.full_name)}
               </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-sidebar-foreground truncate">{user.full_name || 'Athlete'}</p>
-                <p className="text-xs text-sidebar-foreground/50 truncate">{user.email}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-sidebar-foreground truncate leading-tight">
+                  {user.full_name || 'Athlete'}
+                </p>
+                <p className="text-xs text-sidebar-foreground/45 truncate mt-0.5">
+                  {user.email}
+                </p>
               </div>
+              <ChevronRight className="w-4 h-4 text-sidebar-foreground/30 group-hover:text-sidebar-foreground/60 transition-colors shrink-0" />
             </Link>
           )}
-
-          <div className="h-px bg-sidebar-border my-2" />
 
           {/* Main nav */}
           <SectionLabel>Navigation</SectionLabel>
@@ -178,26 +201,33 @@ export default function MobileDrawer() {
               </div>
             </>
           )}
+
+          {/* Spacer before footer items in scroll area */}
+          <div className="h-4" />
         </div>
 
         {/* Footer */}
         <div
-          className="px-3 py-3 border-t border-sidebar-border space-y-0.5 shrink-0"
+          className="px-3 pt-2 border-t border-sidebar-border/60 shrink-0"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}
         >
           <a
             href="mailto:support@top7.app"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
             onClick={close}
+            className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-sidebar-foreground/55 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-150"
           >
-            <HelpCircle className="w-5 h-5 shrink-0" />
+            <div className="w-8 h-8 rounded-lg bg-sidebar-accent/60 flex items-center justify-center shrink-0">
+              <HelpCircle className="w-4 h-4" />
+            </div>
             Help & Support
           </a>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-all duration-150"
           >
-            <LogOut className="w-5 h-5 shrink-0" />
+            <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
+              <LogOut className="w-4 h-4" />
+            </div>
             Log Out
           </button>
         </div>
