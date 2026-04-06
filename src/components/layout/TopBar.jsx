@@ -26,9 +26,9 @@ export default function TopBar({ title, children }) {
         {title}
       </h1>
 
-      {/* Right-side actions — allowed to shrink, but never crush the title */}
+      {/* Right-side actions — responsive gap and sizing */}
       {children && (
-        <div className="flex items-center gap-1.5 shrink-0 max-w-[55%] sm:max-w-none">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {children}
         </div>
       )}

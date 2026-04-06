@@ -48,10 +48,10 @@ export default function AssignmentSelector({ value, onChange }) {
   return (
     <>
       <Select value={value.type === 'multiple' ? 'multiple' : 'all'} onValueChange={handleSelectChange}>
-        <SelectTrigger className="w-40 h-8 text-sm">
-          <SelectValue placeholder="Assign To" />
+        <SelectTrigger className="h-8 px-2 text-xs sm:text-sm border-0 bg-muted hover:bg-muted/80">
+          <SelectValue placeholder="Assign" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="min-w-40">
           <SelectItem value="all">All Athletes</SelectItem>
           <SelectItem value="multiple">Select Athletes...</SelectItem>
         </SelectContent>

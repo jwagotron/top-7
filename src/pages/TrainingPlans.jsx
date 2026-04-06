@@ -77,10 +77,10 @@ export default function TrainingPlans() {
     <div>
       <TopBar title={canCreate ? "Training Plans" : "My Plans"}>
         {canCreate && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <AssignmentSelector value={assignment} onChange={setAssignment} />
-            <Button onClick={() => setShowPlanForm(true)} size="sm" className="gap-1 h-8 px-2 lg:px-4">
-              <Plus className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">New Plan</span>
+            <Button onClick={() => setShowPlanForm(true)} size="sm" className="h-8 px-2 sm:px-3 lg:px-4 gap-1 shrink-0">
+              <Plus className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline text-xs lg:text-sm">New</span>
             </Button>
           </div>
         )}
