@@ -81,30 +81,19 @@ export default function Analytics() {
       </TopBar>
       <div className="p-4 lg:p-6 max-w-7xl mx-auto pb-24 lg:pb-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 lg:mb-6">
-          <Card className="rounded-2xl border">
-            <CardContent className="p-3 lg:p-4">
-              <p className="text-xs text-muted-foreground">Workouts</p>
-              <p className="text-xl lg:text-2xl font-bold mt-1">{filtered.length}</p>
-            </CardContent>
-          </Card>
-          <Card className="rounded-2xl border">
-            <CardContent className="p-3 lg:p-4">
-              <p className="text-xs text-muted-foreground">Distance</p>
-              <p className="text-xl lg:text-2xl font-bold mt-1">{toDisplay(filtered.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)} <span className="text-xs font-normal text-muted-foreground">{label}</span></p>
-            </CardContent>
-          </Card>
-          <Card className="rounded-2xl border">
-            <CardContent className="p-3 lg:p-4">
-              <p className="text-xs text-muted-foreground">Total Time</p>
-              <p className="text-xl lg:text-2xl font-bold mt-1">{Math.round(filtered.reduce((s, w) => s + (w.duration_minutes || 0), 0) / 60)} <span className="text-xs font-normal text-muted-foreground">hrs</span></p>
-            </CardContent>
-          </Card>
-          <Card className="rounded-2xl border">
-            <CardContent className="p-3 lg:p-4">
-              <p className="text-xs text-muted-foreground">Avg HR</p>
-              <p className="text-xl lg:text-2xl font-bold mt-1">{filtered.filter(w => w.avg_heart_rate).length > 0 ? Math.round(filtered.filter(w => w.avg_heart_rate).reduce((s, w) => s + w.avg_heart_rate, 0) / filtered.filter(w => w.avg_heart_rate).length) : '—'} <span className="text-xs font-normal text-muted-foreground">bpm</span></p>
-            </CardContent>
-          </Card>
+          {[
+            { label: 'Workouts', value: filtered.length, unit: '' },
+            { label: 'Distance', value: toDisplay(filtered.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1), unit: label },
+            { label: 'Total Time', value: Math.round(filtered.reduce((s, w) => s + (w.duration_minutes || 0), 0) / 60), unit: 'hrs' },
+            { label: 'Avg HR', value: filtered.filter(w => w.avg_heart_rate).length > 0 ? Math.round(filtered.filter(w => w.avg_heart_rate).reduce((s, w) => s + w.avg_heart_rate, 0) / filtered.filter(w => w.avg_heart_rate).length) : '—', unit: 'bpm' },
+          ].map(s => (
+            <Card key={s.label} className="rounded-2xl border min-w-0">
+              <CardContent className="p-3 lg:p-4">
+                <p className="text-[11px] text-muted-foreground truncate">{s.label}</p>
+                <p className="text-xl font-bold mt-1 leading-tight break-all">{s.value} <span className="text-xs font-normal text-muted-foreground">{s.unit}</span></p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         <div className="grid lg:grid-cols-2 gap-4 lg:gap-6 mb-4 lg:mb-6">
@@ -115,8 +104,8 @@ export default function Analytics() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={weeklyData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis dataKey="week" axisLine={false} tickLine={false} className="text-xs" />
-                    <YAxis axisLine={false} tickLine={false} className="text-xs" />
+                    <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11 }} width={35} />
                     <Tooltip contentStyle={tooltipStyle} />
                     <Area type="monotone" dataKey="distance" name={`Distance (${label})`} stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} strokeWidth={2} />
                   </AreaChart>
@@ -134,7 +123,7 @@ export default function Analytics() {
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={85} dataKey="value" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
                         {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>
                       <Tooltip contentStyle={tooltipStyle} />
@@ -157,8 +146,8 @@ export default function Analytics() {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={hrData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis dataKey="date" axisLine={false} tickLine={false} className="text-xs" />
-                      <YAxis axisLine={false} tickLine={false} className="text-xs" domain={['auto', 'auto']} />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11 }} width={38} domain={['auto', 'auto']} />
                       <Tooltip contentStyle={tooltipStyle} />
                       <Line type="monotone" dataKey="avg" name="Avg HR" stroke="hsl(var(--destructive))" strokeWidth={2} dot={false} />
                       <Line type="monotone" dataKey="max" name="Max HR" stroke="hsl(var(--accent))" strokeWidth={2} dot={false} strokeDasharray="5 5" />
@@ -176,8 +165,8 @@ export default function Analytics() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={effortDist}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis dataKey="rpe" axisLine={false} tickLine={false} className="text-xs" label={{ value: 'RPE', position: 'bottom', offset: 0, fontSize: 11 }} />
-                    <YAxis axisLine={false} tickLine={false} className="text-xs" />
+                    <XAxis dataKey="rpe" axisLine={false} tickLine={false} tick={{ fontSize: 11 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11 }} width={28} />
                     <Tooltip contentStyle={tooltipStyle} />
                     <Bar dataKey="count" name="Workouts" fill="hsl(var(--secondary))" radius={[6, 6, 0, 0]} />
                   </BarChart>

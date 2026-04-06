@@ -38,23 +38,25 @@ export default function UpcomingWorkouts({ plannedWorkouts }) {
         ) : upcoming.map((w) => {
           const SportIcon = sportIcons[w.sport] || CircleDot;
           return (
-            <div key={w.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <div key={w.id} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                 <SportIcon className="w-4 h-4 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{w.title}</p>
-                <p className="text-xs text-muted-foreground">
+                <div className="flex items-start gap-2 justify-between">
+                  <p className="text-sm font-medium leading-tight flex-1 min-w-0 break-words">{w.title}</p>
+                  {w.intensity && (
+                    <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", intensityColors[w.intensity])}>
+                      {w.intensity.replace('_', ' ')}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 break-words">
                   {format(new Date(w.scheduled_date), 'EEE, MMM d')}
                   {w.target_distance_km ? ` · ${w.target_distance_km} km` : ''}
                   {w.target_duration_minutes ? ` · ${w.target_duration_minutes} min` : ''}
                 </p>
               </div>
-              {w.intensity && (
-                <Badge variant="outline" className={cn("text-[10px] capitalize", intensityColors[w.intensity])}>
-                  {w.intensity.replace('_', ' ')}
-                </Badge>
-              )}
             </div>
           );
         })}

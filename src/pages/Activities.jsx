@@ -67,19 +67,17 @@ export default function Activities() {
       <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-4 pb-24 lg:pb-6">
 
         {/* Summary */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2 lg:gap-3">
           {[
             { label: 'Activities', value: activities.length, icon: Activity, color: 'text-primary' },
             { label: 'Total km', value: totalKm, icon: MapPin, color: 'text-secondary' },
             { label: 'Total hrs', value: totalHours, icon: Clock, color: 'text-accent' },
           ].map(s => (
-            <Card key={s.label}>
-              <CardContent className="p-3 flex items-center gap-2">
-                <s.icon className={`w-6 h-6 ${s.color}`} />
-                <div>
-                  <p className="font-bold text-lg leading-none">{s.value}</p>
-                  <p className="text-[11px] text-muted-foreground">{s.label}</p>
-                </div>
+            <Card key={s.label} className="min-w-0">
+              <CardContent className="p-3 flex flex-col gap-1">
+                <s.icon className={`w-5 h-5 ${s.color} shrink-0`} />
+                <p className="font-bold text-base leading-tight break-all">{s.value}</p>
+                <p className="text-[10px] text-muted-foreground leading-tight">{s.label}</p>
               </CardContent>
             </Card>
           ))}
@@ -113,50 +111,37 @@ export default function Activities() {
         <div className="space-y-2">
           {filtered.map(a => (
             <Card key={a.id} className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-lg ${sportColors[a.sport] || 'bg-muted'}`}>
-                      {a.sport === 'run' ? '🏃' : a.sport === 'bike' ? '🚴' : a.sport === 'swim' ? '🏊' : '💪'}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-medium text-sm truncate">{a.title || `${a.sport.charAt(0).toUpperCase() + a.sport.slice(1)} Activity`}</p>
-                      <p className="text-xs text-muted-foreground">{format(new Date(a.started_at), 'EEEE, MMMM d, yyyy · h:mm a')}</p>
-                    </div>
+              <CardContent className="p-3 lg:p-4">
+                {/* Header row */}
+                <div className="flex items-start gap-3">
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-base ${sportColors[a.sport] || 'bg-muted'}`}>
+                    {a.sport === 'run' ? '🏃' : a.sport === 'bike' ? '🚴' : a.sport === 'swim' ? '🏊' : '💪'}
                   </div>
-                  <div className="flex items-center gap-2 lg:gap-4 shrink-0 flex-wrap justify-end">
-                    {a.distance_m && (
-                      <div className="text-right">
-                        <p className="text-sm font-semibold">{(a.distance_m / 1000).toFixed(2)}</p>
-                        <p className="text-[10px] text-muted-foreground">km</p>
-                      </div>
-                    )}
-                    {a.elapsed_sec && (
-                      <div className="text-right">
-                        <p className="text-sm font-semibold">{Math.floor(a.elapsed_sec / 60)}</p>
-                        <p className="text-[10px] text-muted-foreground">min</p>
-                      </div>
-                    )}
-                    {a.avg_pace_sec_per_km && (
-                      <div className="text-right">
-                        <p className="text-sm font-semibold">{formatPace(a.avg_pace_sec_per_km)}</p>
-                        <p className="text-[10px] text-muted-foreground">/km</p>
-                      </div>
-                    )}
-                    {a.avg_hr && (
-                      <div className="text-right">
-                        <p className="text-sm font-semibold">{a.avg_hr}</p>
-                        <p className="text-[10px] text-muted-foreground">bpm</p>
-                      </div>
-                    )}
-                    {a.calories && (
-                      <div className="text-right hidden lg:block">
-                        <p className="text-sm font-semibold">{a.calories}</p>
-                        <p className="text-[10px] text-muted-foreground">kcal</p>
-                      </div>
-                    )}
-                    <Badge className={sourceColors[a.source]} variant="outline">{a.source}</Badge>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-medium text-sm leading-tight flex-1 min-w-0 break-words">{a.title || `${a.sport.charAt(0).toUpperCase() + a.sport.slice(1)} Activity`}</p>
+                      <Badge className={`${sourceColors[a.source]} shrink-0 text-[10px]`} variant="outline">{a.source}</Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{format(new Date(a.started_at), 'EEE, MMM d · h:mm a')}</p>
                   </div>
+                </div>
+                {/* Metrics row */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 ml-12">
+                  {a.distance_m && (
+                    <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{(a.distance_m / 1000).toFixed(2)}</span> km</span>
+                  )}
+                  {a.elapsed_sec && (
+                    <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{Math.floor(a.elapsed_sec / 60)}</span> min</span>
+                  )}
+                  {a.avg_pace_sec_per_km && (
+                    <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{formatPace(a.avg_pace_sec_per_km)}</span> /km</span>
+                  )}
+                  {a.avg_hr && (
+                    <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{a.avg_hr}</span> bpm</span>
+                  )}
+                  {a.calories && (
+                    <span className="text-xs text-muted-foreground hidden lg:inline"><span className="font-semibold text-foreground">{a.calories}</span> kcal</span>
+                  )}
                 </div>
               </CardContent>
             </Card>
