@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Palette, Sun, Moon, Monitor, Pipette } from 'lucide-react';
+import { Palette, Sun, Moon, Pipette } from 'lucide-react';
 import { useTheme } from '@/lib/ThemeContext';
 import { cn } from '@/lib/utils';
 
@@ -12,7 +12,6 @@ const PRESET_COLORS = [
 const MODE_OPTIONS = [
   { value: 'light',  label: 'Light',  icon: Sun,     preview: '#f4f5f7' },
   { value: 'dark',   label: 'Dark',   icon: Moon,    preview: '#141822' },
-  { value: 'system', label: 'System', icon: Monitor, preview: null },
   { value: 'custom', label: 'Custom', icon: Pipette, preview: null },
 ];
 
@@ -62,7 +61,7 @@ export default function AppearanceCard() {
         {/* Mode selector */}
         <div>
           <p className="text-sm font-medium mb-2">Background Color</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {MODE_OPTIONS.map(({ value, label, icon: Icon, preview }) => {
               const active = theme.mode === value;
               return (
