@@ -68,9 +68,9 @@ export default function Analytics() {
 
   return (
     <div>
-      <TopBar title="Analytics">
+      <TopBar title="Performance">
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-28 lg:w-36"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[7rem] sm:w-28 lg:w-36 h-8 text-xs sm:text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="7">Last 7 days</SelectItem>
             <SelectItem value="30">Last 30 days</SelectItem>

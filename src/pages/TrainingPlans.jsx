@@ -88,7 +88,7 @@ export default function TrainingPlans() {
         ) : plans.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-muted-foreground">
-              {canCreate ? 'No training plans yet. Create your first one!' : 'No plans have been assigned to you yet.'}
+              {canCreate ? 'No training plans yet. Create your first one!' : 'Awaiting your first assigned training plan from your coach.'}
             </p>
           </div>
         ) : plans.map(plan => {
@@ -137,7 +137,9 @@ export default function TrainingPlans() {
                     </div>
                   )}
                   {planWorkouts.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-4 text-center">No workouts scheduled for this plan</p>
+                    <p className="text-sm text-muted-foreground py-4 text-center">
+                      {canCreate ? 'No workouts scheduled for this plan' : 'Waiting for your coach to assign workouts'}
+                    </p>
                   ) : planWorkouts.map(w => (
                     <div key={w.id} className="flex items-start gap-3 p-3 rounded-xl bg-background/50 border border-border/30 group">
                       <Calendar className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />

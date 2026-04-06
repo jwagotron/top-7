@@ -58,7 +58,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <TopBar title="Dashboard" />
+      <TopBar title="My Progress" />
       <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-5 lg:space-y-7 pb-24 lg:pb-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
           <StatCard title="Workouts" value={totalWorkouts} icon={Activity} color="primary" />
@@ -72,11 +72,11 @@ export default function Dashboard() {
           <UpcomingWorkouts plannedWorkouts={plannedWorkouts} />
         </div>
 
+        <StreakPanel userEmail={userEmail} />
+
         <RecentActivity workouts={workouts} />
 
         <RacePredictor userEmail={userEmail} />
-
-
       </div>
     </div>
   );

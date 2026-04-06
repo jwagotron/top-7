@@ -166,12 +166,12 @@ export default function ShoeTracker() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopBar title="Shoes">
-        <Button variant="outline" size="sm" onClick={() => setShowRetired(v => !v)} className="text-xs px-2 lg:px-3">
-          {showRetired ? 'Hide Retired' : `Retired (${retired.length})`}
+      <TopBar title="My Shoes">
+        <Button variant="outline" size="sm" onClick={() => setShowRetired(v => !v)} className="text-xs h-8 px-2 lg:px-3">
+          {showRetired ? 'Hide' : `Retired`}
         </Button>
-        <Button onClick={() => setShowForm(true)} className="gap-1 lg:gap-2">
-          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New </span>Shoes
+        <Button onClick={() => setShowForm(true)} size="sm" className="gap-1 h-8 px-2 lg:px-4">
+          <Plus className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Add</span>
         </Button>
       </TopBar>
 

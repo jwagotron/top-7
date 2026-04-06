@@ -48,9 +48,10 @@ export default function Messages() {
 
   return (
     <div>
-      <TopBar title="Messages">
-        <Button onClick={() => setShowCompose(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> Compose
+      <TopBar title="Messages from Coach">
+        <Button onClick={() => setShowCompose(true)} size="sm" className="gap-1.5 h-8 px-2 sm:px-3">
+          <Plus className="w-4 h-4 shrink-0" />
+          <span className="hidden sm:inline text-xs">Reply</span>
         </Button>
       </TopBar>
       <div className="p-4 lg:p-6 max-w-6xl mx-auto pb-28 lg:pb-8">
@@ -63,7 +64,7 @@ export default function Messages() {
             ) : messages.length === 0 ? (
               <div className="text-center py-20">
                 <Mail className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">No messages yet</p>
+                <p className="text-sm text-muted-foreground">No coaching messages yet</p>
               </div>
             ) : messages.map(msg => (
               <div

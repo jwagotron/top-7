@@ -111,7 +111,7 @@ export default function Workouts() {
   return (
     <div className="min-h-screen bg-background">
       <PullToRefreshIndicator {...ptr} />
-      <TopBar title="My Runs">
+      <TopBar title={canCreate ? "My Runs" : "Workouts"}>
         {canCreate && (
           <Button variant="outline" onClick={() => setShowGpxImport(true)} className="gap-1 lg:gap-2 px-2 lg:px-4">
             <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import </span>GPX
@@ -172,7 +172,9 @@ export default function Workouts() {
             {dayPlanned.length === 0 && dayWorkouts.length === 0 && (
               <div className="text-center py-8 border-2 border-dashed border-border rounded-xl">
                 <CalendarDays className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Rest day or no workouts</p>
+                <p className="text-sm text-muted-foreground">
+                  {canCreate ? 'Rest day or no workouts' : 'No workouts assigned for this day'}
+                </p>
               </div>
             )}
 

@@ -67,7 +67,7 @@ export default function Activities() {
   return (
     <div className="min-h-screen bg-background">
       <PullToRefreshIndicator {...ptr} />
-      <TopBar title="Activity History" />
+      <TopBar title="My Activities" />
       <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-4 pb-24 lg:pb-6">
 
         {/* Summary */}

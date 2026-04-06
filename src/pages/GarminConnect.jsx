@@ -14,9 +14,9 @@ import { Wifi, WifiOff, RefreshCw, CheckCircle2, AlertCircle, Clock, Activity, Z
 const GARMIN_OAUTH_URL = '#'; // placeholder — backend service handles redirect
 
 const steps = [
-  { icon: '1', title: 'Connect your Garmin account', desc: 'Authorize EnduroFlow to read your activities and push structured workouts to your device.' },
-  { icon: '2', title: 'Auto-sync activities', desc: 'New runs, rides and swims appear automatically after syncing your Garmin device.' },
-  { icon: '3', title: 'Receive structured workouts', desc: 'Coach-assigned workouts are pushed directly to your Garmin watch as structured sessions.' },
+  { icon: '1', title: 'Connect your device', desc: 'Link your Garmin watch to automatically import activities into your training log.' },
+  { icon: '2', title: 'Auto-sync workouts', desc: 'Your completed activities sync seamlessly to track your progress toward goals.' },
+  { icon: '3', title: 'Stay on plan', desc: 'Coach-assigned workouts appear on your watch for structured guidance.' },
 ];
 
 export default function GarminConnect() {
@@ -87,7 +87,7 @@ export default function GarminConnect() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopBar title="Garmin Connect" />
+      <TopBar title="Device Sync" />
       <div className="p-4 lg:p-6 max-w-3xl mx-auto space-y-6">
 
         {/* Status card */}

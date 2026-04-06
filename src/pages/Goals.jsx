@@ -50,9 +50,10 @@ export default function Goals() {
 
   return (
     <div>
-      <TopBar title="Goals">
-        <Button onClick={() => setShowForm(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> New Goal
+      <TopBar title="My Goals">
+        <Button onClick={() => setShowForm(true)} size="sm" className="gap-1.5 h-8 px-2 sm:px-4">
+          <Plus className="w-4 h-4 shrink-0" />
+          <span className="hidden sm:inline">New Goal</span>
         </Button>
       </TopBar>
       <div className="p-4 lg:p-6 max-w-5xl mx-auto pb-24 lg:pb-8">
