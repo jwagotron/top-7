@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
 import { User, Shield, Wifi, LogOut, Ruler, Trash2 } from 'lucide-react';
+import AppearanceCard from '@/components/settings/AppearanceCard';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -111,6 +112,9 @@ export default function AccountSettings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Appearance */}
+        <AppearanceCard />
 
         {/* Garmin quick status */}
         <Card>

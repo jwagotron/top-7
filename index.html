@@ -7,6 +7,27 @@
     <link rel="manifest" href="/manifest.json" />
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
     <title>Top 7</title>
+    <!-- Anti-flash: apply stored theme before first paint -->
+    <script>
+      (function() {
+        try {
+          var t = JSON.parse(localStorage.getItem('enduroflow_theme') || '{}');
+          var mode = t.mode || 'light';
+          var DARK = '#141822', LIGHT = '#f4f5f7';
+          var bg;
+          if (mode === 'dark') bg = DARK;
+          else if (mode === 'custom' && t.customColor) bg = t.customColor;
+          else if (mode === 'system') bg = window.matchMedia('(prefers-color-scheme: dark)').matches ? DARK : LIGHT;
+          else bg = LIGHT;
+          // Parse hex → perceived luminance
+          var c = bg.replace('#',''); if (c.length===3) c=c.split('').map(function(x){return x+x;}).join('');
+          var n=parseInt(c,16), r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+          var toL=function(v){v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);};
+          var lum=0.2126*toL(r)+0.7152*toL(g)+0.0722*toL(b);
+          if (lum < 0.35) document.documentElement.classList.add('dark');
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -81,6 +81,11 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    transition: background-color 200ms ease, border-color 200ms ease, color 150ms ease;
+  }
+  /* Exclude transitions from elements that shouldn't animate */
+  input, textarea, select, button, a, [role="button"] {
+    transition: background-color 200ms ease, border-color 200ms ease, color 150ms ease, opacity 150ms ease, box-shadow 150ms ease;
   }
   body {
     @apply bg-background text-foreground font-inter;
