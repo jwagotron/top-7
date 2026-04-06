@@ -13,12 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import WorkoutStepEditor from '@/components/workouts/WorkoutStepEditor';
 import { Save, Plus, Pencil, Trash2, Copy, ChevronRight, Dumbbell } from 'lucide-react';
 import { format } from 'date-fns';
+import { useUnits } from '@/hooks/useUnits';
 
 const defaultForm = { title: '', sport: 'run', run_type: 'interval', description: '', estimated_duration_min: '', estimated_distance_km: '' };
 
 export default function WorkoutBuilder() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { toDisplay, toKm, label } = useUnits();
   const [form, setForm] = useState(defaultForm);
   const [steps, setSteps] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -93,7 +95,7 @@ export default function WorkoutBuilder() {
       run_type: w.run_type || 'interval',
       description: w.description || '',
       estimated_duration_min: w.duration_minutes || '',
-      estimated_distance_km: w.distance_km || '',
+      estimated_distance_km: w.distance_km ? toDisplay(w.distance_km) : '',
     });
     setSteps(allSteps.filter(s => s.workout_id === w.id).map(s => ({ ...s, id: s.id })));
     setEditingId(w.id);
@@ -109,7 +111,7 @@ export default function WorkoutBuilder() {
         run_type: form.run_type,
         description: form.description,
         duration_minutes: form.estimated_duration_min ? Number(form.estimated_duration_min) : null,
-        distance_km: form.estimated_distance_km ? Number(form.estimated_distance_km) : null,
+        distance_km: form.estimated_distance_km ? toKm(Number(form.estimated_distance_km)) : null,
         date: new Date().toISOString().slice(0, 10),
       },
       steps,
@@ -205,8 +207,8 @@ export default function WorkoutBuilder() {
                       </Select>
                     </div>
                     <div>
-                      <Label>Est. Distance (km)</Label>
-                      <Input type="number" step="0.1" value={form.estimated_distance_km} onChange={e => set('estimated_distance_km', e.target.value)} placeholder="12" />
+                      <Label>Est. Distance ({label})</Label>
+                      <Input type="number" step="0.01" value={form.estimated_distance_km} onChange={e => set('estimated_distance_km', e.target.value)} placeholder={label === 'mi' ? '7.5' : '12'} />
                     </div>
                     <div>
                       <Label>Est. Duration (min)</Label>

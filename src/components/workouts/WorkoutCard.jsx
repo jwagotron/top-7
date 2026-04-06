@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Bike, Footprints, Waves, Dumbbell, CircleDot, Clock, MapPin, Heart, Mountain, Pencil, Trash2 } from 'lucide-react';
+import { useUnits } from '@/hooks/useUnits';
 
 const sportIcons = { run: Footprints, bike: Bike, swim: Waves, strength: Dumbbell, other: CircleDot };
 const sportColors = {
@@ -17,6 +18,7 @@ const feelingEmojis = { great: '🔥', good: '💪', okay: '👌', tired: '😓'
 
 export default function WorkoutCard({ workout, onEdit, onDelete }) {
   const SportIcon = sportIcons[workout.sport] || CircleDot;
+  const { toDisplay, label, convertPaceLabel, toDisplayElevation, elevationLabel } = useUnits();
 
   return (
     <Card className="border border-border rounded-2xl hover:shadow-md transition-all duration-200 group">
@@ -39,7 +41,7 @@ export default function WorkoutCard({ workout, onEdit, onDelete }) {
               )}
               {workout.distance_km && (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />{workout.distance_km} km
+                  <MapPin className="w-3 h-3" />{toDisplay(workout.distance_km)} {label}
                 </span>
               )}
               {workout.avg_heart_rate && (
@@ -49,11 +51,11 @@ export default function WorkoutCard({ workout, onEdit, onDelete }) {
               )}
               {workout.elevation_gain && (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Mountain className="w-3 h-3" />{workout.elevation_gain} m
+                  <Mountain className="w-3 h-3" />{toDisplayElevation(workout.elevation_gain)} {elevationLabel}
                 </span>
               )}
               {workout.avg_pace && (
-                <Badge variant="outline" className="text-[10px]">{workout.avg_pace}</Badge>
+                <Badge variant="outline" className="text-[10px]">{convertPaceLabel(workout.avg_pace)} {label === 'mi' ? '/mi' : '/km'}</Badge>
               )}
               {workout.perceived_effort && (
                 <Badge variant="outline" className="text-[10px]">RPE {workout.perceived_effort}/10</Badge>

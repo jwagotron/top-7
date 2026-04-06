@@ -5,11 +5,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useUnits } from '@/hooks/useUnits';
 
 export default function PlannedWorkoutForm({ open, onClose, onSubmit, planId, workout }) {
-  const [form, setForm] = useState(workout || {
-    title: '', description: '', sport: 'run', scheduled_date: '',
-    target_duration_minutes: '', target_distance_km: '', intensity: 'moderate', status: 'upcoming'
+  const { toDisplay, toKm, label } = useUnits();
+  const [form, setForm] = useState(() => {
+    const base = workout || {
+      title: '', description: '', sport: 'run', scheduled_date: '',
+      target_duration_minutes: '', target_distance_km: '', intensity: 'moderate', status: 'upcoming'
+    };
+    return {
+      ...base,
+      target_distance_km: base.target_distance_km ? toDisplay(Number(base.target_distance_km)) : '',
+    };
   });
   const handleChange = (f, v) => setForm(p => ({ ...p, [f]: v }));
 
@@ -17,7 +25,7 @@ export default function PlannedWorkoutForm({ open, onClose, onSubmit, planId, wo
     e.preventDefault();
     const data = { ...form, plan_id: planId };
     if (data.target_duration_minutes) data.target_duration_minutes = Number(data.target_duration_minutes);
-    if (data.target_distance_km) data.target_distance_km = Number(data.target_distance_km);
+    if (data.target_distance_km) data.target_distance_km = toKm(Number(data.target_distance_km));
     onSubmit(data);
   };
 
@@ -59,8 +67,8 @@ export default function PlannedWorkoutForm({ open, onClose, onSubmit, planId, wo
               <Input type="number" value={form.target_duration_minutes} onChange={e => handleChange('target_duration_minutes', e.target.value)} placeholder="60" />
             </div>
             <div>
-              <Label>Distance (km)</Label>
-              <Input type="number" step="0.1" value={form.target_distance_km} onChange={e => handleChange('target_distance_km', e.target.value)} placeholder="15" />
+              <Label>Distance ({label})</Label>
+              <Input type="number" step="0.01" value={form.target_distance_km} onChange={e => handleChange('target_distance_km', e.target.value)} placeholder={label === 'mi' ? '9.3' : '15'} />
             </div>
             <div>
               <Label>Intensity</Label>

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
-import { formatTime, formatPacePerKm, DISTANCE_LABELS } from '@/lib/predictionEngine';
+import { formatTime, DISTANCE_LABELS } from '@/lib/predictionEngine';
+import { useUnits } from '@/hooks/useUnits';
 import { cn } from '@/lib/utils';
 
 const confidenceMeta = {
@@ -22,6 +23,7 @@ const readinessLabel = (s) =>
 
 export default function RacePredictorCard({ distance, prediction }) {
   const [expanded, setExpanded] = useState(false);
+  const { formatPace } = useUnits();
   if (!prediction) return null;
 
   const {
@@ -53,7 +55,7 @@ export default function RacePredictorCard({ distance, prediction }) {
             {formatTime(predicted_time_sec)}
           </p>
           {paceSecPerKm && (
-            <p className="text-xs text-muted-foreground mt-1">{formatPacePerKm(paceSecPerKm)} avg pace</p>
+            <p className="text-xs text-muted-foreground mt-1">{formatPace(paceSecPerKm)} avg pace</p>
           )}
         </div>
 

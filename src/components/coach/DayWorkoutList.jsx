@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Pencil, Trash2, User, Clock, MapPin, Zap, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUnits } from '@/hooks/useUnits';
 
 const RUN_TYPE_COLORS = {
   easy: 'bg-secondary/10 text-secondary border-secondary/20',
@@ -24,6 +25,7 @@ const STATUS_STYLES = {
 };
 
 export default function DayWorkoutList({ date, workouts, onEdit, onDelete }) {
+  const { toDisplay, label, paceLabel } = useUnits();
   return (
     <div>
       <h3 className="font-semibold text-sm mb-3">{format(date, 'EEEE, MMMM d')}</h3>
@@ -62,9 +64,9 @@ export default function DayWorkoutList({ date, workouts, onEdit, onDelete }) {
                   )}
 
                   <div className="flex gap-3 mt-1.5 flex-wrap">
-                    {w.target_distance_km && <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" />{w.target_distance_km} km</span>}
+                    {w.target_distance_km && <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" />{toDisplay(w.target_distance_km)} {label}</span>}
                     {w.target_duration_minutes && <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{w.target_duration_minutes} min</span>}
-                    {w.target_pace && <span className="text-xs text-muted-foreground flex items-center gap-1"><Zap className="w-3 h-3" />{w.target_pace} /km</span>}
+                    {w.target_pace && <span className="text-xs text-muted-foreground flex items-center gap-1"><Zap className="w-3 h-3" />{w.target_pace} {paceLabel}</span>}
                   </div>
 
                   {w.main_set_description && (

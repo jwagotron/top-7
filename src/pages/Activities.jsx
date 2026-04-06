@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { MapPin, Clock, Heart, Zap, TrendingUp, Activity, Search, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useUnits } from '@/hooks/useUnits';
 
 const sportColors = {
   run: 'bg-primary/10 text-primary',
@@ -27,16 +28,18 @@ const sourceColors = {
   manual: 'bg-muted text-muted-foreground',
 };
 
-function formatPace(secPerKm) {
+function formatPaceDisplay(secPerKm, units) {
   if (!secPerKm) return null;
-  const min = Math.floor(secPerKm / 60);
-  const sec = Math.round(secPerKm % 60);
-  return `${min}:${String(sec).padStart(2, '0')}`;
+  const sec = units === 'mi' ? Math.round(secPerKm / 0.621371) : secPerKm;
+  const min = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return `${min}:${String(s).padStart(2, '0')}`;
 }
 
 export default function Activities() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { units, toDisplay, label, paceLabel } = useUnits();
   const [search, setSearch] = useState('');
   const [sportFilter, setSportFilter] = useState('all');
 
@@ -57,7 +60,8 @@ export default function Activities() {
     return matchSearch && matchSport;
   });
 
-  const totalKm = Math.round(activities.reduce((s, a) => s + (a.distance_m || 0) / 1000, 0) * 10) / 10;
+  const totalKm = activities.reduce((s, a) => s + (a.distance_m || 0) / 1000, 0);
+  const totalDist = Math.round(toDisplay(totalKm) * 10) / 10;
   const totalHours = Math.round(activities.reduce((s, a) => s + (a.elapsed_sec || 0) / 3600, 0) * 10) / 10;
 
   return (
@@ -70,7 +74,7 @@ export default function Activities() {
         <div className="grid grid-cols-3 gap-2 lg:gap-3">
           {[
             { label: 'Activities', value: activities.length, icon: Activity, color: 'text-primary' },
-            { label: 'Total km', value: totalKm, icon: MapPin, color: 'text-secondary' },
+            { label: `Total ${label}`, value: totalDist, icon: MapPin, color: 'text-secondary' },
             { label: 'Total hrs', value: totalHours, icon: Clock, color: 'text-accent' },
           ].map(s => (
             <Card key={s.label} className="min-w-0">
@@ -128,13 +132,13 @@ export default function Activities() {
                 {/* Metrics row */}
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 ml-12">
                   {a.distance_m && (
-                    <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{(a.distance_m / 1000).toFixed(2)}</span> km</span>
+                    <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{toDisplay(a.distance_m / 1000).toFixed(2)}</span> {label}</span>
                   )}
                   {a.elapsed_sec && (
                     <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{Math.floor(a.elapsed_sec / 60)}</span> min</span>
                   )}
                   {a.avg_pace_sec_per_km && (
-                    <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{formatPace(a.avg_pace_sec_per_km)}</span> /km</span>
+                    <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{formatPaceDisplay(a.avg_pace_sec_per_km, units)}</span> {paceLabel}</span>
                   )}
                   {a.avg_hr && (
                     <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{a.avg_hr}</span> bpm</span>

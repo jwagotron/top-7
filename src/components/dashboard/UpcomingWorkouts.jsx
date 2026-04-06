@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Bike, Footprints, Waves, Dumbbell, CircleDot } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUnits } from '@/hooks/useUnits';
 
 const sportIcons = {
   run: Footprints,
@@ -22,6 +23,7 @@ const intensityColors = {
 };
 
 export default function UpcomingWorkouts({ plannedWorkouts }) {
+  const { toDisplay, label } = useUnits();
   const upcoming = plannedWorkouts
     .filter(w => w.status === 'upcoming')
     .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))
@@ -53,7 +55,7 @@ export default function UpcomingWorkouts({ plannedWorkouts }) {
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5 break-words">
                   {format(new Date(w.scheduled_date), 'EEE, MMM d')}
-                  {w.target_distance_km ? ` · ${w.target_distance_km} km` : ''}
+                  {w.target_distance_km ? ` · ${toDisplay(w.target_distance_km)} ${label}` : ''}
                   {w.target_duration_minutes ? ` · ${w.target_duration_minutes} min` : ''}
                 </p>
               </div>

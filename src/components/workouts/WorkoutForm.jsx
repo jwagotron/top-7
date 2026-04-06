@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useUnits } from '@/hooks/useUnits';
 
 const defaults = {
   title: '', sport: 'run', date: new Date().toISOString().split('T')[0],
@@ -14,14 +15,36 @@ const defaults = {
 };
 
 export default function WorkoutForm({ open, onClose, onSubmit, workout }) {
-  const [form, setForm] = useState(workout || defaults);
+  const { units, toDisplay, toKm, label, paceLabel, elevationLabel } = useUnits();
+
+  // For display in the form, convert stored km → display unit
+  const toDisplayForm = (km) => (km != null && km !== '') ? toDisplay(Number(km)) : '';
+  const toDisplayElev = (m) => (m != null && m !== '') ? (units === 'mi' ? Math.round(Number(m) * 3.28084) : Number(m)) : '';
+
+  const initForm = (w) => {
+    if (!w) return defaults;
+    return {
+      ...w,
+      distance_km: toDisplayForm(w.distance_km),
+      elevation_gain: toDisplayElev(w.elevation_gain),
+    };
+  };
+
+  const [form, setForm] = useState(initForm(workout));
 
   const handleChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
   
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = { ...form };
-    ['duration_minutes', 'distance_km', 'avg_heart_rate', 'max_heart_rate', 'calories', 'elevation_gain', 'perceived_effort'].forEach(f => {
+    // Convert display units back to km for storage
+    if (data.distance_km !== '' && data.distance_km !== undefined) {
+      data.distance_km = toKm(Number(data.distance_km));
+    } else { delete data.distance_km; }
+    if (data.elevation_gain !== '' && data.elevation_gain !== undefined) {
+      data.elevation_gain = units === 'mi' ? Math.round(Number(data.elevation_gain) / 3.28084) : Number(data.elevation_gain);
+    } else { delete data.elevation_gain; }
+    ['duration_minutes', 'avg_heart_rate', 'max_heart_rate', 'calories', 'perceived_effort'].forEach(f => {
       if (data[f] !== '' && data[f] !== undefined) data[f] = Number(data[f]);
       else delete data[f];
     });
@@ -62,12 +85,12 @@ export default function WorkoutForm({ open, onClose, onSubmit, workout }) {
               <Input type="number" value={form.duration_minutes} onChange={e => handleChange('duration_minutes', e.target.value)} placeholder="45" />
             </div>
             <div>
-              <Label>Distance (km)</Label>
-              <Input type="number" step="0.1" value={form.distance_km} onChange={e => handleChange('distance_km', e.target.value)} placeholder="10.5" />
+              <Label>Distance ({label})</Label>
+              <Input type="number" step="0.01" value={form.distance_km} onChange={e => handleChange('distance_km', e.target.value)} placeholder={label === 'mi' ? '6.5' : '10.5'} />
             </div>
             <div>
               <Label>Avg Pace</Label>
-              <Input value={form.avg_pace} onChange={e => handleChange('avg_pace', e.target.value)} placeholder="5:30 /km" />
+              <Input value={form.avg_pace} onChange={e => handleChange('avg_pace', e.target.value)} placeholder={label === 'mi' ? '8:50 /mi' : '5:30 /km'} />
             </div>
             <div>
               <Label>Avg Heart Rate</Label>
@@ -82,8 +105,8 @@ export default function WorkoutForm({ open, onClose, onSubmit, workout }) {
               <Input type="number" value={form.calories} onChange={e => handleChange('calories', e.target.value)} placeholder="450" />
             </div>
             <div>
-              <Label>Elevation (m)</Label>
-              <Input type="number" value={form.elevation_gain} onChange={e => handleChange('elevation_gain', e.target.value)} placeholder="120" />
+              <Label>Elevation ({elevationLabel})</Label>
+              <Input type="number" value={form.elevation_gain} onChange={e => handleChange('elevation_gain', e.target.value)} placeholder={elevationLabel === 'ft' ? '394' : '120'} />
             </div>
             <div>
               <Label>Effort (1-10)</Label>

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Users, CheckCircle2, Calendar, TrendingUp, ShieldCheck } from 'lucide-react';
+import { useUnits } from '@/hooks/useUnits';
 import AthleteRoster from '@/components/coach/AthleteRoster';
 import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { useAuth } from '@/lib/AuthContext';
@@ -72,6 +73,8 @@ export default function CoachPanel() {
     setSelectedDate(day);
     setShowForm(true);
   };
+
+  const { toDisplay, label } = useUnits();
 
   const filteredWorkouts = athleteFilter === 'all'
     ? plannedWorkouts
@@ -190,7 +193,7 @@ export default function CoachPanel() {
                     </div>
                     {w.assigned_to && <p className="text-xs text-muted-foreground mt-0.5">{w.assigned_to}</p>}
                     <div className="flex gap-2 mt-1">
-                      {w.target_distance_km && <span className="text-xs text-muted-foreground">{w.target_distance_km}km</span>}
+                      {w.target_distance_km && <span className="text-xs text-muted-foreground">{toDisplay(w.target_distance_km)} {label}</span>}
                       {w.target_pace && <span className="text-xs text-muted-foreground">@ {w.target_pace}</span>}
                     </div>
                   </div>

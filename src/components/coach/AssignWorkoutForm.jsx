@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { Check, Users } from 'lucide-react';
+import { useUnits } from '@/hooks/useUnits';
 
 const RUN_TYPES = [
   { value: 'easy', label: 'Easy Run', color: 'bg-secondary/10 text-secondary' },
@@ -29,15 +30,19 @@ const defaults = {
 };
 
 export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, defaultDate, athletes }) {
+  const { toDisplay, toKm, label, paceLabel } = useUnits();
   const [form, setForm] = useState(defaults);
   const [activeTab, setActiveTab] = useState('details');
-  // Multi-select: array of emails (empty = all / unassigned)
   const [selectedAthletes, setSelectedAthletes] = useState([]);
 
   useEffect(() => {
     if (open) {
       if (workout) {
-        setForm({ ...defaults, ...workout });
+        setForm({
+          ...defaults,
+          ...workout,
+          target_distance_km: workout.target_distance_km ? toDisplay(workout.target_distance_km) : '',
+        });
         setSelectedAthletes(workout.assigned_to ? [workout.assigned_to] : []);
       } else {
         setForm({ ...defaults, scheduled_date: defaultDate || '' });
@@ -59,7 +64,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
     e.preventDefault();
     const base = { ...form };
     if (base.target_duration_minutes) base.target_duration_minutes = Number(base.target_duration_minutes);
-    if (base.target_distance_km) base.target_distance_km = Number(base.target_distance_km);
+    if (base.target_distance_km) base.target_distance_km = toKm(Number(base.target_distance_km));
 
     if (selectedAthletes.length > 1) {
       // Bulk assign — one record per athlete
@@ -141,16 +146,16 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                   </Select>
                 </div>
                 <div>
-                  <Label>Target Distance (km)</Label>
-                  <Input type="number" step="0.1" value={form.target_distance_km} onChange={e => set('target_distance_km', e.target.value)} placeholder="10" />
+                  <Label>Target Distance ({label})</Label>
+                  <Input type="number" step="0.01" value={form.target_distance_km} onChange={e => set('target_distance_km', e.target.value)} placeholder={label === 'mi' ? '6.2' : '10'} />
                 </div>
                 <div>
                   <Label>Target Duration (min)</Label>
                   <Input type="number" value={form.target_duration_minutes} onChange={e => set('target_duration_minutes', e.target.value)} placeholder="55" />
                 </div>
                 <div className="col-span-2">
-                  <Label>Target Pace (/km)</Label>
-                  <Input value={form.target_pace} onChange={e => set('target_pace', e.target.value)} placeholder="5:15" />
+                  <Label>Target Pace ({paceLabel})</Label>
+                  <Input value={form.target_pace} onChange={e => set('target_pace', e.target.value)} placeholder={label === 'mi' ? '8:27' : '5:15'} />
                 </div>
               </div>
 
