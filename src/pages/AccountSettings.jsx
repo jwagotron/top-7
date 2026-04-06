@@ -37,14 +37,14 @@ export default function AccountSettings() {
   return (
     <div className="min-h-screen bg-background">
       <TopBar title="Account Settings" />
-      <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-5 pb-24 lg:pb-8">
+      <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-6 pb-24 lg:pb-8">
 
         {/* Profile */}
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-4">
             <CardTitle className="text-base flex items-center gap-2"><User className="w-4 h-4" /> Profile</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
                 {(user?.full_name || user?.email || '?')[0].toUpperCase()}
@@ -54,11 +54,11 @@ export default function AccountSettings() {
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label>Display Name</Label>
               <Input value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))} placeholder="Your name" />
             </div>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button size="lg" className="font-semibold px-8 shadow-sm" onClick={handleSave} disabled={saving}>
               {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save Changes'}
             </Button>
           </CardContent>
