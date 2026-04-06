@@ -1,0 +1,43 @@
+{
+  "name": "AthleteInvitation",
+  "type": "object",
+  "properties": {
+    "coach_email": {
+      "type": "string",
+      "description": "Email of the coach sending the invitation"
+    },
+    "athlete_email": {
+      "type": "string",
+      "description": "Email of the athlete being invited"
+    },
+    "athlete_name": {
+      "type": "string",
+      "description": "Name of the invited athlete"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "expired",
+        "canceled"
+      ],
+      "default": "pending",
+      "description": "Status of the invitation"
+    },
+    "invited_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the invitation was sent"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the invitation was accepted"
+    }
+  },
+  "required": [
+    "coach_email",
+    "athlete_email"
+  ]
+}

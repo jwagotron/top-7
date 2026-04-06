@@ -18,13 +18,17 @@ export default function AssignmentSelector({ value, onChange }) {
   const [inviteName, setInviteName] = useState('');
   const [selected, setSelected] = useState(value.type === 'multiple' ? value.athletes : []);
 
-  // Fetch athletes linked to current coach
+  // Fetch active athletes linked to current coach (exclude self)
   const { data: relationships = [], refetch: refetchRelationships } = useQuery({
     queryKey: ['coach-athletes', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
       const all = await base44.entities.CoachAthleteRelationship.list();
-      return all.filter(r => r.coach_email === user.email && r.status === 'active');
+      return all.filter(r => 
+        r.coach_email === user.email && 
+        r.status === 'active' &&
+        r.athlete_email !== user.email  // Exclude self
+      );
     },
     enabled: !!user?.email,
   });
@@ -51,16 +55,24 @@ export default function AssignmentSelector({ value, onChange }) {
   };
 
   const handleInviteAthlete = async () => {
-    if (!inviteEmail.trim() || !user?.email) return;
-    
-    // Create relationship linking athlete to coach
-    await base44.entities.CoachAthleteRelationship.create({
+    const email = inviteEmail.trim().toLowerCase();
+    if (!email || !user?.email) return;
+
+    // Prevent self-invite
+    if (email === user.email) {
+      alert('You cannot invite yourself as an athlete.');
+      return;
+    }
+
+    // Create pending invitation (not active relationship yet)
+    await base44.entities.AthleteInvitation.create({
       coach_email: user.email,
-      athlete_email: inviteEmail.toLowerCase(),
-      athlete_name: inviteName.trim() || inviteEmail.split('@')[0],
-      status: 'active'
+      athlete_email: email,
+      athlete_name: inviteName.trim() || email.split('@')[0],
+      status: 'pending',
+      invited_at: new Date().toISOString()
     });
-    
+
     setInviteEmail('');
     setInviteName('');
     setShowInvite(false);
