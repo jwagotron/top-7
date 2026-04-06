@@ -89,21 +89,21 @@ export default function AccountSettings() {
             <CardTitle className="text-base flex items-center gap-2"><Ruler className="w-4 h-4" /> Units</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
               <div>
                 <p className="text-sm font-medium">Distance & Pace</p>
                 <p className="text-xs text-muted-foreground">Choose how distances are displayed throughout the app.</p>
               </div>
-              <div className="flex rounded-lg border border-border overflow-hidden">
+              <div className="flex rounded-lg border border-border overflow-hidden w-full sm:w-auto">
                 <button
                   onClick={() => setUnits('km')}
-                  className={`px-4 py-1.5 text-sm font-medium transition-colors ${units === 'km' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
+                  className={`flex-1 sm:flex-none px-6 py-2 text-sm font-medium transition-colors ${units === 'km' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
                 >
                   km
                 </button>
                 <button
                   onClick={() => setUnits('mi')}
-                  className={`px-4 py-1.5 text-sm font-medium transition-colors ${units === 'mi' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
+                  className={`flex-1 sm:flex-none px-6 py-2 text-sm font-medium transition-colors ${units === 'mi' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
                 >
                   mi
                 </button>
