@@ -125,7 +125,7 @@ export default function Workouts() {
             { icon: MapPin, color: 'bg-secondary/10 text-secondary', value: toDisplay(weekKm).toFixed(1), label2: label },
             { icon: Clock, color: 'bg-accent/10 text-accent', value: Math.round(weekMin / 60 * 10) / 10, label2: 'hrs' },
           ].map(({ icon: Icon, color, value, label2 }) => (
-            <div key={label2} className="bg-card border border-border rounded-xl p-3 flex flex-col gap-1 min-w-0">
+            <div key={label2} className="relative overflow-hidden bg-card rounded-xl p-3 flex flex-col gap-1 min-w-0 shadow-md border border-border/40 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
                 <Icon className="w-3.5 h-3.5" />
               </div>

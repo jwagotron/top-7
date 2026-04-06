@@ -81,7 +81,7 @@ export default function TrainingPlans() {
           const isExpanded = expandedPlan === plan.id;
           const planWorkouts = allPlannedWorkouts.filter(w => w.plan_id === plan.id);
           return (
-            <Card key={plan.id} className="border border-border rounded-2xl overflow-hidden">
+            <Card key={plan.id} className="rounded-2xl overflow-hidden bg-muted/30 border border-border/30 shadow-sm hover:shadow-md transition-shadow duration-200">
               <CardHeader className="cursor-pointer p-4 lg:p-6" onClick={() => setExpandedPlan(isExpanded ? null : plan.id)}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -121,7 +121,7 @@ export default function TrainingPlans() {
                   {planWorkouts.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4 text-center">No workouts scheduled for this plan</p>
                   ) : planWorkouts.map(w => (
-                    <div key={w.id} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 group">
+                    <div key={w.id} className="flex items-start gap-3 p-3 rounded-xl bg-background/50 border border-border/30 group">
                       <Calendar className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{w.title}</p>

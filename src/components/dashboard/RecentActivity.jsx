@@ -19,7 +19,7 @@ export default function RecentActivity({ workouts }) {
     .slice(0, 5);
 
   return (
-    <Card className="border border-border rounded-2xl">
+    <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
       </CardHeader>
@@ -29,7 +29,7 @@ export default function RecentActivity({ workouts }) {
         ) : recent.map((w) => {
           const SportIcon = sportIcons[w.sport] || CircleDot;
           return (
-            <div key={w.id} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+            <div key={w.id} className="flex items-start gap-3 p-3 rounded-xl bg-background/60 border border-border/30 hover:bg-background/90 transition-colors">
               <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0 mt-0.5">
                 <SportIcon className="w-4 h-4 text-secondary" />
               </div>
