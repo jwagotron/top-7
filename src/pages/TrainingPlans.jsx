@@ -11,6 +11,8 @@ import { Plus, ChevronDown, ChevronUp, Calendar, Trash2, Pencil, Bike, Footprint
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
+import { useRole } from '@/lib/RoleContext';
+import { useAuth } from '@/lib/AuthContext';
 
 const sportIcons = { run: Footprints, bike: Bike, swim: Waves, strength: Dumbbell, other: CircleDot, triathlon: Activity, general: CircleDot };
 import { Activity } from 'lucide-react';
@@ -24,16 +26,24 @@ const statusColors = {
 
 export default function TrainingPlans() {
   const { toDisplay, label } = useUnits();
+  const { role } = useRole();
+  const { user } = useAuth();
+  const canCreate = role === 'coach' || role === 'admin';
   const [showPlanForm, setShowPlanForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
   const [expandedPlan, setExpandedPlan] = useState(null);
   const [showWorkoutForm, setShowWorkoutForm] = useState(null);
   const qc = useQueryClient();
 
-  const { data: plans = [], isLoading } = useQuery({
+  const { data: allPlans = [], isLoading } = useQuery({
     queryKey: ['plans'],
     queryFn: () => base44.entities.TrainingPlan.list('-created_date', 50),
   });
+
+  // Athletes only see plans assigned to them
+  const plans = canCreate
+    ? allPlans
+    : allPlans.filter(p => !p.assigned_to || p.assigned_to === user?.email);
 
   const { data: allPlannedWorkouts = [] } = useQuery({
     queryKey: ['planned-workouts'],
@@ -63,10 +73,12 @@ export default function TrainingPlans() {
 
   return (
     <div>
-      <TopBar title="Training Plans">
-        <Button onClick={() => setShowPlanForm(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> New Plan
-        </Button>
+      <TopBar title={canCreate ? "Training Plans" : "My Plans"}>
+        {canCreate && (
+          <Button onClick={() => setShowPlanForm(true)} className="gap-2">
+            <Plus className="w-4 h-4" /> New Plan
+          </Button>
+        )}
       </TopBar>
       <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-5 pb-24 lg:pb-8">
         {isLoading ? (
@@ -75,7 +87,9 @@ export default function TrainingPlans() {
           </div>
         ) : plans.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-muted-foreground">No training plans yet. Create your first one!</p>
+            <p className="text-muted-foreground">
+              {canCreate ? 'No training plans yet. Create your first one!' : 'No plans have been assigned to you yet.'}
+            </p>
           </div>
         ) : plans.map(plan => {
           const isExpanded = expandedPlan === plan.id;
@@ -109,17 +123,19 @@ export default function TrainingPlans() {
               </CardHeader>
               {isExpanded && (
                 <CardContent className="pt-0 space-y-3 px-4 lg:px-6 pb-5">
-                  <div className="flex gap-2 mb-4 flex-wrap">
-                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setShowWorkoutForm(plan.id); }} className="gap-1">
-                      <Plus className="w-3 h-3" /> Add Workout
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setEditingPlan(plan); }} className="gap-1">
-                      <Pencil className="w-3 h-3" /> Edit Plan
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); deletePlanMut.mutate(plan.id); }} className="gap-1 text-destructive hover:text-destructive">
-                      <Trash2 className="w-3 h-3" /> Delete
-                    </Button>
-                  </div>
+                  {canCreate && (
+                    <div className="flex gap-2 mb-4 flex-wrap">
+                      <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setShowWorkoutForm(plan.id); }} className="gap-1">
+                        <Plus className="w-3 h-3" /> Add Workout
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setEditingPlan(plan); }} className="gap-1">
+                        <Pencil className="w-3 h-3" /> Edit Plan
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); deletePlanMut.mutate(plan.id); }} className="gap-1 text-destructive hover:text-destructive">
+                        <Trash2 className="w-3 h-3" /> Delete
+                      </Button>
+                    </div>
+                  )}
                   {planWorkouts.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4 text-center">No workouts scheduled for this plan</p>
                   ) : planWorkouts.map(w => (
@@ -138,9 +154,11 @@ export default function TrainingPlans() {
                           {w.target_duration_minutes ? ` · ${w.target_duration_minutes} min` : ''}
                         </p>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteWorkoutMut.mutate(w.id)}>
-                        <Trash2 className="w-3 h-3 text-destructive" />
-                      </Button>
+                      {canCreate && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteWorkoutMut.mutate(w.id)}>
+                          <Trash2 className="w-3 h-3 text-destructive" />
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </CardContent>
@@ -150,12 +168,16 @@ export default function TrainingPlans() {
         })}
       </div>
 
-      <PlanForm open={showPlanForm} onClose={() => setShowPlanForm(false)} onSubmit={(d) => createPlanMut.mutate(d)} />
-      {editingPlan && (
-        <PlanForm open={!!editingPlan} onClose={() => setEditingPlan(null)} onSubmit={(d) => updatePlanMut.mutate({ id: editingPlan.id, data: d })} plan={editingPlan} />
-      )}
-      {showWorkoutForm && (
-        <PlannedWorkoutForm open={!!showWorkoutForm} onClose={() => setShowWorkoutForm(null)} onSubmit={(d) => createWorkoutMut.mutate(d)} planId={showWorkoutForm} />
+      {canCreate && (
+        <>
+          <PlanForm open={showPlanForm} onClose={() => setShowPlanForm(false)} onSubmit={(d) => createPlanMut.mutate(d)} />
+          {editingPlan && (
+            <PlanForm open={!!editingPlan} onClose={() => setEditingPlan(null)} onSubmit={(d) => updatePlanMut.mutate({ id: editingPlan.id, data: d })} plan={editingPlan} />
+          )}
+          {showWorkoutForm && (
+            <PlannedWorkoutForm open={!!showWorkoutForm} onClose={() => setShowWorkoutForm(null)} onSubmit={(d) => createWorkoutMut.mutate(d)} planId={showWorkoutForm} />
+          )}
+        </>
       )}
     </div>
   );

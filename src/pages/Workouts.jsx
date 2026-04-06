@@ -20,7 +20,7 @@ import { useRole } from '@/lib/RoleContext';
 export default function Workouts() {
   const { user } = useAuth();
   const { role } = useRole();
-  const isAthlete = role === 'athlete';
+  const canCreate = role === 'coach' || role === 'admin';
   const { toDisplay, label } = useUnits();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -112,12 +112,12 @@ export default function Workouts() {
     <div className="min-h-screen bg-background">
       <PullToRefreshIndicator {...ptr} />
       <TopBar title="My Runs">
-        {isAthlete && (
+        {canCreate && (
           <Button variant="outline" onClick={() => setShowGpxImport(true)} className="gap-1 lg:gap-2 px-2 lg:px-4">
             <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import </span>GPX
           </Button>
         )}
-        {isAthlete && (
+        {canCreate && (
           <Button onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }} className="gap-1 lg:gap-2 px-3 lg:px-4">
             <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Log </span>Run
           </Button>
@@ -159,7 +159,7 @@ export default function Workouts() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm">{format(selectedDate, 'EEEE, MMM d')}</h3>
-              {isAthlete && (
+              {canCreate && (
                 <button
                   onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }}
                   className="text-xs text-primary hover:underline flex items-center gap-1"
@@ -219,27 +219,31 @@ export default function Workouts() {
         onImport={(data) => { createMut.mutate(data); setShowGpxImport(false); }}
       />
 
-      {/* Forms & drawers */}
-      <RunLogForm
-        open={showLogForm}
-        onClose={() => { setShowLogForm(false); setPreFillPlanned(null); }}
-        onSubmit={handleCreateWorkout}
-        plannedWorkout={preFillPlanned}
-      />
-      {editingWorkout && (
-        <RunLogForm
-          open={!!editingWorkout}
-          onClose={() => setEditingWorkout(null)}
-          onSubmit={(data) => updateWorkoutMut.mutate({ id: editingWorkout.id, data })}
-          workout={editingWorkout}
-        />
+      {/* Forms & drawers — coach/admin only */}
+      {canCreate && (
+        <>
+          <RunLogForm
+            open={showLogForm}
+            onClose={() => { setShowLogForm(false); setPreFillPlanned(null); }}
+            onSubmit={handleCreateWorkout}
+            plannedWorkout={preFillPlanned}
+          />
+          {editingWorkout && (
+            <RunLogForm
+              open={!!editingWorkout}
+              onClose={() => setEditingWorkout(null)}
+              onSubmit={(data) => updateWorkoutMut.mutate({ id: editingWorkout.id, data })}
+              workout={editingWorkout}
+            />
+          )}
+        </>
       )}
       <RunDetailDrawer
         workout={viewingWorkout}
         open={!!viewingWorkout}
         onClose={() => setViewingWorkout(null)}
-        onEdit={(w) => { setViewingWorkout(null); setEditingWorkout(w); }}
-        onDelete={(id) => deleteWorkoutMut.mutate(id)}
+        onEdit={canCreate ? (w) => { setViewingWorkout(null); setEditingWorkout(w); } : undefined}
+        onDelete={canCreate ? (id) => deleteWorkoutMut.mutate(id) : undefined}
       />
     </div>
   );
