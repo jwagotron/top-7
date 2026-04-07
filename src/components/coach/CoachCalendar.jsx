@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import CalendarDayCell from '@/components/workouts/CalendarDayCell';
 
-export default function CoachCalendar({ currentMonth, onMonthChange, plannedWorkouts, selectedDate, onSelectDate, onAddClick }) {
+export default function CoachCalendar({ currentMonth, onMonthChange, plannedWorkouts = [], selectedDate, onSelectDate, onAddClick }) {
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const calStart = startOfWeek(monthStart, { weekStartsOn: 1 });
