@@ -21,16 +21,16 @@ export function useAssignedPlan() {
 
   const activePlan = plans.find(p => p.status === 'active') || plans[0] || null;
 
-  // Debug log
-  if (athleteEmail) {
-    console.log('[useAssignedPlan] athlete_email:', athleteEmail, '| assigned plan_id:', activePlan?.id ?? 'none', '| workouts:', plannedWorkouts.length);
-  }
-
   const { data: plannedWorkouts = [], isLoading: workoutsLoading } = useQuery({
     queryKey: ['assigned-plan-workouts', activePlan?.id],
     queryFn: () => base44.entities.PlannedWorkout.filter({ plan_id: activePlan.id }, 'scheduled_date', 500),
     enabled: !!activePlan?.id,
   });
+
+  // Debug log
+  if (athleteEmail) {
+    console.log('[useAssignedPlan] athlete_email:', athleteEmail, '| assigned plan_id:', activePlan?.id ?? 'none', '| workouts:', plannedWorkouts.length);
+  }
 
   return {
     athleteEmail,
