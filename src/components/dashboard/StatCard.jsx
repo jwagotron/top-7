@@ -9,7 +9,8 @@ const colorMap = {
   destructive: { icon: "bg-destructive/15 text-destructive", glow: "shadow-destructive/10", from: "from-destructive/8" },
 };
 
-export default function StatCard({ title, value, unit, icon: Icon, trend, color = "primary" }) {
+export default function StatCard({ title, value, unit, icon, trend, color = "primary" }) {
+  const Icon = icon;
   const c = colorMap[color] ?? colorMap.primary;
 
   return (
