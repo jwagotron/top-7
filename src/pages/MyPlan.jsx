@@ -297,14 +297,14 @@ export default function MyPlan() {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                            {done && <CheckCircle2 className="w-3.5 h-3.5 text-secondary shrink-0" />}
-                            <span className={cn(
-                              "text-sm font-semibold",
-                              done ? "text-secondary" : "text-foreground"
-                            )}>
-                              {w.title}
-                            </span>
+                         <div className="flex items-start gap-1.5 flex-wrap mb-0.5">
+                           {done && <CheckCircle2 className="w-3.5 h-3.5 text-secondary shrink-0 mt-0.5" />}
+                           <span className={cn(
+                             "text-sm font-semibold break-words flex-1",
+                             done ? "text-secondary" : "text-foreground"
+                           )}>
+                             {w.title}
+                           </span>
                             {w.intensity && (
                               <span className={cn(
                                 "text-[10px] font-medium px-1.5 py-0.5 rounded-full border",

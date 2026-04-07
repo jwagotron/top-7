@@ -95,7 +95,7 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
               : <Flame className="w-5 h-5 text-accent shrink-0 mt-0.5" />
             }
             <h3 className={cn(
-              "font-bold text-xl leading-tight tracking-tight",
+              "font-bold text-xl leading-snug tracking-tight break-words",
               isCompleted ? "text-secondary" : "text-foreground"
             )}>
               {workout.title}

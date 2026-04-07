@@ -79,15 +79,15 @@ export default function WeeklySchedule({ plannedWorkouts, completions, selectedD
             {/* Content */}
             {workout ? (
               <div className="flex-1 min-w-0 py-0.5">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <p className={cn(
-                    "text-sm font-medium truncate leading-tight",
-                    isDone ? "text-secondary" : "text-foreground"
-                  )}>
-                    {workout.title}
-                  </p>
-                  {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-secondary shrink-0" />}
-                </div>
+                <div className="flex items-start gap-1.5 mb-0.5">
+                   <p className={cn(
+                     "text-sm font-medium leading-tight break-words flex-1",
+                     isDone ? "text-secondary" : "text-foreground"
+                   )}>
+                     {workout.title}
+                   </p>
+                   {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-secondary shrink-0 mt-0.5" />}
+                 </div>
                 <div className="flex gap-3">
                   {workout.target_duration_minutes && (
                     <span className="flex items-center gap-1 text-[11px] text-muted-foreground">

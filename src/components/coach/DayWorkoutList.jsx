@@ -28,7 +28,7 @@ export default function DayWorkoutList({ date, workouts, onEdit, onDelete }) {
   const { toDisplay, label, paceLabel } = useUnits();
   return (
     <div>
-      <h3 className="font-semibold text-sm mb-3">{format(date, 'EEEE, MMMM d')}</h3>
+      <h3 className="font-semibold text-base mb-4 text-foreground">{format(date, 'EEEE, MMMM d')}</h3>
       {workouts.length === 0 ? (
         <div className="text-center py-8 border-2 border-dashed border-border rounded-xl">
           <p className="text-sm text-muted-foreground">No workouts scheduled</p>
@@ -46,8 +46,8 @@ export default function DayWorkoutList({ date, workouts, onEdit, onDelete }) {
                   {w.status === 'completed' && <CheckCircle2 className="w-3 h-3 text-white" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className={cn('text-sm font-semibold', w.status === 'skipped' && 'line-through text-muted-foreground')}>{w.title}</span>
+                   <div className="flex items-start gap-1.5 flex-wrap mb-0.5">
+                     <span className={cn('text-sm font-semibold break-words flex-1', w.status === 'skipped' && 'line-through text-muted-foreground')}>{w.title}</span>
                     {w.run_type && (
                       <Badge variant="outline" className={cn('text-[10px]', RUN_TYPE_COLORS[w.run_type])}>
                         {w.run_type.replace('_', ' ')}

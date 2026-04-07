@@ -75,11 +75,11 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
               key={i}
               onClick={() => onSelectDate(day)}
               className={cn(
-                'min-h-[110px] p-1.5 cursor-pointer transition-all border-b border-r border-border/40 group relative',
-                !isCurrentMonth && 'opacity-25',
-                isSelected && 'bg-primary/5 ring-1 ring-inset ring-primary/40',
-                !isSelected && 'hover:bg-muted/30',
-              )}
+                 'min-h-[130px] p-1.5 cursor-pointer transition-all border-b border-r border-border/40 group relative',
+                 !isCurrentMonth && 'opacity-25',
+                 isSelected && 'bg-primary/5 ring-1 ring-inset ring-primary/40',
+                 !isSelected && 'hover:bg-muted/30',
+               )}
             >
               {/* Day number + add button */}
               <div className="flex items-center justify-between mb-1">
@@ -103,12 +103,13 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                   <div
                     key={pw.id}
                     className={cn(
-                      'text-[10px] px-1.5 py-0.5 rounded truncate leading-tight font-medium',
+                      'text-[10px] px-1.5 py-0.5 rounded leading-tight font-medium line-clamp-2 break-words',
                       pw.status === 'completed' ? 'bg-secondary/15 text-secondary line-through' :
                       pw.status === 'skipped' ? 'opacity-50 bg-muted text-muted-foreground line-through' :
                       RUN_TYPE_STYLES[pw.run_type] || 'bg-primary/10 text-primary',
                       INTENSITY_LEFT[pw.intensity] || ''
                     )}
+                    title={pw.title}
                   >
                     {pw.assigned_to && <span className="opacity-60">● </span>}
                     {pw.title}
