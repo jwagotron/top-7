@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Bike, Footprints, Waves, Dumbbell, CircleDot } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';
 
 const sportIcons = {
@@ -28,8 +29,8 @@ export default function UpcomingWorkouts({ plannedWorkouts = [] }) {
   today.setHours(0, 0, 0, 0);
   
   const upcoming = (plannedWorkouts || [])
-    .filter(w => w && w.status !== 'completed' && new Date(w.scheduled_date) >= today)
-    .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))
+    .filter(w => w && w.status !== 'completed' && parseDateOnly(w.scheduled_date) >= today)
+    .sort((a, b) => parseDateOnly(a.scheduled_date) - parseDateOnly(b.scheduled_date))
     .slice(0, 5);
 
   return (
@@ -57,7 +58,7 @@ export default function UpcomingWorkouts({ plannedWorkouts = [] }) {
                   )}
                 </div>
                 <p className="text-[11px] text-muted-foreground/70 mt-0.5 break-words">
-                  {format(new Date(w.scheduled_date), 'EEE, MMM d')}
+                  {format(parseDateOnly(w.scheduled_date), 'EEE, MMM d')}
                   {w.target_distance_km ? ` · ${toDisplay(w.target_distance_km)} ${label}` : ''}
                   {w.target_duration_minutes ? ` · ${w.target_duration_minutes} min` : ''}
                 </p>

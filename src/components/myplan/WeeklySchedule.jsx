@@ -2,6 +2,7 @@ import React from 'react';
 import { format, startOfWeek, addDays, isToday, isSameDay } from 'date-fns';
 import { CheckCircle2, Clock, MapPin, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';
 
 const intensityDot = {
@@ -24,7 +25,7 @@ export default function WeeklySchedule({ plannedWorkouts, completions, selectedD
   return (
     <div className="rounded-2xl border border-border/30 bg-card overflow-hidden divide-y divide-border/20">
       {days.map((day, idx) => {
-        const workout = plannedWorkouts.find(w => isSameDay(new Date(w.scheduled_date), day));
+         const workout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), day));
         const completion = workout ? completions.find(c => c.planned_workout_id === workout.id) : null;
         const isDone = completion?.status === 'completed';
         const isSelected = selectedDate && isSameDay(day, selectedDate);

@@ -4,6 +4,7 @@ import {
   eachDayOfInterval, isSameMonth, isSameDay, isToday, format
 } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -34,8 +35,23 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
   const calEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: calStart, end: calEnd });
 
-  const getWorkoutsForDay = (date) => workouts.filter(w => isSameDay(new Date(w.date), date));
-  const getPlannedForDay = (date) => plannedWorkouts.filter(w => isSameDay(new Date(w.scheduled_date), date));
+  const getWorkoutsForDay = (date) => workouts.filter(w => {
+    const workoutDate = parseDateOnly(w.date);
+    // Debug: log for verification
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Calendar] Workout:', w.title, '| stored:', w.date, '| parsed:', format(workoutDate, 'yyyy-MM-dd'), '| calendar day:', format(date, 'yyyy-MM-dd'), '| match:', isSameDay(workoutDate, date));
+    }
+    return isSameDay(workoutDate, date);
+  });
+  
+  const getPlannedForDay = (date) => plannedWorkouts.filter(w => {
+    const plannedDate = parseDateOnly(w.scheduled_date);
+    // Debug: log for verification
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Calendar] Planned:', w.title, '| stored:', w.scheduled_date, '| parsed:', format(plannedDate, 'yyyy-MM-dd'), '| calendar day:', format(date, 'yyyy-MM-dd'), '| match:', isSameDay(plannedDate, date));
+    }
+    return isSameDay(plannedDate, date);
+  });
 
   return (
     <div className="bg-card border border-border/40 rounded-2xl overflow-hidden shadow-sm">

@@ -26,6 +26,14 @@ export default function PlannedWorkoutForm({ open, onClose, onSubmit, planId, wo
     const data = { ...form, plan_id: planId };
     if (data.target_duration_minutes) data.target_duration_minutes = Number(data.target_duration_minutes);
     if (data.target_distance_km) data.target_distance_km = toKm(Number(data.target_distance_km));
+    
+    // Debug: verify the scheduled date is preserved correctly
+    console.log('[PlannedWorkoutForm] Submitting workout:', {
+      title: data.title,
+      selectedDate: data.scheduled_date,
+      dateType: typeof data.scheduled_date,
+    });
+    
     onSubmit(data);
   };
 
