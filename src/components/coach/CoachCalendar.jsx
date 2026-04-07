@@ -83,8 +83,8 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                 </button>
               </div>
 
-              {/* Readable workout pills */}
-              <div className="space-y-1">
+              {/* Premium workout pills */}
+              <div className="space-y-1.5">
                 {dayPlanned.slice(0, 2).map(pw => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
@@ -92,10 +92,10 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                     <div
                       key={pw.id}
                       className={cn(
-                        'px-2 py-1 rounded-lg text-[11px] font-semibold transition-all duration-150 truncate',
+                        'px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 truncate shadow-sm',
                         pw.status === 'completed' ? 'opacity-50 line-through' :
                         pw.status === 'skipped' ? 'opacity-30 line-through' :
-                        color
+                        cn(color, 'shadow-md shadow-black/15 dark:shadow-black/30 hover:shadow-lg hover:shadow-black/20 dark:hover:shadow-black/40')
                       )}
                       title={pw.title}
                     >
@@ -104,8 +104,8 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                   );
                 })}
                 {dayPlanned.length > 2 && (
-                  <div className="text-[10px] font-medium text-muted-foreground/70">
-                    +{dayPlanned.length - 2}
+                  <div className="text-[10px] font-medium text-muted-foreground/60 pl-1">
+                    +{dayPlanned.length - 2} more
                   </div>
                 )}
               </div>

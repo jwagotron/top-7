@@ -94,8 +94,8 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                 {format(day, 'd')}
               </div>
 
-              {/* Readable workout pills */}
-              <div className="space-y-1">
+              {/* Premium workout pills */}
+              <div className="space-y-1.5">
                 {dayPlanned.slice(0, 2).map(pw => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
@@ -103,10 +103,10 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                     <div
                       key={pw.id}
                       className={cn(
-                        'px-2 py-1 rounded-lg text-[11px] font-semibold transition-all duration-150 truncate',
+                        'px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 truncate shadow-sm',
                         pw.status === 'completed' ? 'opacity-50 line-through' :
                         pw.status === 'skipped' ? 'opacity-30 line-through' :
-                        color
+                        cn(color, 'shadow-md shadow-black/15 dark:shadow-black/30 hover:shadow-lg hover:shadow-black/20 dark:hover:shadow-black/40')
                       )}
                       title={pw.title}
                     >
@@ -121,8 +121,8 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                     <div
                       key={w.id}
                       className={cn(
-                        'px-2 py-1 rounded-lg text-[11px] font-semibold transition-all duration-150 truncate opacity-75',
-                        color
+                        'px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 truncate shadow-sm opacity-75',
+                        cn(color, 'shadow-md shadow-black/15 dark:shadow-black/30')
                       )}
                       title={`✓ ${w.title}`}
                     >
@@ -131,8 +131,8 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                   );
                 })}
                 {(dayPlanned.length + dayWorkouts.length) > 2 && (
-                  <div className="text-[10px] font-medium text-muted-foreground/70">
-                    +{dayPlanned.length + dayWorkouts.length - 2}
+                  <div className="text-[10px] font-medium text-muted-foreground/60 pl-1">
+                    +{dayPlanned.length + dayWorkouts.length - 2} more
                   </div>
                 )}
               </div>
