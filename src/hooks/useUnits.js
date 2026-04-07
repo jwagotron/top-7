@@ -61,15 +61,15 @@ export function useUnits() {
     return `${m}:${s} ${paceLabel}`;
   };
 
+  const label = units === 'mi' ? 'mi' : 'km';
+  const paceLabel = units === 'mi' ? '/mi' : '/km';
+
   // elevation: meters → feet
   const toDisplayElevation = (meters) => {
     if (meters == null) return null;
     return units === 'mi' ? Math.round(meters * 3.28084) : meters;
   };
   const elevationLabel = units === 'mi' ? 'ft' : 'm';
-
-  const label = units === 'mi' ? 'mi' : 'km';
-  const paceLabel = units === 'mi' ? '/mi' : '/km';
 
   return {
     units, setUnits,
