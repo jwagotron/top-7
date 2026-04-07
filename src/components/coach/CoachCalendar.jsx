@@ -19,32 +19,32 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
   const getPlannedForDay = (date) => plannedWorkouts.filter(w => isSameDay(parseDateOnly(w.scheduled_date), date));
 
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col">
+    <div className="bg-card/60 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden flex flex-col shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-        <h2 className="font-bold text-lg">{format(currentMonth, 'MMMM yyyy')}</h2>
+      <div className="flex items-center justify-between px-6 py-5 border-b border-border/30">
+        <h2 className="font-bold text-lg tracking-tight text-foreground">{format(currentMonth, 'MMMM yyyy')}</h2>
         <div className="flex gap-1 items-center">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onMonthChange(-1)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted/60" onClick={() => onMonthChange(-1)}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-8 px-3 text-xs" onClick={() => onMonthChange(0)}>
+          <Button variant="ghost" size="sm" className="h-8 px-3 text-xs hover:bg-muted/60" onClick={() => onMonthChange(0)}>
             Today
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onMonthChange(1)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted/60" onClick={() => onMonthChange(1)}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* Day headers */}
-      <div className="grid grid-cols-7 border-b border-border bg-muted/30">
+      <div className="grid grid-cols-7 border-b border-border/20 px-2 py-4">
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-          <div key={d} className="py-2.5 text-center text-xs font-semibold text-muted-foreground tracking-wide">{d}</div>
+          <div key={d} className="text-center text-[11px] font-semibold text-muted-foreground/70 tracking-wider uppercase">{d}</div>
         ))}
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-7 flex-1">
+      <div className="grid grid-cols-7 flex-1 gap-2.5 p-4">
         {days.map((day, i) => {
           const dayPlanned = getPlannedForDay(day);
           const isSelected = selectedDate && isSameDay(day, selectedDate);
@@ -56,30 +56,35 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
               key={i}
               onClick={() => onSelectDate(day)}
               className={cn(
-                 'min-h-[130px] p-1.5 cursor-pointer transition-all border-b border-r border-border/40 group relative',
-                 !isCurrentMonth && 'opacity-25',
-                 isSelected && 'bg-primary/5 ring-1 ring-inset ring-primary/40',
-                 !isSelected && 'hover:bg-muted/30',
+                 'aspect-square p-3 cursor-pointer transition-all duration-200 rounded-2xl border group relative',
+                 !isCurrentMonth && 'opacity-30 pointer-events-none',
+                 isSelected 
+                   ? 'bg-primary/12 border-primary/50 shadow-lg shadow-primary/15 ring-1 ring-primary/25'
+                   : todayDay 
+                   ? 'bg-primary/8 border-primary/30 shadow-md shadow-primary/10'
+                   : 'border-border/40 bg-background/50 hover:bg-muted/50 hover:border-border/60',
                )}
             >
               {/* Day number + add button */}
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between mb-2">
                 <span className={cn(
-                  'w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold',
-                  todayDay ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                  'text-xs font-bold leading-none',
+                  isSelected ? 'text-primary' :
+                  todayDay ? 'text-primary/90' :
+                  'text-foreground/70'
                 )}>
                   {format(day, 'd')}
                 </span>
                 <button
                   onClick={(e) => { e.stopPropagation(); onAddClick(day); }}
-                  className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-all"
+                  className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded-full bg-primary/15 hover:bg-primary/25 flex items-center justify-center transition-all duration-150"
                 >
                   <Plus className="w-3 h-3 text-primary" />
                 </button>
               </div>
 
               {/* Compact workout pills */}
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1.5">
                 {dayPlanned.slice(0, 4).map(pw => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
@@ -87,10 +92,10 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                     <div
                       key={pw.id}
                       className={cn(
-                        'w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold transition-transform hover:scale-110',
-                        pw.status === 'completed' ? 'opacity-50 line-through' :
-                        pw.status === 'skipped' ? 'opacity-30' :
-                        color
+                        'w-5.5 h-5.5 rounded-lg flex items-center justify-center text-[8px] font-bold transition-all duration-150 shadow-sm',
+                        pw.status === 'completed' ? 'opacity-45' :
+                        pw.status === 'skipped' ? 'opacity-25' :
+                        cn(color, 'shadow-md shadow-black/20 dark:shadow-black/40 hover:scale-110 hover:shadow-lg hover:-translate-y-0.5')
                       )}
                       title={pw.title}
                     >
@@ -99,7 +104,7 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                   );
                 })}
                 {dayPlanned.length > 4 && (
-                  <div className="text-[9px] font-medium text-muted-foreground pt-0.5">
+                  <div className="text-[8px] font-medium text-muted-foreground/70 leading-none pt-0.5">
                     +{dayPlanned.length - 4}
                   </div>
                 )}
