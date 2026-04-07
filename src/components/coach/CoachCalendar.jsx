@@ -110,7 +110,7 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
               </div>
 
               {/* Centered content layer for workout markers */}
-              <div className="w-full flex flex-col items-center gap-1.5">
+              <div className="w-full flex flex-col items-center justify-start gap-1.5">
                 {dayPlanned.slice(0, 2).map((pw, idx) => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
