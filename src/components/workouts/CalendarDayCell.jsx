@@ -2,7 +2,6 @@ import React from 'react';
 import { isSameDay, isToday, format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { getWorkoutLabel, getWorkoutColor } from '@/lib/workoutLabels';
-import { motion } from 'framer-motion';
 
 // Parse date string (handles ISO, YYYY-MM-DD formats)
 const parseWorkoutDate = (dateStr) => {
@@ -47,7 +46,7 @@ export default function CalendarDayCell({
     <div
       onClick={() => isSameMonthDay && onSelectDate(day)}
       className={cn(
-        'aspect-square p-2 cursor-pointer flex flex-col items-stretch justify-start group relative overflow-hidden',
+        'aspect-square p-2 cursor-pointer flex flex-col items-center justify-start group relative overflow-hidden transition-colors duration-150',
         !isSameMonthDay && 'opacity-30 pointer-events-none',
         isSelected
           ? 'bg-primary/6 border-2 border-primary/30'
@@ -57,7 +56,7 @@ export default function CalendarDayCell({
       )}
     >
       {/* Date number + optional add button */}
-      <div className="flex justify-center items-center gap-1 shrink-0 mb-1 z-10">
+      <div className="flex justify-center items-center gap-1 shrink-0 mb-0.5 z-10">
         <span
           className={cn(
             'text-xs font-semibold leading-4 transition-colors duration-200',
@@ -82,7 +81,7 @@ export default function CalendarDayCell({
       </div>
 
       {/* Centered workout markers - self-contained in this cell only */}
-      <div className="flex-1 w-full flex flex-col items-center justify-start gap-0.5 overflow-hidden">
+      <div className="flex-1 w-full flex flex-col items-center justify-start gap-0.5">
         {dayPlanned.slice(0, 2).map((pw, idx) => {
           const label = getWorkoutLabel(pw);
           const color = getWorkoutColor(pw);
