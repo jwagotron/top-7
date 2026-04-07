@@ -3,14 +3,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronDown } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Clock, X, Loader2, CheckCircle2 } from 'lucide-react';
-import { format } from 'date-fns';
 
 export default function AssignmentSelector({ value, onChange }) {
   const { user } = useAuth();
@@ -54,13 +53,10 @@ export default function AssignmentSelector({ value, onChange }) {
     enabled: !!user?.email,
   });
 
-  const handleSelectChange = (v) => {
-    if (v === 'all') {
-      onChange({ type: 'all', athletes: [] });
-      setSelected([]);
-    } else if (v === 'multiple') {
-      setShowMultiSelect(true);
-    }
+  // Open the modal, always restoring current selection state
+  const openMultiSelect = () => {
+    setSelected(value.type === 'multiple' ? value.athletes : []);
+    setShowMultiSelect(true);
   };
 
   const handleMultiSelectChange = (email, checked) => {
@@ -165,23 +161,20 @@ export default function AssignmentSelector({ value, onChange }) {
 
   const getDisplayLabel = () => {
     if (value.type === 'all') return 'All Athletes';
-    if (value.type === 'multiple') {
+    if (value.type === 'multiple' && value.athletes.length > 0)
       return value.athletes.length === 1 ? '1 Athlete' : `${value.athletes.length} Athletes`;
-    }
-    return 'Assign To';
+    return 'Select Athletes';
   };
 
   return (
     <>
-      <Select value={value.type === 'multiple' ? 'multiple' : 'all'} onValueChange={handleSelectChange}>
-        <SelectTrigger className="h-8 px-2 text-xs sm:text-sm border-0 bg-muted hover:bg-muted/80">
-          <SelectValue placeholder="Assign" />
-        </SelectTrigger>
-        <SelectContent className="min-w-40">
-          <SelectItem value="all">All Athletes</SelectItem>
-          <SelectItem value="multiple">Select Athletes...</SelectItem>
-        </SelectContent>
-      </Select>
+      <button
+        onClick={openMultiSelect}
+        className="h-8 px-2 sm:px-3 flex items-center gap-1 rounded-md text-xs sm:text-sm bg-muted hover:bg-muted/80 transition-colors text-foreground"
+      >
+        {getDisplayLabel()}
+        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+      </button>
 
       {/* ── Assign to Athletes modal ── */}
       {showMultiSelect && (
