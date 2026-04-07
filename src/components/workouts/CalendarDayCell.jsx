@@ -46,7 +46,7 @@ export default function CalendarDayCell({
     <div
       onClick={() => isSameMonthDay && onSelectDate(day)}
       className={cn(
-        'aspect-square p-2 cursor-pointer flex flex-col items-center justify-start group relative overflow-hidden transition-colors duration-150',
+        'aspect-square p-1.5 cursor-pointer flex flex-col items-center justify-start group relative overflow-hidden transition-colors duration-150',
         !isSameMonthDay && 'opacity-30 pointer-events-none',
         isSelected
           ? 'bg-primary/6 border-2 border-primary/30'
@@ -56,10 +56,10 @@ export default function CalendarDayCell({
       )}
     >
       {/* Date number + optional add button */}
-      <div className="flex justify-center items-center gap-1 shrink-0 mb-0.5 z-10">
+      <div className="flex justify-center items-center gap-0.5 shrink-0 mb-0.5 z-10">
         <span
           className={cn(
-            'text-xs font-semibold leading-4 transition-colors duration-200',
+            'text-xs font-semibold leading-3 transition-colors duration-200',
             isSelected ? 'text-primary' : todayDay ? 'text-primary/70' : 'text-foreground/50',
           )}
         >
@@ -71,25 +71,25 @@ export default function CalendarDayCell({
               e.stopPropagation();
               onAddClick(day);
             }}
-            className="opacity-0 group-hover:opacity-100 w-4 h-4 rounded-full bg-primary/15 hover:bg-primary/30 flex items-center justify-center transition-all duration-150 shrink-0"
+            className="opacity-0 group-hover:opacity-100 w-3.5 h-3.5 rounded-full bg-primary/15 hover:bg-primary/30 flex items-center justify-center transition-all duration-150 shrink-0"
           >
-            <svg className="w-2.5 h-2.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg className="w-2 h-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
             </svg>
           </button>
         )}
       </div>
 
-      {/* Centered workout markers - self-contained in this cell only */}
-      <div className="flex-1 w-full flex flex-col items-center justify-start gap-0.5 overflow-hidden">
-        {dayPlanned.slice(0, 2).map((pw, idx) => {
+      {/* Centered workout markers - strictly contained within cell */}
+      <div className="flex-1 w-full min-h-0 flex flex-col items-center justify-start gap-0.5 overflow-hidden">
+        {dayPlanned.slice(0, 2).map((pw) => {
           const label = getWorkoutLabel(pw);
           const color = getWorkoutColor(pw);
           return (
             <div
               key={pw.id}
               className={cn(
-                'px-2 py-0.5 rounded text-[8px] font-semibold transition-all duration-200 truncate max-w-[75%] whitespace-nowrap',
+                'px-1.5 py-0.5 rounded text-[7px] font-semibold transition-all duration-200 truncate max-w-[80%] whitespace-nowrap flex-shrink-0',
                 pw.status === 'completed'
                   ? 'opacity-40 line-through'
                   : pw.status === 'skipped'
@@ -106,14 +106,14 @@ export default function CalendarDayCell({
         {dayWorkouts
           .filter(w => !dayPlanned.some(p => p.id === w.planned_workout_id))
           .slice(0, 1)
-          .map((w, idx) => {
+          .map((w) => {
             const label = getWorkoutLabel(w);
             const color = getWorkoutColor(w);
             return (
               <div
                 key={w.id}
                 className={cn(
-                  'px-2 py-0.5 rounded text-[8px] font-semibold transition-all duration-200 truncate opacity-70 max-w-[75%] whitespace-nowrap',
+                  'px-1.5 py-0.5 rounded text-[7px] font-semibold transition-all duration-200 truncate opacity-60 max-w-[80%] whitespace-nowrap flex-shrink-0',
                   color,
                 )}
                 title={`✓ ${w.title}`}
@@ -124,7 +124,7 @@ export default function CalendarDayCell({
           })}
 
         {dayPlanned.length + dayWorkouts.length > 2 && (
-          <div className="text-[9px] font-medium text-muted-foreground/40">
+          <div className="text-[8px] font-medium text-muted-foreground/40 flex-shrink-0">
             +{dayPlanned.length + dayWorkouts.length - 2}
           </div>
         )}
