@@ -138,6 +138,31 @@ export default function AssignmentSelector({ value, onChange }) {
     }
   };
 
+  // PREVIEW ONLY — simulates athlete accepting invite
+  const handleSimulateAcceptance = async (inv) => {
+    try {
+      console.log('[Preview] Simulating acceptance for:', inv.athlete_email);
+      // Create active coach-athlete relationship
+      await base44.entities.CoachAthleteRelationship.create({
+        coach_email: user.email,
+        athlete_email: inv.athlete_email,
+        athlete_name: inv.athlete_name || inv.athlete_email.split('@')[0],
+        status: 'active',
+        start_date: new Date().toISOString().split('T')[0],
+      });
+      // Mark invitation as accepted
+      await base44.entities.AthleteInvitation.update(inv.id, {
+        status: 'accepted',
+        accepted_at: new Date().toISOString(),
+      });
+      console.log('[Preview] Athlete activated:', inv.athlete_email);
+      qc.invalidateQueries({ queryKey: ['coach-athletes', user?.email] });
+      qc.invalidateQueries({ queryKey: ['pending-invites', user?.email] });
+    } catch (err) {
+      console.error('[Preview] Simulate acceptance failed:', err);
+    }
+  };
+
   const getDisplayLabel = () => {
     if (value.type === 'all') return 'All Athletes';
     if (value.type === 'multiple') {
@@ -206,12 +231,16 @@ export default function AssignmentSelector({ value, onChange }) {
                           <p className="text-xs text-muted-foreground truncate">{inv.athlete_email}</p>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-amber-600 border-amber-500/40 bg-amber-500/10">
-                            Pending
-                          </Badge>
+                          <button
+                            onClick={() => handleSimulateAcceptance(inv)}
+                            title="Preview only: simulate athlete accepting invite"
+                            className="text-[10px] px-1.5 py-0.5 rounded border border-secondary/40 bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors font-medium"
+                          >
+                            Activate ⚡
+                          </button>
                           <button
                             onClick={() => handleCancelInvite(inv.id)}
-                            className="ml-1 text-muted-foreground hover:text-destructive transition-colors"
+                            className="text-muted-foreground hover:text-destructive transition-colors"
                             title="Cancel invite"
                           >
                             <X className="w-3.5 h-3.5" />
