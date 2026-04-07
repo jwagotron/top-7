@@ -90,7 +90,7 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                 whileTap={isCurrentMonth ? { scale: 0.98 } : {}}
               >
               {/* Day number + add button */}
-              <div className="flex items-start justify-between mb-3 h-4 shrink-0">
+              <div className="flex items-start justify-between mb-4 h-4 shrink-0">
                 <span className={cn(
                   'text-xs font-semibold leading-4 transition-colors duration-200',
                   isSelected ? 'text-primary' :
@@ -110,7 +110,7 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
               </div>
 
               {/* Workout pills - centered */}
-              <div className="flex flex-col items-center gap-1 flex-1">
+              <div className="flex flex-col items-center gap-1.5 flex-1">
                 {dayPlanned.slice(0, 2).map((pw, idx) => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
