@@ -1,4 +1,4 @@
-// v2
+// v3
 import React, { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -44,17 +44,14 @@ export default function RacePredictor({ userEmail }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['race-predictions', userEmail] }),
   });
 
-  // Latest saved prediction per distance
   const latestByDistance = useMemo(() => {
     const map = {};
     existingPredictions.forEach(p => {
-      if (!map[p.distance] || p.prediction_date > map[p.distance].prediction_date)
-        map[p.distance] = p;
+      if (!map[p.distance] || p.prediction_date > map[p.distance].prediction_date) map[p.distance] = p;
     });
     return map;
   }, [existingPredictions]);
 
-  // Compute fresh predictions from training data
   const freshPredictions = useMemo(() => {
     if (!workouts.length && !activities.length && !benchmarks.length) return null;
     return generatePredictions({ workouts, activities, benchmarks });
@@ -67,12 +64,6 @@ export default function RacePredictor({ userEmail }) {
       const p = freshPredictions[dist];
       if (!p) return;
       const prev = latestByDistance[dist];
-      const trend = computeTrend(p.predicted_time_sec, prev?.predicted_time_sec);
-      const readiness = computeReadiness(workouts, km);
-      const explanation = generateExplanation(
-        dist, p.predicted_time_sec, prev?.predicted_time_sec,
-        p.confidence, p.flags, p.topEvidence
-      );
       saveMut.mutate({
         athlete_email: userEmail,
         prediction_date: today,
@@ -80,23 +71,21 @@ export default function RacePredictor({ userEmail }) {
         predicted_time_sec: p.predicted_time_sec,
         previous_time_sec: prev?.predicted_time_sec || null,
         confidence: p.confidence,
-        trend,
-        readiness_score: readiness,
-        explanation,
+        trend: computeTrend(p.predicted_time_sec, prev?.predicted_time_sec),
+        readiness_score: computeReadiness(workouts, km),
+        explanation: generateExplanation(dist, p.predicted_time_sec, prev?.predicted_time_sec, p.confidence, p.flags, p.topEvidence),
         evidence_summary: p.topEvidence?.join('; '),
         data_quality_flags: p.flags,
       });
     });
   };
 
-  // Display: prefer saved, fall back to computed-on-the-fly
   const displayPredictions = useMemo(() => {
     const map = {};
     Object.keys(RACE_DISTANCES).forEach(dist => {
       const saved = latestByDistance[dist];
       const fresh = freshPredictions?.[dist];
       if (saved) {
-        // Enrich saved with fresh readiness if available
         map[dist] = { ...saved, paceSecPerKm: saved.predicted_time_sec ? Math.round(saved.predicted_time_sec / RACE_DISTANCES[dist]) : null };
       } else if (fresh) {
         const km = RACE_DISTANCES[dist];
@@ -129,18 +118,11 @@ export default function RacePredictor({ userEmail }) {
             <div className="min-w-0">
               <CardTitle className="text-base font-semibold">Race Predictor</CardTitle>
               <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
-                {lastUpdated
-                  ? `Calculated ${format(new Date(lastUpdated), 'MMM d, yyyy')}`
-                  : 'Multi-signal weighted model'}
+                {lastUpdated ? `Calculated ${format(new Date(lastUpdated), 'MMM d, yyyy')}` : 'Multi-signal weighted model'}
               </p>
             </div>
           </div>
-          <Button
-            size="sm" variant="outline"
-            onClick={handleRecalculate}
-            disabled={saveMut.isPending || !hasEnoughData}
-            className="shrink-0"
-          >
+          <Button size="sm" variant="outline" onClick={handleRecalculate} disabled={saveMut.isPending || !hasEnoughData} className="shrink-0">
             <RefreshCw className={cn('w-3.5 h-3.5 mr-1.5', saveMut.isPending && 'animate-spin')} />
             Recalculate
           </Button>
@@ -157,12 +139,9 @@ export default function RacePredictor({ userEmail }) {
                 Log at least 3 runs — including a race, time trial, or tempo — to generate meaningful predictions.
               </p>
             </div>
-            <Button size="sm" onClick={handleRecalculate} disabled={!hasEnoughData}>
-              Try anyway
-            </Button>
+            <Button size="sm" onClick={handleRecalculate} disabled={!hasEnoughData}>Try anyway</Button>
           </div>
         )}
-
         {hasData && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {Object.entries(displayPredictions).map(([dist, pred]) =>
@@ -170,9 +149,7 @@ export default function RacePredictor({ userEmail }) {
                 <RacePredictorCard key={dist} distance={dist} prediction={pred} />
               ) : (
                 <div key={dist} className="border rounded-xl p-4 flex flex-col gap-2 bg-muted/30">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    {dist.replace('_', ' ')}
-                  </p>
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">{dist.replace('_', ' ')}</p>
                   <p className="text-xl font-bold text-muted-foreground">--</p>
                   <p className="text-[11px] text-muted-foreground">Insufficient data</p>
                 </div>

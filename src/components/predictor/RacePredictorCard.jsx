@@ -1,4 +1,4 @@
-// v2
+// v3
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,7 @@ import { useUnits } from '@/hooks/useUnits';
 import { cn } from '@/lib/utils';
 
 const confidenceMeta = {
-  high:   { label: 'High confidence',   cls: 'text-secondary bg-secondary/8 border-secondary/25' },
+  high:   { label: 'High confidence',   cls: 'text-secondary bg-secondary/10 border-secondary/25' },
   medium: { label: 'Medium confidence', cls: 'text-foreground bg-muted border-border' },
   low:    { label: 'Low confidence',    cls: 'text-muted-foreground bg-muted border-border' },
 };
@@ -35,19 +35,16 @@ export default function RacePredictorCard({ distance, prediction }) {
   const diffSec = previous_time_sec ? previous_time_sec - predicted_time_sec : null;
   const trendCfg = trendMeta[trend] || trendMeta.steady;
   const confMeta = confidenceMeta[confidence] || confidenceMeta.low;
+  const TrendIconComp = trendCfg.Icon;
 
   const readinessColor =
     readiness_score >= 70 ? 'bg-secondary' :
     readiness_score >= 40 ? 'bg-primary' :
     'bg-muted-foreground/40';
 
-  const TrendIconComp = trendCfg.Icon;
-
   return (
     <Card className="border bg-card hover:shadow-sm transition-all">
       <CardContent className="p-4 space-y-3">
-
-        {/* Distance + time */}
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
             {DISTANCE_LABELS[distance] || distance}
@@ -60,7 +57,6 @@ export default function RacePredictorCard({ distance, prediction }) {
           )}
         </div>
 
-        {/* Trend + delta */}
         <div className="flex items-center justify-between">
           <div className={cn('flex items-center gap-1 text-xs font-medium', trendCfg.color)}>
             <TrendIconComp className="w-3.5 h-3.5" />
@@ -68,31 +64,25 @@ export default function RacePredictorCard({ distance, prediction }) {
           </div>
           {diffSec !== null && Math.abs(diffSec) >= 8 && (
             <span className={cn('text-xs font-medium', diffSec > 0 ? 'text-secondary' : 'text-destructive')}>
-              {diffSec > 0 ? `−${formatTime(Math.abs(diffSec))}` : `+${formatTime(Math.abs(diffSec))}`}
+              {diffSec > 0 ? `-${formatTime(Math.abs(diffSec))}` : `+${formatTime(Math.abs(diffSec))}`}
             </span>
           )}
         </div>
 
-        {/* Readiness bar */}
         <div>
           <div className="flex justify-between text-[11px] text-muted-foreground mb-1.5">
             <span>Readiness</span>
             <span className="font-medium">{readinessLabel(readiness_score)}</span>
           </div>
           <div className="h-1 rounded-full bg-border overflow-hidden">
-            <div
-              className={cn('h-full rounded-full transition-all duration-500', readinessColor)}
-              style={{ width: `${readiness_score}%` }}
-            />
+            <div className={cn('h-full rounded-full transition-all duration-500', readinessColor)} style={{ width: `${readiness_score}%` }} />
           </div>
         </div>
 
-        {/* Confidence badge */}
         <Badge className={cn('text-[11px] border w-full justify-center py-0.5', confMeta.cls)}>
           {confMeta.label}
         </Badge>
 
-        {/* Explanation toggle */}
         <button
           onClick={() => setExpanded(v => !v)}
           className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full"
