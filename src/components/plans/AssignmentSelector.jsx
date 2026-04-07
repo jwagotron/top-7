@@ -53,8 +53,12 @@ export default function AssignmentSelector({ value, onChange }) {
     enabled: !!user?.email,
   });
 
-  // Open the modal, always restoring current selection state
+  // Draft mode tracked inside the modal independently
+  const [draftMode, setDraftMode] = useState('all'); // 'all' | 'multiple'
+
+  // Open the modal, always restoring current saved state
   const openMultiSelect = () => {
+    setDraftMode(value.type === 'multiple' ? 'multiple' : 'all');
     setSelected(value.type === 'multiple' ? value.athletes : []);
     setShowMultiSelect(true);
   };
@@ -64,7 +68,11 @@ export default function AssignmentSelector({ value, onChange }) {
   };
 
   const handleMultiSelectSave = () => {
-    onChange({ type: 'multiple', athletes: selected });
+    if (draftMode === 'all') {
+      onChange({ type: 'all', athletes: [] });
+    } else {
+      onChange({ type: 'multiple', athletes: selected });
+    }
     setShowMultiSelect(false);
   };
 
@@ -182,16 +190,44 @@ export default function AssignmentSelector({ value, onChange }) {
           <DialogContent className="max-w-sm w-[calc(100vw-2rem)] p-0 overflow-hidden">
             <DialogHeader className="px-5 pt-5 pb-3 border-b border-border/40">
               <DialogTitle className="text-base">Assign to Athletes</DialogTitle>
-              {selected.length > 0 && (
-                <p className="text-xs text-primary font-medium mt-0.5">
-                  {selected.length} selected
-                </p>
-              )}
             </DialogHeader>
 
-            <div className="overflow-y-auto" style={{ maxHeight: '55vh' }}>
-              {/* Active Athletes */}
-              {athletes.length > 0 ? (
+            {/* Mode toggle */}
+            <div className="px-5 pt-4 pb-1">
+              <div className="flex rounded-xl overflow-hidden border border-border bg-muted/40 p-1 gap-1">
+                {[
+                  { id: 'all', label: 'All Athletes' },
+                  { id: 'multiple', label: 'Select Athletes' },
+                ].map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => setDraftMode(opt.id)}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                      draftMode === opt.id
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {draftMode === 'all' && (
+                <p className="text-xs text-muted-foreground mt-2.5 px-1">
+                  This plan will be visible to all active athletes on your roster.
+                </p>
+              )}
+              {draftMode === 'multiple' && selected.length > 0 && (
+                <p className="text-xs text-primary font-medium mt-2.5 px-1">
+                  {selected.length} athlete{selected.length !== 1 ? 's' : ''} selected
+                </p>
+              )}
+            </div>
+
+            <div className="overflow-y-auto" style={{ maxHeight: '45vh' }}>
+              {/* Active Athletes — only shown in Select mode */}
+              {draftMode === 'multiple' && athletes.length > 0 ? (
                 <div className="px-3 pt-3 pb-1">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 mb-1">Active Athletes</p>
                   <div className="space-y-1">
@@ -232,15 +268,15 @@ export default function AssignmentSelector({ value, onChange }) {
                     })}
                   </div>
                 </div>
-              ) : (
+              ) : draftMode === 'multiple' ? (
                 <div className="py-8 text-center px-5">
                   <UserCircle2 className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
                   <p className="text-sm font-medium text-foreground">No active athletes yet</p>
                   <p className="text-xs text-muted-foreground mt-1">Invite athletes to assign plans to them</p>
                 </div>
-              )}
+              ) : null}
 
-              {/* Pending Invites */}
+              {/* Pending Invites — always visible so coach can manage/activate */}
               {pendingInvites.length > 0 && (
                 <div className="px-3 pt-2 pb-3 border-t border-border/30 mt-2">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 mb-1">Pending Invites</p>
@@ -286,10 +322,10 @@ export default function AssignmentSelector({ value, onChange }) {
                 <Button
                   size="sm"
                   onClick={handleMultiSelectSave}
-                  disabled={athletes.length > 0 && selected.length === 0}
+                  disabled={draftMode === 'multiple' && selected.length === 0}
                   className="min-w-[80px]"
                 >
-                  {selected.length > 0 ? `Save (${selected.length})` : 'Save'}
+                  {draftMode === 'multiple' && selected.length > 0 ? `Save (${selected.length})` : 'Save'}
                 </Button>
               </div>
             </div>
