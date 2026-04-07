@@ -46,7 +46,7 @@ export default function CalendarDayCell({
     <div
       onClick={() => isSameMonthDay && onSelectDate(day)}
       className={cn(
-        'aspect-square p-1.5 cursor-pointer flex flex-col items-center justify-start group relative overflow-hidden transition-colors duration-150',
+        'aspect-square p-2 cursor-pointer flex flex-col items-stretch group relative overflow-hidden transition-colors duration-150',
         !isSameMonthDay && 'opacity-30 pointer-events-none',
         isSelected
           ? 'bg-primary/6 border-2 border-primary/30'
@@ -55,11 +55,11 @@ export default function CalendarDayCell({
           : 'border-2 border-transparent hover:bg-muted/20 active:bg-muted/30',
       )}
     >
-      {/* Date number + optional add button */}
-      <div className="flex justify-center items-center gap-0.5 shrink-0 mb-0.5 z-10">
+      {/* Date number zone - top-left, compact */}
+      <div className="flex items-center gap-0.5 shrink-0 z-10">
         <span
           className={cn(
-            'text-xs font-semibold leading-3 transition-colors duration-200',
+            'text-xs font-semibold leading-4 transition-colors duration-200',
             isSelected ? 'text-primary' : todayDay ? 'text-primary/70' : 'text-foreground/50',
           )}
         >
@@ -80,8 +80,8 @@ export default function CalendarDayCell({
         )}
       </div>
 
-      {/* Centered workout markers - strictly contained within cell */}
-      <div className="flex-1 w-full min-h-0 flex flex-col items-center justify-start gap-0.5 overflow-hidden">
+      {/* Workout content area - centered below date, vertically balanced */}
+      <div className="flex-1 w-full flex flex-col items-center justify-center gap-0.5 min-h-0 overflow-hidden">
         {dayPlanned.slice(0, 2).map((pw) => {
           const label = getWorkoutLabel(pw);
           const color = getWorkoutColor(pw);
@@ -89,7 +89,7 @@ export default function CalendarDayCell({
             <div
               key={pw.id}
               className={cn(
-                'px-1.5 py-0.5 rounded text-[7px] font-semibold transition-all duration-200 truncate max-w-[80%] whitespace-nowrap flex-shrink-0',
+                'px-2 py-1 rounded text-[8px] font-semibold transition-all duration-200 truncate max-w-[85%] whitespace-nowrap flex-shrink-0',
                 pw.status === 'completed'
                   ? 'opacity-40 line-through'
                   : pw.status === 'skipped'
@@ -113,7 +113,7 @@ export default function CalendarDayCell({
               <div
                 key={w.id}
                 className={cn(
-                  'px-1.5 py-0.5 rounded text-[7px] font-semibold transition-all duration-200 truncate opacity-60 max-w-[80%] whitespace-nowrap flex-shrink-0',
+                  'px-2 py-1 rounded text-[8px] font-semibold transition-all duration-200 truncate opacity-60 max-w-[85%] whitespace-nowrap flex-shrink-0',
                   color,
                 )}
                 title={`✓ ${w.title}`}
