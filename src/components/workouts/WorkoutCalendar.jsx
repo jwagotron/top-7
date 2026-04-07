@@ -73,7 +73,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
               key={i}
               onClick={() => onSelectDate(day)}
               className={cn(
-                'aspect-square p-4 cursor-pointer transition-all duration-200 flex flex-col group relative',
+                'aspect-square p-3.5 cursor-pointer transition-all duration-200 flex flex-col justify-start group relative',
                 !isCurrentMonth && 'opacity-30 pointer-events-none',
                 isSelected
                   ? 'bg-primary/8 ring-2 ring-inset ring-primary/40'
@@ -84,7 +84,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
             >
               {/* Day number */}
               <div className={cn(
-                'text-xs font-bold leading-none mb-2',
+                'text-xs font-bold leading-4 mb-2.5 h-4 shrink-0',
                 isSelected ? 'text-primary' :
                 todayDay ? 'text-primary/80' :
                 'text-foreground/60'
@@ -92,8 +92,8 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                 {format(day, 'd')}
               </div>
 
-              {/* Workout pills */}
-              <div className="space-y-1">
+              {/* Workout pills - left aligned */}
+              <div className="space-y-1 w-full">
                 {dayPlanned.slice(0, 2).map(pw => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
@@ -129,7 +129,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                   );
                 })}
                 {(dayPlanned.length + dayWorkouts.length) > 2 && (
-                  <div className="text-[9px] font-medium text-muted-foreground/50">
+                  <div className="text-[9px] font-medium text-muted-foreground/50 pl-0.5">
                     +{dayPlanned.length + dayWorkouts.length - 2}
                   </div>
                 )}

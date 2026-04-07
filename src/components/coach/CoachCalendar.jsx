@@ -56,7 +56,7 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
               key={i}
               onClick={() => onSelectDate(day)}
               className={cn(
-                'aspect-square p-4 cursor-pointer transition-all duration-200 flex flex-col group relative',
+                'aspect-square p-3.5 cursor-pointer transition-all duration-200 flex flex-col justify-start group relative',
                 !isCurrentMonth && 'opacity-30 pointer-events-none',
                 isSelected 
                   ? 'bg-primary/8 ring-2 ring-inset ring-primary/40'
@@ -66,9 +66,9 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
               )}
             >
               {/* Day number + add button */}
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-start justify-between mb-2.5 h-4 shrink-0">
                 <span className={cn(
-                  'text-xs font-bold leading-none',
+                  'text-xs font-bold leading-4',
                   isSelected ? 'text-primary' :
                   todayDay ? 'text-primary/80' :
                   'text-foreground/60'
@@ -77,14 +77,14 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                 </span>
                 <button
                   onClick={(e) => { e.stopPropagation(); onAddClick(day); }}
-                  className="opacity-0 group-hover:opacity-100 w-4 h-4 rounded-full bg-primary/20 hover:bg-primary/35 flex items-center justify-center transition-opacity duration-150"
+                  className="opacity-0 group-hover:opacity-100 w-4 h-4 rounded-full bg-primary/20 hover:bg-primary/35 flex items-center justify-center transition-opacity duration-150 shrink-0"
                 >
                   <Plus className="w-2.5 h-2.5 text-primary" />
                 </button>
               </div>
 
-              {/* Workout pills */}
-              <div className="space-y-1">
+              {/* Workout pills - left aligned */}
+              <div className="space-y-1 w-full">
                 {dayPlanned.slice(0, 2).map(pw => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
@@ -104,7 +104,7 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                   );
                 })}
                 {dayPlanned.length > 2 && (
-                  <div className="text-[9px] font-medium text-muted-foreground/50">
+                  <div className="text-[9px] font-medium text-muted-foreground/50 pl-0.5">
                     +{dayPlanned.length - 2}
                   </div>
                 )}
