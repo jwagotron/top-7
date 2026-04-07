@@ -8,7 +8,6 @@ import WeeklyChart from '@/components/dashboard/WeeklyChart';
 import UpcomingWorkouts from '@/components/dashboard/UpcomingWorkouts';
 import RecentActivity from '@/components/dashboard/RecentActivity';
 import RacePredictor from '@/components/predictor/RacePredictor';
-import StreakPanel from '@/components/streaks/StreakPanel';
 import { Activity, MapPin, Clock, Flame } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
@@ -72,8 +71,6 @@ export default function Dashboard() {
           <WeeklyChart workouts={thisWeekWorkouts} />
           <UpcomingWorkouts plannedWorkouts={plannedWorkouts} />
         </div>
-
-        <StreakPanel userEmail={userEmail} />
 
         <RecentActivity workouts={workouts} />
 
