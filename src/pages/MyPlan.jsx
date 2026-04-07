@@ -10,7 +10,7 @@ import WeeklySchedule from '@/components/myplan/WeeklySchedule';
 import PlanProgress from '@/components/myplan/PlanProgress';
 import { Badge } from '@/components/ui/badge';
 import {
-  CalendarDays, ClipboardList, ChevronDown, ChevronUp,
+  ClipboardList, ChevronDown, ChevronUp,
   CheckCircle2, Clock, MapPin, StickyNote, Loader2, ArrowLeft
 } from 'lucide-react';
 import { format, isToday, isSameDay } from 'date-fns';
@@ -32,10 +32,9 @@ const intensityColors = {
   recovery:  'text-muted-foreground bg-muted border-border',
 };
 
-function SectionLabel({ icon: Icon, children }) {
+function SectionLabel({ children }) {
   return (
     <div className="flex items-center gap-2 mb-3 px-1">
-      <Icon className="w-3.5 h-3.5 text-muted-foreground/60" />
       <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">
         {children}
       </span>
@@ -230,7 +229,7 @@ export default function MyPlan() {
         {/* ── Today's / selected workout ─────────────────── */}
         <div>
           <div className="flex items-center justify-between mb-3 px-1">
-            <SectionLabel icon={CalendarDays}>
+            <SectionLabel>
               {isViewingToday
                 ? `Today · ${format(today, 'EEEE, MMM d')}`
                 : displayWorkout
@@ -256,7 +255,7 @@ export default function MyPlan() {
 
         {/* ── Weekly schedule ────────────────────────────── */}
         <div>
-          <SectionLabel icon={CalendarDays}>This Week</SectionLabel>
+          <SectionLabel>This Week</SectionLabel>
           <WeeklySchedule
             plannedWorkouts={plannedWorkouts}
             completions={completions}
@@ -297,7 +296,6 @@ export default function MyPlan() {
                   const comp = completions.find(c => c.planned_workout_id === w.id);
                   const done = comp?.status === 'completed';
                   const isShowingNotes = showNotesFor === w.id;
-                  const isPast = new Date(w.scheduled_date) < today;
 
                   return (
                     <div
