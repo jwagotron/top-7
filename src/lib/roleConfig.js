@@ -23,12 +23,14 @@ export const NAV_ITEMS = {
     { path: '/workout-builder', label: 'Workout Builder', icon: Hammer },
     { path: '/plans',           label: 'Training Plans',  icon: Calendar },
     { path: '/messages',        label: 'Messages',        icon: MessageSquare },
+    { path: '/athlete-profile', label: 'My Profile',      icon: Users },
     { path: '/settings',        label: 'Settings',        icon: Settings },
   ],
   admin: [
     { path: '/admin',           label: 'Admin Panel',     icon: Shield },
     { path: '/coach',           label: 'Coach Panel',     icon: ShieldCheck },
     { path: '/workout-builder', label: 'Workout Builder', icon: Hammer },
+    { path: '/plans',           label: 'Training Plans',  icon: Calendar },
     { path: '/messages',        label: 'Messages',        icon: MessageSquare },
     { path: '/settings',        label: 'Settings',        icon: Settings },
   ],
@@ -46,11 +48,13 @@ export const MOBILE_NAV_TABS = {
     { path: '/coach',           label: 'Coach',   icon: ShieldCheck },
     { path: '/workout-builder', label: 'Builder', icon: Hammer },
     { path: '/plans',           label: 'Plans',   icon: Calendar },
+    { path: '/messages',        label: 'Messages',icon: MessageSquare },
     { path: '/settings',        label: 'Settings',icon: Settings },
   ],
   admin: [
     { path: '/admin',           label: 'Admin',   icon: Shield },
     { path: '/coach',           label: 'Coach',   icon: ShieldCheck },
+    { path: '/plans',           label: 'Plans',   icon: Calendar },
     { path: '/messages',        label: 'Messages',icon: MessageSquare },
     { path: '/settings',        label: 'Settings',icon: Settings },
   ],
@@ -67,7 +71,7 @@ export const DEFAULT_ROUTE = {
 export const ALLOWED_ROUTES = {
   athlete: ['/', '/workouts', '/activities', '/plans', '/analytics', '/goals', '/messages', '/shoes', '/garmin', '/settings', '/athlete-profile'],
   coach:   ['/coach', '/workout-builder', '/plans', '/messages', '/settings', '/athlete-profile'],
-  admin:   ['/admin', '/coach', '/workout-builder', '/plans', '/messages', '/settings', '/athlete-profile'],
+  admin:   ['/admin', '/coach', '/workout-builder', '/plans', '/messages', '/settings', '/athlete-profile', '/activities'],
 };
 
 export function isRouteAllowed(role, pathname) {

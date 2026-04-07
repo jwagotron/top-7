@@ -13,6 +13,8 @@ import { useUnits } from '@/hooks/useUnits';
 import AthleteRoster from '@/components/coach/AthleteRoster';
 import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { useAuth } from '@/lib/AuthContext';
+import { useRole } from '@/lib/RoleContext';
+import RoleGate from '@/components/RoleGate';
 
 export default function CoachPanel() {
   const { user } = useAuth();
@@ -23,18 +25,7 @@ export default function CoachPanel() {
   const [athleteFilter, setAthleteFilter] = useState('all');
   const qc = useQueryClient();
 
-  // Only admins/coaches can access this
-  if (user && user.role !== 'admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center p-8">
-          <ShieldCheck className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Coach Access Only</h2>
-          <p className="text-muted-foreground text-sm">This panel is restricted to coaches and admins.</p>
-        </div>
-      </div>
-    );
-  }
+  const { role } = useRole();
 
   const { data: plannedWorkouts = [], isLoading } = useQuery({
     queryKey: ['planned-workouts'],
@@ -94,6 +85,7 @@ export default function CoachPanel() {
   const upcoming = monthWorkouts.filter(w => w.status === 'upcoming').length;
 
   return (
+    <RoleGate allow={['coach', 'admin']}>
     <div className="min-h-screen bg-background">
       <TopBar title="Coach Panel">
         <Select value={athleteFilter} onValueChange={setAthleteFilter}>
@@ -227,5 +219,6 @@ export default function CoachPanel() {
         />
       )}
     </div>
+    </RoleGate>
   );
 }

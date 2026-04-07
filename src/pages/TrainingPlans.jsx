@@ -29,6 +29,7 @@ export default function TrainingPlans() {
   const { toDisplay, label } = useUnits();
   const { role } = useRole();
   const { user } = useAuth();
+  const isAthlete = role === 'athlete';
   const canCreate = role === 'coach' || role === 'admin';
   const [showPlanForm, setShowPlanForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);

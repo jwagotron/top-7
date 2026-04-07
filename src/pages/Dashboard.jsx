@@ -19,12 +19,13 @@ export default function Dashboard() {
   const { role } = useRole();
   const navigate = useNavigate();
 
-  // Redirect non-athletes away from athlete dashboard
+  // Redirect non-athletes away from the athlete dashboard
   useEffect(() => {
-    if (role && role !== 'athlete') {
-      navigate(DEFAULT_ROUTE[role], { replace: true });
+    if (!role) return;
+    if (role !== 'athlete') {
+      navigate(DEFAULT_ROUTE[role] || '/coach', { replace: true });
     }
-  }, [role]);
+  }, [role, navigate]);
   const [userEmail, setUserEmail] = useState(null);
   useEffect(() => {
     base44.auth.me().then(u => setUserEmail(u?.email)).catch(() => {});
