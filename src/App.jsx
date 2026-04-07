@@ -26,6 +26,7 @@ const AthleteProfile = lazy(() => import('@/pages/AthleteProfile'));
 const AccountSettings = lazy(() => import('@/pages/AccountSettings'));
 const AdminPanel     = lazy(() => import('@/pages/AdminPanel'));
 const ShoeTracker    = lazy(() => import('@/pages/ShoeTracker'));
+const MyPlan         = lazy(() => import('@/pages/MyPlan'));
 
 const pageVariants = {
   initial: { opacity: 0, x: 12 },
@@ -67,6 +68,7 @@ function AnimatedRoutes() {
               <Route path="/settings"        element={<AccountSettings />} />
               <Route path="/admin"           element={<AdminPanel />} />
               <Route path="/shoes"           element={<ShoeTracker />} />
+              <Route path="/my-plan"         element={<MyPlan />} />
             </Route>
             <Route path="*" element={<PageNotFound />} />
           </Routes>

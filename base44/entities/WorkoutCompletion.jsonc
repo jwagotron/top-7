@@ -1,0 +1,47 @@
+{
+  "name": "WorkoutCompletion",
+  "type": "object",
+  "properties": {
+    "athlete_email": {
+      "type": "string",
+      "description": "Athlete email"
+    },
+    "planned_workout_id": {
+      "type": "string",
+      "description": "Reference to PlannedWorkout"
+    },
+    "plan_id": {
+      "type": "string",
+      "description": "Reference to TrainingPlan"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date",
+      "description": "The date the workout was scheduled"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "skipped",
+        "pending"
+      ],
+      "default": "pending",
+      "description": "Completion status"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the athlete marked it complete"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Athlete notes on this workout"
+    }
+  },
+  "required": [
+    "athlete_email",
+    "planned_workout_id",
+    "scheduled_date"
+  ]
+}

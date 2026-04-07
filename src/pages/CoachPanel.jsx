@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Users, CheckCircle2, Calendar, TrendingUp, ShieldCheck } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import AthleteRoster from '@/components/coach/AthleteRoster';
+import AthleteProgress from '@/components/coach/AthleteProgress';
 import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { useAuth } from '@/lib/AuthContext';
 import { useRole } from '@/lib/RoleContext';
@@ -157,6 +158,9 @@ export default function CoachPanel() {
 
         {/* Athlete Roster */}
         {athletes.length > 0 && <AthleteRoster athletes={athletes} />}
+
+        {/* Athlete Progress — completion data from real WorkoutCompletion records */}
+        {athletes.length > 0 && <AthleteProgress athletes={athletes} />}
 
         {/* Upcoming workouts list */}
         <div>

@@ -8,9 +8,8 @@ import {
 export const NAV_ITEMS = {
   athlete: [
     { path: '/',           label: 'Dashboard',        icon: LayoutDashboard },
+    { path: '/my-plan',    label: 'My Plan',           icon: Calendar },
     { path: '/workouts',   label: 'My Runs',           icon: Dumbbell },
-    { path: '/activities', label: 'Activity History',  icon: History },
-    { path: '/plans',      label: 'Training Plans',    icon: Calendar },
     { path: '/analytics',  label: 'Analytics',         icon: BarChart3 },
     { path: '/goals',      label: 'Goals',             icon: Target },
     { path: '/messages',   label: 'Messages',          icon: MessageSquare },
@@ -40,8 +39,8 @@ export const NAV_ITEMS = {
 export const MOBILE_NAV_TABS = {
   athlete: [
     { path: '/',         label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/my-plan',  label: 'My Plan',   icon: Calendar },
     { path: '/workouts', label: 'Runs',      icon: Dumbbell },
-    { path: '/plans',    label: 'Plans',     icon: Calendar },
     { path: '/settings', label: 'Settings',  icon: Settings },
   ],
   coach: [
@@ -69,7 +68,7 @@ export const DEFAULT_ROUTE = {
 
 // Routes accessible per role (everything not in this list is blocked)
 export const ALLOWED_ROUTES = {
-  athlete: ['/', '/workouts', '/activities', '/plans', '/analytics', '/goals', '/messages', '/shoes', '/garmin', '/settings', '/athlete-profile'],
+  athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/messages', '/shoes', '/garmin', '/settings', '/athlete-profile'],
   coach:   ['/coach', '/workout-builder', '/plans', '/messages', '/settings', '/athlete-profile'],
   admin:   ['/admin', '/coach', '/workout-builder', '/plans', '/messages', '/settings', '/athlete-profile', '/activities'],
 };
