@@ -7,26 +7,7 @@ import { cn } from '@/lib/utils';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-const RUN_TYPE_DOT = {
-  easy: 'bg-secondary',
-  long_run: 'bg-primary',
-  tempo: 'bg-accent',
-  interval: 'bg-destructive',
-  fartlek: 'bg-chart-4',
-  hill_repeats: 'bg-chart-5',
-  race: 'bg-accent',
-  recovery: 'bg-muted-foreground',
-  progression: 'bg-secondary',
-};
-
-const INTENSITY_DOT = {
-  easy: 'bg-secondary',
-  moderate: 'bg-primary',
-  hard: 'bg-accent',
-  race_pace: 'bg-destructive',
-  recovery: 'bg-muted-foreground',
-};
+import { getWorkoutLabel, getWorkoutColor } from '@/lib/workoutLabels';
 
 export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts, plannedWorkouts, selectedDate, onSelectDate }) {
   const monthStart = startOfMonth(currentMonth);
@@ -110,29 +91,46 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                 {format(day, 'd')}
               </div>
 
-              {/* Workout dots / pills */}
-              <div className="space-y-1">
-                {dayPlanned.slice(0, 2).map(pw => (
-                   <div
-                     key={pw.id}
-                     className={cn(
-                       'text-[9px] px-2 py-0.5 rounded-md leading-snug font-medium line-clamp-2 break-words relative overflow-hidden',
-                       pw.status === 'completed' ? 'bg-secondary/20 text-secondary line-through' :
-                       pw.status === 'skipped' ? 'bg-muted text-muted-foreground line-through opacity-60' :
-                       'bg-primary/10 text-primary'
-                     )}
-                     title={pw.title}
-                   >
-                     {pw.title}
-                   </div>
-                 ))}
-                 {dayWorkouts.filter(w => !dayPlanned.some(p => p.id === w.planned_workout_id)).slice(0, 1).map(w => (
-                   <div key={w.id} className="text-[9px] px-2 py-0.5 rounded-md leading-snug font-medium line-clamp-2 break-words relative overflow-hidden bg-secondary/20 text-secondary" title={w.title}>
-                     ✓ {w.title}
-                   </div>
-                 ))}
-                {(dayPlanned.length + dayWorkouts.length) > 3 && (
-                  <div className="text-[10px] text-muted-foreground px-1">+{dayPlanned.length + dayWorkouts.length - 3} more</div>
+              {/* Compact workout pills */}
+              <div className="flex flex-wrap gap-1">
+                {dayPlanned.slice(0, 4).map(pw => {
+                  const label = getWorkoutLabel(pw);
+                  const color = getWorkoutColor(pw);
+                  return (
+                    <div
+                      key={pw.id}
+                      className={cn(
+                        'w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold transition-transform hover:scale-110',
+                        pw.status === 'completed' ? 'opacity-50 line-through' :
+                        pw.status === 'skipped' ? 'opacity-30' :
+                        color
+                      )}
+                      title={pw.title}
+                    >
+                      {label}
+                    </div>
+                  );
+                })}
+                {dayWorkouts.filter(w => !dayPlanned.some(p => p.id === w.planned_workout_id)).slice(0, 1).map(w => {
+                  const label = getWorkoutLabel(w);
+                  const color = getWorkoutColor(w);
+                  return (
+                    <div
+                      key={w.id}
+                      className={cn(
+                        'w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold transition-transform hover:scale-110 opacity-75',
+                        color
+                      )}
+                      title={`✓ ${w.title}`}
+                    >
+                      {label}
+                    </div>
+                  );
+                })}
+                {(dayPlanned.length + dayWorkouts.length) > 4 && (
+                  <div className="text-[9px] font-medium text-muted-foreground pt-0.5">
+                    +{dayPlanned.length + dayWorkouts.length - 4}
+                  </div>
                 )}
               </div>
             </div>

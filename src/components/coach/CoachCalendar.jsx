@@ -7,26 +7,7 @@ import { cn } from '@/lib/utils';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-const RUN_TYPE_STYLES = {
-  easy: 'bg-secondary/20 text-secondary',
-  long_run: 'bg-primary/20 text-primary',
-  tempo: 'bg-amber-100 text-amber-700',
-  interval: 'bg-destructive/15 text-destructive',
-  fartlek: 'bg-purple-100 text-purple-700',
-  hill_repeats: 'bg-orange-100 text-orange-700',
-  race: 'bg-amber-100 text-amber-800',
-  recovery: 'bg-muted text-muted-foreground',
-  progression: 'bg-teal-100 text-teal-700',
-};
-
-const INTENSITY_LEFT = {
-  recovery: 'border-l-2 border-muted-foreground',
-  easy: 'border-l-2 border-secondary',
-  moderate: 'border-l-2 border-primary',
-  hard: 'border-l-2 border-accent',
-  race_pace: 'border-l-2 border-destructive',
-};
+import { getWorkoutLabel, getWorkoutColor } from '@/lib/workoutLabels';
 
 export default function CoachCalendar({ currentMonth, onMonthChange, plannedWorkouts, selectedDate, onSelectDate, onAddClick }) {
   const monthStart = startOfMonth(currentMonth);
@@ -97,26 +78,30 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                 </button>
               </div>
 
-              {/* Workout pills */}
-              <div className="space-y-0.5">
-                {dayPlanned.slice(0, 3).map(pw => (
-                  <div
-                    key={pw.id}
-                    className={cn(
-                      'text-[9px] px-2 py-0.5 rounded-md leading-snug font-medium line-clamp-2 break-words relative overflow-hidden before:absolute before:inset-y-0 before:right-0 before:w-4 before:bg-gradient-to-l before:from-current before:to-transparent before:opacity-0 hover:before:opacity-10',
-                      pw.status === 'completed' ? 'bg-secondary/15 text-secondary line-through' :
-                      pw.status === 'skipped' ? 'opacity-50 bg-muted text-muted-foreground line-through' :
-                      RUN_TYPE_STYLES[pw.run_type] || 'bg-primary/10 text-primary',
-                      INTENSITY_LEFT[pw.intensity] || ''
-                    )}
-                    title={pw.title}
-                  >
-                    {pw.assigned_to && <span className="opacity-60">● </span>}
-                    {pw.title}
+              {/* Compact workout pills */}
+              <div className="flex flex-wrap gap-1">
+                {dayPlanned.slice(0, 4).map(pw => {
+                  const label = getWorkoutLabel(pw);
+                  const color = getWorkoutColor(pw);
+                  return (
+                    <div
+                      key={pw.id}
+                      className={cn(
+                        'w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold transition-transform hover:scale-110',
+                        pw.status === 'completed' ? 'opacity-50 line-through' :
+                        pw.status === 'skipped' ? 'opacity-30' :
+                        color
+                      )}
+                      title={pw.title}
+                    >
+                      {label}
+                    </div>
+                  );
+                })}
+                {dayPlanned.length > 4 && (
+                  <div className="text-[9px] font-medium text-muted-foreground pt-0.5">
+                    +{dayPlanned.length - 4}
                   </div>
-                ))}
-                {dayPlanned.length > 3 && (
-                  <div className="text-[10px] text-muted-foreground pl-1">+{dayPlanned.length - 3} more</div>
                 )}
               </div>
             </div>
