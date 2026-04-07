@@ -83,19 +83,19 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                 </button>
               </div>
 
-              {/* Compact workout pills */}
-              <div className="flex flex-wrap gap-1.5">
-                {dayPlanned.slice(0, 4).map(pw => {
+              {/* Readable workout pills */}
+              <div className="space-y-1">
+                {dayPlanned.slice(0, 2).map(pw => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
                   return (
                     <div
                       key={pw.id}
                       className={cn(
-                        'w-5.5 h-5.5 rounded-lg flex items-center justify-center text-[8px] font-bold transition-all duration-150 shadow-sm',
-                        pw.status === 'completed' ? 'opacity-45' :
-                        pw.status === 'skipped' ? 'opacity-25' :
-                        cn(color, 'shadow-md shadow-black/20 dark:shadow-black/40 hover:scale-110 hover:shadow-lg hover:-translate-y-0.5')
+                        'px-2 py-1 rounded-lg text-[11px] font-semibold transition-all duration-150 truncate',
+                        pw.status === 'completed' ? 'opacity-50 line-through' :
+                        pw.status === 'skipped' ? 'opacity-30 line-through' :
+                        color
                       )}
                       title={pw.title}
                     >
@@ -103,9 +103,9 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                     </div>
                   );
                 })}
-                {dayPlanned.length > 4 && (
-                  <div className="text-[8px] font-medium text-muted-foreground/70 leading-none pt-0.5">
-                    +{dayPlanned.length - 4}
+                {dayPlanned.length > 2 && (
+                  <div className="text-[10px] font-medium text-muted-foreground/70">
+                    +{dayPlanned.length - 2}
                   </div>
                 )}
               </div>
