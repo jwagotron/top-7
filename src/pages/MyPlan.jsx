@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { format, isToday, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';
 
 const statusConfig = {
@@ -67,7 +68,7 @@ export default function MyPlan() {
     enabled: !!athleteEmail,
   });
 
-  const todayWorkout = plannedWorkouts.find(w => isSameDay(new Date(w.scheduled_date), today));
+  const todayWorkout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), today));
 
   const displayWorkout = selectedDayWorkout === undefined ? todayWorkout : selectedDayWorkout;
   const displayCompletion = displayWorkout
@@ -139,7 +140,7 @@ export default function MyPlan() {
 
   const sc = statusConfig[activePlan.status] || statusConfig.draft;
   const sortedWorkouts = [...plannedWorkouts].sort(
-    (a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date)
+    (a, b) => parseDateOnly(a.scheduled_date) - parseDateOnly(b.scheduled_date)
   );
 
   return (
@@ -207,7 +208,7 @@ export default function MyPlan() {
               {isViewingToday
                 ? 'Today · ' + format(today, 'EEEE, MMM d')
                 : displayWorkout
-                  ? format(new Date(displayWorkout.scheduled_date), 'EEEE, MMM d')
+                  ? format(parseDateOnly(displayWorkout.scheduled_date), 'EEEE, MMM d')
                   : format(new Date(), 'EEEE, MMM d') + ' · Rest'
               }
             </SectionLabel>
@@ -234,10 +235,10 @@ export default function MyPlan() {
             plannedWorkouts={plannedWorkouts}
             completions={completions}
             selectedDate={selectedDayWorkout !== undefined && selectedDayWorkout
-              ? new Date(selectedDayWorkout.scheduled_date)
+              ? parseDateOnly(selectedDayWorkout.scheduled_date)
               : null}
             onSelectDate={(day) => {
-              const workout = plannedWorkouts.find(w => isSameDay(new Date(w.scheduled_date), day));
+              const workout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), day));
               if (isToday(day)) {
                 setSelectedDayWorkout(undefined);
               } else {
@@ -282,16 +283,16 @@ export default function MyPlan() {
                       <div className="flex items-start gap-3">
                         <div className="text-center shrink-0 w-9 pt-0.5">
                           <p className="text-[9px] font-semibold uppercase text-muted-foreground/50 leading-none">
-                            {format(new Date(w.scheduled_date), 'MMM')}
+                            {format(parseDateOnly(w.scheduled_date), 'MMM')}
                           </p>
                           <p className={cn(
                             "text-sm font-bold leading-snug",
-                            isToday(new Date(w.scheduled_date)) ? "text-primary" : "text-foreground/70"
+                            isToday(parseDateOnly(w.scheduled_date)) ? "text-primary" : "text-foreground/70"
                           )}>
-                            {format(new Date(w.scheduled_date), 'd')}
+                            {format(parseDateOnly(w.scheduled_date), 'd')}
                           </p>
                           <p className="text-[9px] text-muted-foreground/40 leading-none">
-                            {format(new Date(w.scheduled_date), 'EEE')}
+                            {format(parseDateOnly(w.scheduled_date), 'EEE')}
                           </p>
                         </div>
 

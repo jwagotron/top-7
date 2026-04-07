@@ -4,6 +4,7 @@ import {
   eachDayOfInterval, isSameMonth, isSameDay, isToday, format
 } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -34,7 +35,7 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
   const calEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: calStart, end: calEnd });
 
-  const getPlannedForDay = (date) => plannedWorkouts.filter(w => isSameDay(new Date(w.scheduled_date), date));
+  const getPlannedForDay = (date) => plannedWorkouts.filter(w => isSameDay(parseDateOnly(w.scheduled_date), date));
 
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col">
