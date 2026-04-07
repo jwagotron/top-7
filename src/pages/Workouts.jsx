@@ -172,11 +172,14 @@ export default function Workouts() {
             </div>
 
             {dayPlanned.length === 0 && dayWorkouts.length === 0 && (
-              <div className="text-center py-8 border-2 border-dashed border-border rounded-xl">
-                <CalendarDays className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  {isAthlete ? 'Rest day or no workouts' : 'No workouts assigned for this day'}
+              <div className="flex flex-col items-center justify-center py-10 rounded-xl bg-muted/30 border border-border/40 gap-2">
+                <CalendarDays className="w-7 h-7 text-muted-foreground/50" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  {isAthlete ? 'No sessions scheduled' : 'No workouts assigned for this day'}
                 </p>
+                {isAthlete && (
+                  <p className="text-xs text-muted-foreground/60">Check back or pick another day</p>
+                )}
               </div>
             )}
 
