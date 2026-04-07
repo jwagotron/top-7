@@ -103,6 +103,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                     ? 'bg-primary/3 border-2 border-primary/15'
                     : 'border-2 border-transparent hover:bg-muted/20 active:bg-muted/30',
                 )}
+                style={{ position: 'relative' }}
                 whileHover={isCurrentMonth ? { scale: 1.02 } : {}}
                 whileTap={isCurrentMonth ? { scale: 0.98 } : {}}
               >
@@ -119,7 +120,17 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
               </div>
 
               {/* Centered content layer for workout markers */}
-              <div className="w-full flex flex-col items-center justify-start gap-1.5">
+              <div 
+                className="flex flex-col items-center justify-start gap-1.5"
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  top: '2.5rem',
+                  transform: 'translateX(-50%)',
+                  width: 'fit-content',
+                  maxWidth: '90%'
+                }}
+              >
                 {dayPlanned.slice(0, 2).map((pw, idx) => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
