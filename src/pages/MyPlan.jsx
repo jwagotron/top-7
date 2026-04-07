@@ -46,7 +46,7 @@ export default function MyPlan() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toDisplay, label } = useUnits();
-  const [selectedDayWorkout, setSelectedDayWorkout] = useState(undefined); // undefined = today
+  const [selectedDayWorkout, setSelectedDayWorkout] = useState(undefined);
   const [showAllWorkouts, setShowAllWorkouts] = useState(false);
   const [completingId, setCompletingId] = useState(null);
   const [notesMap, setNotesMap] = useState({});
@@ -86,7 +86,6 @@ export default function MyPlan() {
 
   const todayWorkout = plannedWorkouts.find(w => isSameDay(new Date(w.scheduled_date), today));
 
-  // selectedDayWorkout: undefined = show today, null = rest day selected, object = specific workout
   const displayWorkout = selectedDayWorkout === undefined ? todayWorkout : selectedDayWorkout;
   const displayCompletion = displayWorkout
     ? completions.find(c => c.planned_workout_id === displayWorkout.id)
@@ -125,7 +124,6 @@ export default function MyPlan() {
     },
   });
 
-  // Loading
   if (plansLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -137,7 +135,6 @@ export default function MyPlan() {
     );
   }
 
-  // Empty state
   if (!activePlan) {
     return (
       <div className="min-h-screen bg-background">
@@ -168,13 +165,10 @@ export default function MyPlan() {
 
       <div className="max-w-2xl mx-auto px-4 lg:px-6 pt-5 pb-28 lg:pb-10 space-y-7">
 
-        {/* ── Plan overview ─────────────────────────────── */}
+        {/* Plan overview */}
         <div className="rounded-2xl bg-card border border-border/30 shadow-sm overflow-hidden">
-          {/* Thin accent top border */}
           <div className="h-1 bg-gradient-to-r from-primary via-secondary to-accent opacity-60" />
-
           <div className="p-5 space-y-4">
-            {/* Name + status */}
             <div className="flex items-start justify-between gap-3">
               <h2 className="text-xl font-bold tracking-tight leading-tight flex-1 min-w-0">
                 {activePlan.name}
@@ -190,7 +184,6 @@ export default function MyPlan() {
               </p>
             )}
 
-            {/* Plan meta chips */}
             {(activePlan.duration_weeks || activePlan.goal_event || activePlan.difficulty || activePlan.sport) && (
               <div className="flex flex-wrap gap-2">
                 {activePlan.duration_weeks && (
@@ -210,13 +203,12 @@ export default function MyPlan() {
                 )}
                 {activePlan.goal_event && (
                   <span className="text-[11px] font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
-                    🎯 {activePlan.goal_event}
+                    {activePlan.goal_event}
                   </span>
                 )}
               </div>
             )}
 
-            {/* Progress */}
             {plannedWorkouts.length > 0 && (
               <div className="border-t border-border/20 pt-4">
                 <PlanProgress total={plannedWorkouts.length} completed={completedCount} />
@@ -225,15 +217,15 @@ export default function MyPlan() {
           </div>
         </div>
 
-        {/* ── Today's / selected workout ─────────────────── */}
+        {/* Today's / selected workout */}
         <div>
           <div className="flex items-center justify-between mb-3 px-1">
             <SectionLabel>
               {isViewingToday
-                ? `Today · ${format(today, 'EEEE, MMM d')}`
+                ? 'Today · ' + format(today, 'EEEE, MMM d')
                 : displayWorkout
                   ? format(new Date(displayWorkout.scheduled_date), 'EEEE, MMM d')
-                  : `${format(new Date(), 'EEEE, MMM d')} · Rest`
+                  : format(new Date(), 'EEEE, MMM d') + ' · Rest'
               }
             </SectionLabel>
             {!isViewingToday && (
@@ -252,7 +244,7 @@ export default function MyPlan() {
           />
         </div>
 
-        {/* ── Weekly schedule ────────────────────────────── */}
+        {/* Weekly schedule */}
         <div>
           <SectionLabel>This Week</SectionLabel>
           <WeeklySchedule
@@ -272,7 +264,7 @@ export default function MyPlan() {
           />
         </div>
 
-        {/* ── Full schedule ──────────────────────────────── */}
+        {/* Full schedule */}
         {sortedWorkouts.length > 0 && (
           <div>
             <button
@@ -305,7 +297,6 @@ export default function MyPlan() {
                       )}
                     >
                       <div className="flex items-start gap-3">
-                        {/* Date stamp */}
                         <div className="text-center shrink-0 w-9 pt-0.5">
                           <p className="text-[9px] font-semibold uppercase text-muted-foreground/50 leading-none">
                             {format(new Date(w.scheduled_date), 'MMM')}
@@ -321,7 +312,6 @@ export default function MyPlan() {
                           </p>
                         </div>
 
-                        {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
                             {done && <CheckCircle2 className="w-3.5 h-3.5 text-secondary shrink-0" />}
@@ -370,10 +360,9 @@ export default function MyPlan() {
                           )}
                         </div>
 
-                        {/* Action */}
                         <div className="shrink-0 flex items-center gap-1">
                           {!done ? (
-                            <>
+                            <React.Fragment>
                               <button
                                 onClick={() => setShowNotesFor(isShowingNotes ? null : w.id)}
                                 className={cn(
@@ -395,10 +384,10 @@ export default function MyPlan() {
                               >
                                 {completingId === w.id && completeMut.isPending
                                   ? <Loader2 className="w-3 h-3 animate-spin" />
-                                  : <><CheckCircle2 className="w-3 h-3" /> Done</>
+                                  : <React.Fragment><CheckCircle2 className="w-3 h-3" /> Done</React.Fragment>
                                 }
                               </button>
-                            </>
+                            </React.Fragment>
                           ) : (
                             <span className="w-6 h-6 flex items-center justify-center rounded-full bg-secondary/15">
                               <CheckCircle2 className="w-3.5 h-3.5 text-secondary" />
