@@ -18,9 +18,9 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
 
 
   return (
-    <div className="bg-card/50 backdrop-blur-sm border border-border/30 rounded-2xl overflow-hidden flex flex-col">
+    <div className="bg-card/40 backdrop-blur-sm border border-border/25 rounded-2xl overflow-hidden flex flex-col shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border/20">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-border/15">
         <motion.h2 
           key={format(currentMonth, 'MMMM yyyy')}
           initial={{ opacity: 0, y: -4 }}

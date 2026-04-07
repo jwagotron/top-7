@@ -46,21 +46,21 @@ export default function CalendarDayCell({
     <div
       onClick={() => isSameMonthDay && onSelectDate(day)}
       className={cn(
-        'aspect-square p-2 cursor-pointer flex flex-col items-stretch group relative overflow-hidden transition-colors duration-150',
-        !isSameMonthDay && 'opacity-30 pointer-events-none',
+        'aspect-square p-2.5 cursor-pointer flex flex-col items-stretch group relative overflow-hidden transition-all duration-200',
+        !isSameMonthDay && 'opacity-25 pointer-events-none',
         isSelected
-          ? 'bg-primary/6 border-2 border-primary/30'
+          ? 'bg-primary/8 border border-primary/40 shadow-sm shadow-primary/10'
           : todayDay
-          ? 'bg-primary/3 border-2 border-primary/15'
-          : 'border-2 border-transparent hover:bg-muted/20 active:bg-muted/30',
+          ? 'bg-primary/4 border border-primary/20'
+          : 'border border-border/40 hover:bg-muted/15 hover:border-border/60',
       )}
     >
       {/* Date number zone - top-left, compact */}
-      <div className="flex items-center gap-0.5 shrink-0 z-10">
+      <div className="flex items-center gap-1 shrink-0 z-10 mb-1">
         <span
           className={cn(
             'text-xs font-semibold leading-4 transition-colors duration-200',
-            isSelected ? 'text-primary' : todayDay ? 'text-primary/70' : 'text-foreground/50',
+            isSelected ? 'text-primary' : todayDay ? 'text-primary/60' : 'text-foreground/45',
           )}
         >
           {format(day, 'd')}
@@ -71,9 +71,9 @@ export default function CalendarDayCell({
               e.stopPropagation();
               onAddClick(day);
             }}
-            className="opacity-0 group-hover:opacity-100 w-3.5 h-3.5 rounded-full bg-primary/15 hover:bg-primary/30 flex items-center justify-center transition-all duration-150 shrink-0"
+            className="opacity-0 group-hover:opacity-100 w-3 h-3 rounded-full bg-primary/20 hover:bg-primary/40 flex items-center justify-center transition-all duration-200 shrink-0"
           >
-            <svg className="w-2 h-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-1.5 h-1.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
             </svg>
           </button>
@@ -81,7 +81,7 @@ export default function CalendarDayCell({
       </div>
 
       {/* Workout content area - centered below date, vertically balanced */}
-      <div className="flex-1 w-full flex flex-col items-center justify-center gap-0.5 min-h-0 overflow-hidden">
+      <div className="flex-1 w-full flex flex-col items-center justify-center gap-1 min-h-0 overflow-hidden">
         {dayPlanned.slice(0, 2).map((pw) => {
           const label = getWorkoutLabel(pw);
           const color = getWorkoutColor(pw);
@@ -89,11 +89,11 @@ export default function CalendarDayCell({
             <div
               key={pw.id}
               className={cn(
-                'px-2 py-1 rounded text-[8px] font-semibold transition-all duration-200 truncate max-w-[85%] whitespace-nowrap flex-shrink-0',
+                'px-2.5 py-1.5 rounded-md text-[8px] font-semibold transition-all duration-200 truncate max-w-[90%] whitespace-nowrap flex-shrink-0 shadow-xs',
                 pw.status === 'completed'
-                  ? 'opacity-40 line-through'
+                  ? 'opacity-35 line-through'
                   : pw.status === 'skipped'
-                  ? 'opacity-25 line-through'
+                  ? 'opacity-20 line-through'
                   : color,
               )}
               title={pw.title}
@@ -113,7 +113,7 @@ export default function CalendarDayCell({
               <div
                 key={w.id}
                 className={cn(
-                  'px-2 py-1 rounded text-[8px] font-semibold transition-all duration-200 truncate opacity-60 max-w-[85%] whitespace-nowrap flex-shrink-0',
+                  'px-2.5 py-1.5 rounded-md text-[8px] font-semibold transition-all duration-200 truncate opacity-55 max-w-[90%] whitespace-nowrap flex-shrink-0 shadow-xs',
                   color,
                 )}
                 title={`✓ ${w.title}`}
@@ -124,7 +124,7 @@ export default function CalendarDayCell({
           })}
 
         {dayPlanned.length + dayWorkouts.length > 2 && (
-          <div className="text-[8px] font-medium text-muted-foreground/40 flex-shrink-0">
+          <div className="text-[7px] font-medium text-muted-foreground/35 flex-shrink-0">
             +{dayPlanned.length + dayWorkouts.length - 2}
           </div>
         )}
