@@ -116,8 +116,8 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                 {format(day, 'd')}
               </div>
 
-              {/* Workout pills - left aligned */}
-              <div className="space-y-1 w-full">
+              {/* Workout pills - centered */}
+              <div className="flex flex-col items-center gap-1 flex-1">
                 {dayPlanned.slice(0, 2).map((pw, idx) => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
@@ -128,7 +128,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: idx * 0.05 }}
                       className={cn(
-                        'px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all duration-200 truncate',
+                        'px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-all duration-200 truncate max-w-[85%]',
                         pw.status === 'completed' ? 'opacity-40 line-through' :
                         pw.status === 'skipped' ? 'opacity-25 line-through' :
                         color
@@ -149,7 +149,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: idx * 0.05 }}
                       className={cn(
-                        'px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all duration-200 truncate opacity-70',
+                        'px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-all duration-200 truncate opacity-70 max-w-[85%]',
                         color
                       )}
                       title={`✓ ${w.title}`}
@@ -163,7 +163,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.2, delay: 0.1 }}
-                    className="text-[9px] font-medium text-muted-foreground/40 pl-0.5 mt-1"
+                    className="text-[9px] font-medium text-muted-foreground/40"
                   >
                     +{dayPlanned.length + dayWorkouts.length - 2}
                   </motion.div>
