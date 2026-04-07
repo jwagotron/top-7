@@ -50,31 +50,22 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts 
         ))}
       </div>
 
-      {/* Clean grid */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={format(currentMonth, 'yyyy-MM')}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-          className="grid grid-cols-7 divide-x divide-y divide-border/15"
-        >
-          {days.map((day, i) => (
-            <CalendarDayCell
-              key={i}
-              day={day}
-              currentMonth={currentMonth}
-              selectedDate={selectedDate}
-              plannedWorkouts={plannedWorkouts}
-              workouts={workouts}
-              onSelectDate={onSelectDate}
-              onAddClick={() => {}}
-              showAddButton={false}
-            />
-          ))}
-        </motion.div>
-      </AnimatePresence>
+      {/* Per-day cell rendering - no cross-cell event placement */}
+      <div className="grid grid-cols-7 divide-x divide-y divide-border/15">
+        {days.map((day, i) => (
+          <CalendarDayCell
+            key={i}
+            day={day}
+            currentMonth={currentMonth}
+            selectedDate={selectedDate}
+            plannedWorkouts={plannedWorkouts}
+            workouts={workouts}
+            onSelectDate={onSelectDate}
+            onAddClick={() => {}}
+            showAddButton={false}
+          />
+        ))}
+      </div>
     </div>
   );
 }

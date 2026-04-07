@@ -81,7 +81,7 @@ export default function CalendarDayCell({
       </div>
 
       {/* Centered workout markers - self-contained in this cell only */}
-      <div className="flex-1 w-full flex flex-col items-center justify-start gap-0.5">
+      <div className="flex-1 w-full flex flex-col items-center justify-start gap-0.5 overflow-hidden">
         {dayPlanned.slice(0, 2).map((pw, idx) => {
           const label = getWorkoutLabel(pw);
           const color = getWorkoutColor(pw);
