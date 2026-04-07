@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Clock, X, Loader2, CheckCircle2 } from 'lucide-react';
+import { Plus, Clock, X, Loader2, CheckCircle2, Check, UserCircle2 } from 'lucide-react';
 
 export default function AssignmentSelector({ value, onChange }) {
   const { user } = useAuth();
@@ -179,61 +179,92 @@ export default function AssignmentSelector({ value, onChange }) {
       {/* ── Assign to Athletes modal ── */}
       {showMultiSelect && (
         <Dialog open onOpenChange={() => setShowMultiSelect(false)}>
-          <DialogContent className="max-w-sm">
-            <DialogHeader>
-              <DialogTitle>Assign to Athletes</DialogTitle>
+          <DialogContent className="max-w-sm w-[calc(100vw-2rem)] p-0 overflow-hidden">
+            <DialogHeader className="px-5 pt-5 pb-3 border-b border-border/40">
+              <DialogTitle className="text-base">Assign to Athletes</DialogTitle>
+              {selected.length > 0 && (
+                <p className="text-xs text-primary font-medium mt-0.5">
+                  {selected.length} selected
+                </p>
+              )}
             </DialogHeader>
 
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+            <div className="overflow-y-auto" style={{ maxHeight: '55vh' }}>
               {/* Active Athletes */}
               {athletes.length > 0 ? (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Active Athletes</p>
+                <div className="px-3 pt-3 pb-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 mb-1">Active Athletes</p>
                   <div className="space-y-1">
-                    {athletes.map(athlete => (
-                      <div key={athlete.email} className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-muted/40 transition-colors">
-                        <Checkbox
-                          checked={selected.includes(athlete.email)}
-                          onCheckedChange={(checked) => handleMultiSelectChange(athlete.email, checked)}
-                          id={`ath-${athlete.email}`}
-                        />
-                        <label htmlFor={`ath-${athlete.email}`} className="text-sm cursor-pointer flex-1 select-none">
-                          {athlete.name || athlete.email}
-                        </label>
-                      </div>
-                    ))}
+                    {athletes.map(athlete => {
+                      const isSelected = selected.includes(athlete.email);
+                      return (
+                        <button
+                          key={athlete.email}
+                          onClick={() => handleMultiSelectChange(athlete.email, !isSelected)}
+                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all active:scale-[0.98] ${
+                            isSelected
+                              ? 'bg-primary/10 border border-primary/30 text-foreground'
+                              : 'bg-muted/30 border border-transparent hover:bg-muted/60 text-foreground'
+                          }`}
+                        >
+                          {/* Avatar circle */}
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-semibold ${
+                            isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                          }`}>
+                            {isSelected
+                              ? <Check className="w-4 h-4" />
+                              : (athlete.name || athlete.email).charAt(0).toUpperCase()
+                            }
+                          </div>
+                          <div className="flex-1 text-left min-w-0">
+                            <p className={`text-sm font-medium truncate ${isSelected ? 'text-primary' : ''}`}>
+                              {athlete.name || athlete.email}
+                            </p>
+                            {athlete.name && (
+                              <p className="text-xs text-muted-foreground truncate">{athlete.email}</p>
+                            )}
+                          </div>
+                          {isSelected && (
+                            <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
-                <div className="py-6 text-center">
+                <div className="py-8 text-center px-5">
+                  <UserCircle2 className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
                   <p className="text-sm font-medium text-foreground">No active athletes yet</p>
-                  <p className="text-xs text-muted-foreground mt-1">Invite athletes below to assign plans to them</p>
+                  <p className="text-xs text-muted-foreground mt-1">Invite athletes to assign plans to them</p>
                 </div>
               )}
 
               {/* Pending Invites */}
               {pendingInvites.length > 0 && (
-                <div className={athletes.length > 0 ? 'border-t border-border/40 pt-3' : ''}>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Pending Invites</p>
+                <div className="px-3 pt-2 pb-3 border-t border-border/30 mt-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 mb-1">Pending Invites</p>
                   <div className="space-y-1.5">
                     {pendingInvites.map(inv => (
-                      <div key={inv.id} className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted/20 border border-border/30">
-                        <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      <div key={inv.id} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-muted/20 border border-border/30">
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                          <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-foreground truncate">{inv.athlete_name || inv.athlete_email}</p>
+                          <p className="text-sm font-medium text-foreground truncate">{inv.athlete_name || inv.athlete_email}</p>
                           <p className="text-xs text-muted-foreground truncate">{inv.athlete_email}</p>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => handleSimulateAcceptance(inv)}
                             title="Preview only: simulate athlete accepting invite"
-                            className="text-[10px] px-1.5 py-0.5 rounded border border-secondary/40 bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors font-medium"
+                            className="text-[10px] px-2 py-1 rounded-lg border border-secondary/40 bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors font-medium"
                           >
                             Activate ⚡
                           </button>
                           <button
                             onClick={() => handleCancelInvite(inv.id)}
-                            className="text-muted-foreground hover:text-destructive transition-colors"
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                             title="Cancel invite"
                           >
                             <X className="w-3.5 h-3.5" />
@@ -246,14 +277,19 @@ export default function AssignmentSelector({ value, onChange }) {
               )}
             </div>
 
-            <div className="flex justify-between gap-3 pt-3 border-t border-border/30">
-              <Button size="sm" variant="outline" onClick={openInvite} className="gap-1">
-                <Plus className="w-3.5 h-3.5" /> Invite
+            <div className="flex items-center justify-between gap-3 px-5 py-4 border-t border-border/40 bg-card">
+              <Button size="sm" variant="outline" onClick={openInvite} className="gap-1.5">
+                <Plus className="w-3.5 h-3.5" /> Invite Athlete
               </Button>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setShowMultiSelect(false)}>Cancel</Button>
-                <Button size="sm" onClick={handleMultiSelectSave} disabled={selected.length === 0}>
-                  Save {selected.length > 0 ? `(${selected.length})` : ''}
+                <Button variant="ghost" size="sm" onClick={() => setShowMultiSelect(false)}>Cancel</Button>
+                <Button
+                  size="sm"
+                  onClick={handleMultiSelectSave}
+                  disabled={athletes.length > 0 && selected.length === 0}
+                  className="min-w-[80px]"
+                >
+                  {selected.length > 0 ? `Save (${selected.length})` : 'Save'}
                 </Button>
               </div>
             </div>
