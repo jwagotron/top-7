@@ -78,7 +78,7 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.15 }}
                 className={cn(
-                  'aspect-square p-3.5 cursor-pointer flex flex-col justify-start group relative',
+                  'aspect-square p-3.5 cursor-pointer flex flex-col items-center justify-start group relative',
                   !isCurrentMonth && 'opacity-30 pointer-events-none',
                   isSelected 
                     ? 'bg-primary/6 border-2 border-primary/30'
