@@ -24,8 +24,10 @@ const intensityColors = {
 
 export default function UpcomingWorkouts({ plannedWorkouts }) {
   const { toDisplay, label } = useUnits();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const upcoming = plannedWorkouts
-    .filter(w => w.status === 'upcoming')
+    .filter(w => w.status !== 'completed' && new Date(w.scheduled_date) >= today)
     .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))
     .slice(0, 5);
 

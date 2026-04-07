@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useRole } from '@/lib/RoleContext';
-import { useAuth } from '@/lib/AuthContext';
+import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 import TopBar from '@/components/layout/TopBar';
 import TodayWorkout from '@/components/myplan/TodayWorkout';
 import WeeklySchedule from '@/components/myplan/WeeklySchedule';
@@ -43,7 +43,6 @@ function SectionLabel({ children }) {
 
 export default function MyPlan() {
   const { role } = useRole();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { toDisplay, label } = useUnits();
   const [selectedDayWorkout, setSelectedDayWorkout] = useState(undefined);
@@ -57,26 +56,10 @@ export default function MyPlan() {
     if (role && role !== 'athlete') navigate('/coach', { replace: true });
   }, [role, navigate]);
 
-  const athleteEmail = user?.email;
+  const { activePlan, plannedWorkouts, isLoading: plansLoading, athleteEmail } = useAssignedPlan();
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  const { data: plans = [], isLoading: plansLoading } = useQuery({
-    queryKey: ['my-plans', athleteEmail],
-    queryFn: async () => {
-      const all = await base44.entities.TrainingPlan.list('-created_date', 50);
-      return all.filter(p => p.assigned_to && p.assigned_to.includes(athleteEmail));
-    },
-    enabled: !!athleteEmail,
-  });
-
-  const activePlan = plans.find(p => p.status === 'active') || plans[0] || null;
-
-  const { data: plannedWorkouts = [] } = useQuery({
-    queryKey: ['my-plan-workouts', activePlan?.id],
-    queryFn: () => base44.entities.PlannedWorkout.filter({ plan_id: activePlan.id }, 'scheduled_date', 500),
-    enabled: !!activePlan?.id,
-  });
 
   const { data: completions = [] } = useQuery({
     queryKey: ['completions', athleteEmail],

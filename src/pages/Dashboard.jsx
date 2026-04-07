@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
@@ -12,11 +12,13 @@ import { Activity, MapPin, Clock, Flame } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
 import { DEFAULT_ROUTE } from '@/lib/roleConfig';
+import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 import { startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 
 export default function Dashboard() {
   const { role } = useRole();
   const navigate = useNavigate();
+  const { athleteEmail, plannedWorkouts } = useAssignedPlan();
 
   useEffect(() => {
     if (!role) return;
@@ -25,19 +27,10 @@ export default function Dashboard() {
     }
   }, [role, navigate]);
 
-  const [userEmail, setUserEmail] = useState(null);
-  useEffect(() => {
-    base44.auth.me().then(u => setUserEmail(u?.email)).catch(() => {});
-  }, []);
-
   const { data: workouts = [] } = useQuery({
-    queryKey: ['workouts'],
-    queryFn: () => base44.entities.Workout.list('-date', 100),
-  });
-
-  const { data: plannedWorkouts = [] } = useQuery({
-    queryKey: ['planned-workouts'],
-    queryFn: () => base44.entities.PlannedWorkout.list('-scheduled_date', 50),
+    queryKey: ['workouts', athleteEmail],
+    queryFn: () => base44.entities.Workout.filter({ created_by: athleteEmail }, '-date', 100),
+    enabled: !!athleteEmail,
   });
 
   const now = new Date();
@@ -74,7 +67,7 @@ export default function Dashboard() {
 
         <RecentActivity workouts={workouts} />
 
-        <RacePredictor userEmail={userEmail} />
+        <RacePredictor userEmail={athleteEmail} />
       </div>
     </div>
   );
