@@ -12,7 +12,7 @@ import { ThemeProvider } from '@/lib/ThemeContext';
 import { RoleProvider, useRole } from '@/lib/RoleContext';
 import RoleSelectionScreen from '@/components/RoleSelectionScreen';
 
-const Dashboard      = lazy(() => import('@/pages/Dashboard'));
+import Dashboard from '@/pages/Dashboard';
 const Workouts       = lazy(() => import('@/pages/Workouts'));
 const TrainingPlans  = lazy(() => import('@/pages/TrainingPlans'));
 const Analytics      = lazy(() => import('@/pages/Analytics'));
