@@ -18,13 +18,13 @@ export default function Dashboard() {
   const { role } = useRole();
   const navigate = useNavigate();
 
-  // Redirect non-athletes away from the athlete dashboard
   useEffect(() => {
     if (!role) return;
     if (role !== 'athlete') {
       navigate(DEFAULT_ROUTE[role] || '/coach', { replace: true });
     }
   }, [role, navigate]);
+
   const [userEmail, setUserEmail] = useState(null);
   useEffect(() => {
     base44.auth.me().then(u => setUserEmail(u?.email)).catch(() => {});
@@ -43,7 +43,7 @@ export default function Dashboard() {
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
-  
+
   const thisWeekWorkouts = workouts.filter(w => {
     const d = new Date(w.date);
     return isWithinInterval(d, { start: weekStart, end: weekEnd });
