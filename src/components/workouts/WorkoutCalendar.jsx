@@ -119,7 +119,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
               </div>
 
               {/* Workout marker section - true centered flex container */}
-              <div className="w-full flex flex-col items-center justify-start gap-1"
+              <div className="w-full flex flex-col items-center justify-start gap-0.5"
               >
                 {dayPlanned.slice(0, 2).map((pw, idx) => {
                   const label = getWorkoutLabel(pw);
@@ -131,7 +131,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: idx * 0.05 }}
                       className={cn(
-                        'px-2.5 py-1 rounded-md text-[9px] font-semibold transition-all duration-200 truncate max-w-[80%] whitespace-nowrap',
+                        'px-2 py-0.5 rounded text-[8px] font-semibold transition-all duration-200 truncate max-w-[75%] whitespace-nowrap',
                         pw.status === 'completed' ? 'opacity-40 line-through' :
                         pw.status === 'skipped' ? 'opacity-25 line-through' :
                         color
@@ -152,12 +152,12 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: idx * 0.05 }}
                       className={cn(
-                        'px-2.5 py-1 rounded-md text-[9px] font-semibold transition-all duration-200 truncate opacity-70 max-w-[80%] whitespace-nowrap',
+                        'px-2 py-0.5 rounded text-[8px] font-semibold transition-all duration-200 truncate opacity-70 max-w-[75%] whitespace-nowrap',
                         color
                       )}
                       title={`✓ ${w.title}`}
                     >
-                      ✓ {label}
+                      ✓{label}
                     </motion.div>
                   );
                 })}
