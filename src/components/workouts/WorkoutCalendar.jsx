@@ -59,43 +59,41 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
         ))}
       </div>
 
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-2.5 p-4">
+      {/* Clean grid */}
+      <div className="grid grid-cols-7 divide-x divide-y divide-border/20">
         {days.map((day, i) => {
           const dayWorkouts = getWorkoutsForDay(day);
           const dayPlanned = getPlannedForDay(day);
           const isSelected = selectedDate && isSameDay(day, selectedDate);
           const isCurrentMonth = isSameMonth(day, currentMonth);
           const todayDay = isToday(day);
-          const hasPending = dayPlanned.some(p => p.status === 'upcoming');
-          const hasCompleted = dayWorkouts.length > 0;
 
           return (
             <div
               key={i}
               onClick={() => onSelectDate(day)}
               className={cn(
-                'aspect-square p-3 cursor-pointer transition-all duration-200 rounded-2xl border group relative',
+                'aspect-square p-4 cursor-pointer transition-all duration-200 flex flex-col group relative',
                 !isCurrentMonth && 'opacity-30 pointer-events-none',
                 isSelected
-                  ? 'bg-primary/12 border-primary/50 shadow-lg shadow-primary/15 ring-1 ring-primary/25'
+                  ? 'bg-primary/8 ring-2 ring-inset ring-primary/40'
                   : todayDay
-                  ? 'bg-primary/8 border-primary/30 shadow-md shadow-primary/10'
-                  : 'border-border/40 bg-background/50 hover:bg-muted/50 hover:border-border/60',
+                  ? 'bg-primary/4 ring-2 ring-inset ring-primary/20'
+                  : 'hover:bg-muted/30',
               )}
             >
               {/* Day number */}
               <div className={cn(
                 'text-xs font-bold leading-none mb-2',
                 isSelected ? 'text-primary' :
-                todayDay ? 'text-primary/90' :
-                'text-foreground/70'
+                todayDay ? 'text-primary/80' :
+                'text-foreground/60'
               )}>
                 {format(day, 'd')}
               </div>
 
-              {/* Premium workout pills */}
-              <div className="space-y-1.5">
+              {/* Workout pills */}
+              <div className="space-y-1">
                 {dayPlanned.slice(0, 2).map(pw => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
@@ -103,10 +101,10 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                     <div
                       key={pw.id}
                       className={cn(
-                        'px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 truncate shadow-sm',
+                        'px-2 py-1 rounded-full text-[10px] font-semibold transition-all duration-200 truncate',
                         pw.status === 'completed' ? 'opacity-50 line-through' :
                         pw.status === 'skipped' ? 'opacity-30 line-through' :
-                        cn(color, 'shadow-md shadow-black/15 dark:shadow-black/30 hover:shadow-lg hover:shadow-black/20 dark:hover:shadow-black/40')
+                        color
                       )}
                       title={pw.title}
                     >
@@ -121,8 +119,8 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                     <div
                       key={w.id}
                       className={cn(
-                        'px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 truncate shadow-sm opacity-75',
-                        cn(color, 'shadow-md shadow-black/15 dark:shadow-black/30')
+                        'px-2 py-1 rounded-full text-[10px] font-semibold transition-all duration-200 truncate opacity-75',
+                        color
                       )}
                       title={`✓ ${w.title}`}
                     >
@@ -131,8 +129,8 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                   );
                 })}
                 {(dayPlanned.length + dayWorkouts.length) > 2 && (
-                  <div className="text-[10px] font-medium text-muted-foreground/60 pl-1">
-                    +{dayPlanned.length + dayWorkouts.length - 2} more
+                  <div className="text-[9px] font-medium text-muted-foreground/50">
+                    +{dayPlanned.length + dayWorkouts.length - 2}
                   </div>
                 )}
               </div>
