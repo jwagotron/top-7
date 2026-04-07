@@ -78,7 +78,7 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.15 }}
                 className={cn(
-                  'aspect-square p-3.5 cursor-pointer flex flex-col items-center justify-start group relative',
+                  'aspect-square p-2 cursor-pointer flex flex-col items-stretch justify-start group relative',
                   !isCurrentMonth && 'opacity-30 pointer-events-none',
                   isSelected 
                     ? 'bg-primary/6 border-2 border-primary/30'
@@ -86,12 +86,11 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                     ? 'bg-primary/3 border-2 border-primary/15'
                     : 'border-2 border-transparent hover:bg-muted/20 active:bg-muted/30',
                 )}
-                style={{ position: 'relative' }}
                 whileHover={isCurrentMonth ? { scale: 1.02 } : {}}
                 whileTap={isCurrentMonth ? { scale: 0.98 } : {}}
               >
-              {/* Date number + add button layer */}
-              <div className="w-full mb-4 shrink-0 flex justify-center items-center gap-1">
+              {/* Date number + add button section */}
+              <div className="flex justify-center items-center gap-1 shrink-0 mb-1">
                 <span className={cn(
                   'text-xs font-semibold leading-4 transition-colors duration-200',
                   isSelected ? 'text-primary' :
@@ -110,17 +109,8 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                 </motion.button>
               </div>
 
-              {/* Centered content layer for workout markers */}
-              <div 
-                className="flex flex-col items-center justify-start gap-1.5"
-                style={{
-                  position: 'absolute',
-                  left: '50%',
-                  top: '2.5rem',
-                  transform: 'translateX(-50%)',
-                  width: 'fit-content',
-                  maxWidth: '90%'
-                }}
+              {/* Workout marker section - true centered flex container */}
+              <div className="w-full flex flex-col items-center justify-start gap-1"
               >
                 {dayPlanned.slice(0, 2).map((pw, idx) => {
                   const label = getWorkoutLabel(pw);
