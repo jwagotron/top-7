@@ -84,11 +84,16 @@ export default function TrainingPlans() {
     <div>
       <TopBar title={canCreate ? "Training Plans" : "My Plans"}>
         {canCreate && (
-          <div className="flex items-center gap-1 sm:gap-2">
-            <AssignmentSelector value={assignment} onChange={setAssignment} />
-            <Button onClick={() => setShowPlanForm(true)} size="sm" className="h-8 px-2 sm:px-3 lg:px-4 gap-1 shrink-0">
-              <Plus className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline text-xs lg:text-sm">New</span>
-            </Button>
+          <div className="flex flex-col items-end gap-1.5">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <AssignmentSelector value={assignment} onChange={setAssignment} />
+              <Button onClick={() => setShowPlanForm(true)} size="sm" className="h-8 px-2 sm:px-3 lg:px-4 gap-1 shrink-0">
+                <Plus className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline text-xs lg:text-sm">New</span>
+              </Button>
+            </div>
+            <span className="text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider leading-tight">
+              New plans assign to: {assignment.type === 'all' ? 'All Athletes' : `${assignment.athletes.length} Athlete${assignment.athletes.length !== 1 ? 's' : ''}`}
+            </span>
           </div>
         )}
       </TopBar>
