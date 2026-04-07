@@ -113,23 +113,24 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
               {/* Workout dots / pills */}
               <div className="space-y-1">
                 {dayPlanned.slice(0, 2).map(pw => (
-                  <div
-                    key={pw.id}
-                    className={cn(
-                      'text-[10px] px-1.5 py-0.5 rounded-md truncate leading-tight font-medium',
-                      pw.status === 'completed' ? 'bg-secondary/20 text-secondary line-through' :
-                      pw.status === 'skipped' ? 'bg-muted text-muted-foreground line-through opacity-60' :
-                      'bg-primary/10 text-primary'
-                    )}
-                  >
-                    {pw.title}
-                  </div>
-                ))}
-                {dayWorkouts.filter(w => !dayPlanned.some(p => p.id === w.planned_workout_id)).slice(0, 1).map(w => (
-                  <div key={w.id} className="text-[10px] px-1.5 py-0.5 rounded-md truncate leading-tight font-medium bg-secondary/20 text-secondary">
-                    ✓ {w.title}
-                  </div>
-                ))}
+                   <div
+                     key={pw.id}
+                     className={cn(
+                       'text-[9px] px-2 py-0.5 rounded-md leading-snug font-medium line-clamp-2 break-words relative overflow-hidden',
+                       pw.status === 'completed' ? 'bg-secondary/20 text-secondary line-through' :
+                       pw.status === 'skipped' ? 'bg-muted text-muted-foreground line-through opacity-60' :
+                       'bg-primary/10 text-primary'
+                     )}
+                     title={pw.title}
+                   >
+                     {pw.title}
+                   </div>
+                 ))}
+                 {dayWorkouts.filter(w => !dayPlanned.some(p => p.id === w.planned_workout_id)).slice(0, 1).map(w => (
+                   <div key={w.id} className="text-[9px] px-2 py-0.5 rounded-md leading-snug font-medium line-clamp-2 break-words relative overflow-hidden bg-secondary/20 text-secondary" title={w.title}>
+                     ✓ {w.title}
+                   </div>
+                 ))}
                 {(dayPlanned.length + dayWorkouts.length) > 3 && (
                   <div className="text-[10px] text-muted-foreground px-1">+{dayPlanned.length + dayWorkouts.length - 3} more</div>
                 )}

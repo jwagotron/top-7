@@ -103,7 +103,7 @@ export default function CoachCalendar({ currentMonth, onMonthChange, plannedWork
                   <div
                     key={pw.id}
                     className={cn(
-                      'text-[10px] px-1.5 py-0.5 rounded leading-tight font-medium line-clamp-2 break-words',
+                      'text-[9px] px-2 py-0.5 rounded-md leading-snug font-medium line-clamp-2 break-words relative overflow-hidden before:absolute before:inset-y-0 before:right-0 before:w-4 before:bg-gradient-to-l before:from-current before:to-transparent before:opacity-0 hover:before:opacity-10',
                       pw.status === 'completed' ? 'bg-secondary/15 text-secondary line-through' :
                       pw.status === 'skipped' ? 'opacity-50 bg-muted text-muted-foreground line-through' :
                       RUN_TYPE_STYLES[pw.run_type] || 'bg-primary/10 text-primary',
