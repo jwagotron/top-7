@@ -18,7 +18,7 @@ import { startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 export default function Dashboard() {
   const { role } = useRole();
   const navigate = useNavigate();
-  const { athleteEmail, plannedWorkouts } = useAssignedPlan();
+  const { athleteEmail, plannedWorkouts, activePlan, isLoading } = useAssignedPlan();
 
   useEffect(() => {
     if (!role) return;
@@ -48,6 +48,17 @@ export default function Dashboard() {
   const totalDuration = thisWeekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0);
   const totalCalories = thisWeekWorkouts.reduce((s, w) => s + (w.calories || 0), 0);
   const totalWorkouts = thisWeekWorkouts.length;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopBar title="My Progress" />
+        <div className="flex justify-center py-24">
+          <div className="w-7 h-7 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

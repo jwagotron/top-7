@@ -23,7 +23,7 @@ export function useAssignedPlan() {
 
   // Debug log
   if (athleteEmail) {
-    console.log('[useAssignedPlan] athlete_email:', athleteEmail, '| assigned plan_id:', activePlan?.id ?? 'none');
+    console.log('[useAssignedPlan] athlete_email:', athleteEmail, '| assigned plan_id:', activePlan?.id ?? 'none', '| workouts:', plannedWorkouts.length);
   }
 
   const { data: plannedWorkouts = [], isLoading: workoutsLoading } = useQuery({
