@@ -35,32 +35,32 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
   });
 
   return (
-    <div className="bg-card/60 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+    <div className="bg-card/50 backdrop-blur-sm border border-border/30 rounded-2xl overflow-hidden">
       {/* Month navigation */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-border/30">
-        <h2 className="font-bold text-lg tracking-tight text-foreground">{format(currentMonth, 'MMMM yyyy')}</h2>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted/60" onClick={() => onMonthChange(-1)}>
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border/20">
+        <h2 className="font-semibold text-base tracking-tight text-foreground">{format(currentMonth, 'MMMM yyyy')}</h2>
+        <div className="flex gap-0.5">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onMonthChange(-1)}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-8 px-3 text-xs hover:bg-muted/60" onClick={() => onMonthChange(0)}>
+          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => onMonthChange(0)}>
             Today
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted/60" onClick={() => onMonthChange(1)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onMonthChange(1)}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* Day headers */}
-      <div className="grid grid-cols-7 border-b border-border/20 px-2 py-4">
+      <div className="grid grid-cols-7 border-b border-border/15 px-2 py-3">
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-          <div key={d} className="text-center text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">{d}</div>
+          <div key={d} className="text-center text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-wider">{d}</div>
         ))}
       </div>
 
       {/* Clean grid */}
-      <div className="grid grid-cols-7 divide-x divide-y divide-border/20">
+      <div className="grid grid-cols-7 divide-x divide-y divide-border/15">
         {days.map((day, i) => {
           const dayWorkouts = getWorkoutsForDay(day);
           const dayPlanned = getPlannedForDay(day);
@@ -76,18 +76,18 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                 'aspect-square p-3.5 cursor-pointer transition-all duration-200 flex flex-col justify-start group relative',
                 !isCurrentMonth && 'opacity-30 pointer-events-none',
                 isSelected
-                  ? 'bg-primary/8 ring-2 ring-inset ring-primary/40'
+                  ? 'bg-primary/6 border-2 border-primary/30'
                   : todayDay
-                  ? 'bg-primary/4 ring-2 ring-inset ring-primary/20'
-                  : 'hover:bg-muted/30',
+                  ? 'bg-primary/3 border-2 border-primary/15'
+                  : 'border-2 border-transparent hover:bg-muted/20',
               )}
             >
               {/* Day number */}
               <div className={cn(
-                'text-xs font-bold leading-4 mb-2.5 h-4 shrink-0',
+                'text-xs font-semibold leading-4 mb-3 h-4 shrink-0',
                 isSelected ? 'text-primary' :
-                todayDay ? 'text-primary/80' :
-                'text-foreground/60'
+                todayDay ? 'text-primary/70' :
+                'text-foreground/50'
               )}>
                 {format(day, 'd')}
               </div>
@@ -101,9 +101,9 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                     <div
                       key={pw.id}
                       className={cn(
-                        'px-2 py-1 rounded-full text-[10px] font-semibold transition-all duration-200 truncate',
-                        pw.status === 'completed' ? 'opacity-50 line-through' :
-                        pw.status === 'skipped' ? 'opacity-30 line-through' :
+                        'px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all duration-200 truncate',
+                        pw.status === 'completed' ? 'opacity-40 line-through' :
+                        pw.status === 'skipped' ? 'opacity-25 line-through' :
                         color
                       )}
                       title={pw.title}
@@ -119,7 +119,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                     <div
                       key={w.id}
                       className={cn(
-                        'px-2 py-1 rounded-full text-[10px] font-semibold transition-all duration-200 truncate opacity-75',
+                        'px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all duration-200 truncate opacity-70',
                         color
                       )}
                       title={`✓ ${w.title}`}
@@ -129,7 +129,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
                   );
                 })}
                 {(dayPlanned.length + dayWorkouts.length) > 2 && (
-                  <div className="text-[9px] font-medium text-muted-foreground/50 pl-0.5">
+                  <div className="text-[9px] font-medium text-muted-foreground/40 pl-0.5 mt-1">
                     +{dayPlanned.length + dayWorkouts.length - 2}
                   </div>
                 )}

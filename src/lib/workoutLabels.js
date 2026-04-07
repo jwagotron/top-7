@@ -20,26 +20,26 @@ export const INTENSITY_LABELS = {
   recovery: 'Recovery',
 };
 
-// Color mapping for workout types - subtle for dark mode
+// Color mapping for workout types - soft, premium palette
 export const WORKOUT_COLORS = {
-  easy: 'bg-green-500/75 text-white hover:bg-green-600',
-  long_run: 'bg-blue-500/75 text-white hover:bg-blue-600',
-  tempo: 'bg-cyan-500/75 text-white hover:bg-cyan-600',
-  interval: 'bg-orange-500/75 text-white hover:bg-orange-600',
-  fartlek: 'bg-purple-500/75 text-white hover:bg-purple-600',
-  hill_repeats: 'bg-orange-600/75 text-white hover:bg-orange-700',
-  race: 'bg-red-500/75 text-white hover:bg-red-600',
-  recovery: 'bg-slate-500/75 text-white hover:bg-slate-600',
-  progression: 'bg-teal-500/75 text-white hover:bg-teal-600',
+  easy: 'bg-emerald-500/70 text-white',
+  long_run: 'bg-blue-500/70 text-white',
+  tempo: 'bg-cyan-500/70 text-white',
+  interval: 'bg-orange-500/70 text-white',
+  fartlek: 'bg-purple-500/70 text-white',
+  hill_repeats: 'bg-orange-600/70 text-white',
+  race: 'bg-red-500/70 text-white',
+  recovery: 'bg-slate-400/70 text-white',
+  progression: 'bg-teal-500/70 text-white',
 };
 
 // Fallback color for non-run workouts
 export const DEFAULT_SPORT_COLORS = {
-  run: 'bg-blue-500/75 text-white hover:bg-blue-600',
-  bike: 'bg-purple-500/75 text-white hover:bg-purple-600',
-  swim: 'bg-cyan-500/75 text-white hover:bg-cyan-600',
-  strength: 'bg-amber-600/75 text-white hover:bg-amber-700',
-  other: 'bg-slate-500/75 text-white hover:bg-slate-600',
+  run: 'bg-blue-500/70 text-white',
+  bike: 'bg-purple-500/70 text-white',
+  swim: 'bg-cyan-500/70 text-white',
+  strength: 'bg-amber-600/70 text-white',
+  other: 'bg-slate-400/70 text-white',
 };
 
 export function getWorkoutLabel(workout) {
