@@ -22,7 +22,7 @@ export default function Workouts() {
   const { role } = useRole();
   // Athletes log their own runs; coaches/admin use this as a read-only calendar view
   const isAthlete = role === 'athlete';
-  const canCreate = isAthlete; // only athletes log runs on this page
+  const canCreate = !isAthlete; // coaches/admins can log runs; athletes view-only
   const { toDisplay, label } = useUnits();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -114,12 +114,12 @@ export default function Workouts() {
     <div className="min-h-screen bg-background">
       <PullToRefreshIndicator {...ptr} />
       <TopBar title="My Runs">
-        {isAthlete && (
+        {canCreate && (
           <Button variant="outline" onClick={() => setShowGpxImport(true)} className="gap-1 lg:gap-2 px-2 lg:px-4">
             <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import </span>GPX
           </Button>
         )}
-        {isAthlete && (
+        {canCreate && (
           <Button onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }} className="gap-1 lg:gap-2 px-3 lg:px-4">
             <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Log </span>Run
           </Button>
@@ -161,7 +161,7 @@ export default function Workouts() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm">{format(selectedDate, 'EEEE, MMM d')}</h3>
-              {isAthlete && (
+              {canCreate && (
                 <button
                   onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }}
                   className="text-xs text-primary hover:underline flex items-center gap-1"
@@ -187,7 +187,7 @@ export default function Workouts() {
                 planned={pw}
                 expanded={expandedPlanned === pw.id}
                 onToggle={() => setExpandedPlanned(expandedPlanned === pw.id ? null : pw.id)}
-                onLogRun={() => handleLogFromPlanned(pw)}
+                onLogRun={canCreate ? () => handleLogFromPlanned(pw) : undefined}
                 onMarkSkipped={() => handleMarkSkipped(pw)}
               />
             ))}
@@ -223,8 +223,8 @@ export default function Workouts() {
         onImport={(data) => { createMut.mutate(data); setShowGpxImport(false); }}
       />
 
-      {/* Forms & drawers — athlete only */}
-      {isAthlete && (
+      {/* Forms & drawers — coach/admin only */}
+      {canCreate && (
         <>
           <RunLogForm
             open={showLogForm}
@@ -246,8 +246,8 @@ export default function Workouts() {
         workout={viewingWorkout}
         open={!!viewingWorkout}
         onClose={() => setViewingWorkout(null)}
-        onEdit={isAthlete ? (w) => { setViewingWorkout(null); setEditingWorkout(w); } : undefined}
-        onDelete={isAthlete ? (id) => deleteWorkoutMut.mutate(id) : undefined}
+        onEdit={canCreate ? (w) => { setViewingWorkout(null); setEditingWorkout(w); } : undefined}
+        onDelete={canCreate ? (id) => deleteWorkoutMut.mutate(id) : undefined}
       />
     </div>
   );
