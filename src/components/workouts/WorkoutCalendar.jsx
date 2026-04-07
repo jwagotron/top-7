@@ -108,7 +108,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
               >
               {/* Day number */}
               <div className={cn(
-                'text-xs font-semibold leading-4 mb-4 h-4 shrink-0 transition-colors duration-200',
+                'text-xs font-semibold leading-4 mb-4 h-4 shrink-0 transition-colors duration-200 text-center w-full',
                 isSelected ? 'text-primary' :
                 todayDay ? 'text-primary/70' :
                 'text-foreground/50'
@@ -117,7 +117,7 @@ export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts,
               </div>
 
               {/* Workout pills - centered */}
-              <div className="flex flex-col items-center gap-1.5 flex-1">
+              <div className="flex flex-col items-center gap-1.5 flex-1 w-full">
                 {dayPlanned.slice(0, 2).map((pw, idx) => {
                   const label = getWorkoutLabel(pw);
                   const color = getWorkoutColor(pw);
