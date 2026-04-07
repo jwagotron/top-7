@@ -123,12 +123,15 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
         {/* Metrics strip */}
         {metrics.length > 0 && (
           <div className="flex flex-wrap gap-4 pl-7 border-t border-border/20 pt-4">
-            {metrics.map(({ icon: Icon, value }, i) => (
-              <div key={i} className="flex items-center gap-1.5">
-                <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-sm font-semibold text-foreground">{value}</span>
-              </div>
-            ))}
+            {metrics.map((metric, i) => {
+              const MetricIcon = metric.icon;
+              return (
+                <div key={i} className="flex items-center gap-1.5">
+                  <MetricIcon className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">{metric.value}</span>
+                </div>
+              );
+            })}
           </div>
         )}
 

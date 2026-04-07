@@ -8,7 +8,6 @@ import TopBar from '@/components/layout/TopBar';
 import TodayWorkout from '@/components/myplan/TodayWorkout';
 import WeeklySchedule from '@/components/myplan/WeeklySchedule';
 import PlanProgress from '@/components/myplan/PlanProgress';
-import { Badge } from '@/components/ui/badge';
 import {
   ClipboardList, ChevronDown, ChevronUp,
   CheckCircle2, Clock, MapPin, StickyNote, Loader2, ArrowLeft
