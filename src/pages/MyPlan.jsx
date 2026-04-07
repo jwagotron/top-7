@@ -8,42 +8,53 @@ import TopBar from '@/components/layout/TopBar';
 import TodayWorkout from '@/components/myplan/TodayWorkout';
 import WeeklySchedule from '@/components/myplan/WeeklySchedule';
 import PlanProgress from '@/components/myplan/PlanProgress';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { CalendarDays, ClipboardList, ChevronDown, ChevronUp, CheckCircle2, Clock, MapPin, Zap, StickyNote, Loader2, Moon } from 'lucide-react';
+import {
+  CalendarDays, ClipboardList, ChevronDown, ChevronUp,
+  CheckCircle2, Clock, MapPin, StickyNote, Loader2, ArrowLeft
+} from 'lucide-react';
 import { format, isToday, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
 
-const statusColors = {
-  active: 'bg-secondary/10 text-secondary border-secondary/20',
-  draft: 'bg-muted text-muted-foreground border-border',
-  paused: 'bg-accent/10 text-accent border-accent/20',
-  completed: 'bg-primary/10 text-primary border-primary/20',
+const statusConfig = {
+  active:    { label: 'Active',    class: 'text-secondary bg-secondary/10 border-secondary/20' },
+  draft:     { label: 'Draft',     class: 'text-muted-foreground bg-muted border-border' },
+  paused:    { label: 'Paused',    class: 'text-accent bg-accent/10 border-accent/20' },
+  completed: { label: 'Completed', class: 'text-primary bg-primary/10 border-primary/20' },
 };
 
 const intensityColors = {
-  easy: 'bg-secondary/10 text-secondary border-secondary/20',
-  moderate: 'bg-primary/10 text-primary border-primary/20',
-  hard: 'bg-accent/10 text-accent border-accent/20',
-  race_pace: 'bg-destructive/10 text-destructive border-destructive/20',
-  recovery: 'bg-muted text-muted-foreground border-border',
+  easy:      'text-secondary bg-secondary/10 border-secondary/20',
+  moderate:  'text-primary bg-primary/10 border-primary/20',
+  hard:      'text-accent bg-accent/10 border-accent/20',
+  race_pace: 'text-destructive bg-destructive/10 border-destructive/20',
+  recovery:  'text-muted-foreground bg-muted border-border',
 };
+
+function SectionLabel({ icon: Icon, children }) {
+  return (
+    <div className="flex items-center gap-2 mb-3 px-1">
+      <Icon className="w-3.5 h-3.5 text-muted-foreground/60" />
+      <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">
+        {children}
+      </span>
+    </div>
+  );
+}
 
 export default function MyPlan() {
   const { role } = useRole();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toDisplay, label } = useUnits();
-  const [selectedDayWorkout, setSelectedDayWorkout] = useState(null);
+  const [selectedDayWorkout, setSelectedDayWorkout] = useState(undefined); // undefined = today
   const [showAllWorkouts, setShowAllWorkouts] = useState(false);
   const [completingId, setCompletingId] = useState(null);
   const [notesMap, setNotesMap] = useState({});
   const [showNotesFor, setShowNotesFor] = useState(null);
   const qc = useQueryClient();
 
-  // Athletes only
   useEffect(() => {
     if (role && role !== 'athlete') navigate('/coach', { replace: true });
   }, [role, navigate]);
@@ -52,7 +63,6 @@ export default function MyPlan() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Fetch athlete's assigned plans
   const { data: plans = [], isLoading: plansLoading } = useQuery({
     queryKey: ['my-plans', athleteEmail],
     queryFn: async () => {
@@ -62,38 +72,33 @@ export default function MyPlan() {
     enabled: !!athleteEmail,
   });
 
-  // Active plan (prefer active status, then most recent)
   const activePlan = plans.find(p => p.status === 'active') || plans[0] || null;
 
-  // Fetch planned workouts for the active plan
   const { data: plannedWorkouts = [] } = useQuery({
     queryKey: ['my-plan-workouts', activePlan?.id],
     queryFn: () => base44.entities.PlannedWorkout.filter({ plan_id: activePlan.id }, 'scheduled_date', 500),
     enabled: !!activePlan?.id,
   });
 
-  // Fetch completions
   const { data: completions = [] } = useQuery({
     queryKey: ['completions', athleteEmail],
     queryFn: () => base44.entities.WorkoutCompletion.filter({ athlete_email: athleteEmail }, '-completed_at', 200),
     enabled: !!athleteEmail,
   });
 
-  // Today's workout
   const todayWorkout = plannedWorkouts.find(w => isSameDay(new Date(w.scheduled_date), today));
-  const todayCompletion = todayWorkout
-    ? completions.find(c => c.planned_workout_id === todayWorkout.id)
-    : null;
 
-  // Selected day from weekly schedule
-  const displayWorkout = selectedDayWorkout !== undefined ? selectedDayWorkout : todayWorkout;
-  const displayDate = selectedDayWorkout ? new Date(selectedDayWorkout.scheduled_date) : today;
+  // selectedDayWorkout: undefined = show today, null = rest day selected, object = specific workout
+  const displayWorkout = selectedDayWorkout === undefined ? todayWorkout : selectedDayWorkout;
   const displayCompletion = displayWorkout
     ? completions.find(c => c.planned_workout_id === displayWorkout.id)
     : null;
 
-  // Progress
-  const completedCount = completions.filter(c => c.status === 'completed' && c.plan_id === activePlan?.id).length;
+  const isViewingToday = selectedDayWorkout === undefined;
+
+  const completedCount = completions.filter(
+    c => c.status === 'completed' && c.plan_id === activePlan?.id
+  ).length;
 
   const completeMut = useMutation({
     mutationFn: async ({ workout, notes }) => {
@@ -115,97 +120,130 @@ export default function MyPlan() {
         notes: notes || undefined,
       });
     },
-    onSuccess: (_, { workout }) => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
       setCompletingId(null);
       setShowNotesFor(null);
     },
   });
 
+  // Loading
   if (plansLoading) {
     return (
       <div className="min-h-screen bg-background">
         <TopBar title="My Plan" />
-        <div className="flex justify-center py-20">
-          <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <div className="flex justify-center py-24">
+          <div className="w-7 h-7 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
       </div>
     );
   }
 
+  // Empty state
   if (!activePlan) {
     return (
       <div className="min-h-screen bg-background">
         <TopBar title="My Plan" />
-        <div className="p-6 max-w-md mx-auto">
-          <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
-              <ClipboardList className="w-8 h-8 text-muted-foreground/40" />
-            </div>
-            <div>
-              <p className="text-lg font-bold text-foreground">No plan assigned yet</p>
-              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                Your coach will assign a training plan soon.<br />Check back after your next check-in.
-              </p>
-            </div>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-5 text-center">
+          <div className="w-20 h-20 rounded-3xl bg-muted/60 flex items-center justify-center">
+            <ClipboardList className="w-10 h-10 text-muted-foreground/30" />
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-xl font-bold text-foreground">No plan assigned yet</p>
+            <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+              Your coach will assign a training plan soon. Check back after your next check-in.
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
+  const sc = statusConfig[activePlan.status] || statusConfig.draft;
+  const sortedWorkouts = [...plannedWorkouts].sort(
+    (a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date)
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <TopBar title="My Plan" />
-      <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-5 pb-24 lg:pb-8">
 
-        {/* Plan overview card */}
-        <Card className="rounded-2xl bg-card border border-border/30 shadow-sm overflow-hidden">
-          <CardContent className="p-5 space-y-4">
+      <div className="max-w-2xl mx-auto px-4 lg:px-6 pt-5 pb-28 lg:pb-10 space-y-7">
+
+        {/* ── Plan overview ─────────────────────────────── */}
+        <div className="rounded-2xl bg-card border border-border/30 shadow-sm overflow-hidden">
+          {/* Thin accent top border */}
+          <div className="h-1 bg-gradient-to-r from-primary via-secondary to-accent opacity-60" />
+
+          <div className="p-5 space-y-4">
+            {/* Name + status */}
             <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <h2 className="text-lg font-bold tracking-tight">{activePlan.name}</h2>
-                  <Badge variant="outline" className={cn("text-[10px] capitalize", statusColors[activePlan.status])}>
-                    {activePlan.status}
-                  </Badge>
-                </div>
-                {activePlan.description && (
-                  <p className="text-sm text-muted-foreground leading-relaxed">{activePlan.description}</p>
+              <h2 className="text-xl font-bold tracking-tight leading-tight flex-1 min-w-0">
+                {activePlan.name}
+              </h2>
+              <span className={cn("text-[10px] font-semibold px-2.5 py-1 rounded-full border shrink-0", sc.class)}>
+                {sc.label}
+              </span>
+            </div>
+
+            {activePlan.description && (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {activePlan.description}
+              </p>
+            )}
+
+            {/* Plan meta chips */}
+            {(activePlan.duration_weeks || activePlan.goal_event || activePlan.difficulty || activePlan.sport) && (
+              <div className="flex flex-wrap gap-2">
+                {activePlan.duration_weeks && (
+                  <span className="text-[11px] font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                    {activePlan.duration_weeks} weeks
+                  </span>
+                )}
+                {activePlan.difficulty && (
+                  <span className="text-[11px] font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full capitalize">
+                    {activePlan.difficulty}
+                  </span>
+                )}
+                {activePlan.sport && (
+                  <span className="text-[11px] font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full capitalize">
+                    {activePlan.sport}
+                  </span>
+                )}
+                {activePlan.goal_event && (
+                  <span className="text-[11px] font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                    🎯 {activePlan.goal_event}
+                  </span>
                 )}
               </div>
-            </div>
-
-            {/* Plan meta */}
-            <div className="flex flex-wrap gap-x-5 gap-y-1 text-[11px] text-muted-foreground/60 font-medium uppercase tracking-wide border-t border-border/20 pt-3">
-              {activePlan.duration_weeks && <span>Weeks · {activePlan.duration_weeks}</span>}
-              {activePlan.goal_event && <span>Goal · {activePlan.goal_event}</span>}
-              {activePlan.difficulty && <span>Level · <span className="capitalize">{activePlan.difficulty}</span></span>}
-              {activePlan.sport && <span>Sport · <span className="capitalize">{activePlan.sport}</span></span>}
-            </div>
+            )}
 
             {/* Progress */}
             {plannedWorkouts.length > 0 && (
-              <PlanProgress total={plannedWorkouts.length} completed={completedCount} />
+              <div className="border-t border-border/20 pt-4">
+                <PlanProgress total={plannedWorkouts.length} completed={completedCount} />
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Today's workout heading */}
+        {/* ── Today's / selected workout ─────────────────── */}
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <CalendarDays className="w-4 h-4 text-primary" />
-            <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-              {selectedDayWorkout
-                ? format(new Date(selectedDayWorkout.scheduled_date), 'EEEE, MMM d')
-                : "Today's Workout — " + format(today, 'EEEE, MMM d')}
-            </h3>
-            {selectedDayWorkout && (
+          <div className="flex items-center justify-between mb-3 px-1">
+            <SectionLabel icon={CalendarDays}>
+              {isViewingToday
+                ? `Today · ${format(today, 'EEEE, MMM d')}`
+                : displayWorkout
+                  ? format(new Date(displayWorkout.scheduled_date), 'EEEE, MMM d')
+                  : `${format(new Date(), 'EEEE, MMM d')} · Rest`
+              }
+            </SectionLabel>
+            {!isViewingToday && (
               <button
                 onClick={() => setSelectedDayWorkout(undefined)}
-                className="text-xs text-primary hover:underline ml-auto"
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
               >
-                Back to today
+                <ArrowLeft className="w-3 h-3" /> Today
               </button>
             )}
           </div>
@@ -216,134 +254,164 @@ export default function MyPlan() {
           />
         </div>
 
-        {/* Weekly schedule */}
+        {/* ── Weekly schedule ────────────────────────────── */}
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <CalendarDays className="w-4 h-4 text-muted-foreground" />
-            <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">This Week</h3>
-          </div>
+          <SectionLabel icon={CalendarDays}>This Week</SectionLabel>
           <WeeklySchedule
             plannedWorkouts={plannedWorkouts}
             completions={completions}
-            selectedDate={selectedDayWorkout ? new Date(selectedDayWorkout.scheduled_date) : null}
+            selectedDate={selectedDayWorkout !== undefined && selectedDayWorkout
+              ? new Date(selectedDayWorkout.scheduled_date)
+              : null}
             onSelectDate={(day) => {
               const workout = plannedWorkouts.find(w => isSameDay(new Date(w.scheduled_date), day));
-              setSelectedDayWorkout(workout || null);
+              if (isToday(day)) {
+                setSelectedDayWorkout(undefined);
+              } else {
+                setSelectedDayWorkout(workout || null);
+              }
             }}
           />
         </div>
 
-        {/* Full plan schedule (collapsible) */}
-        {plannedWorkouts.length > 0 && (
+        {/* ── Full schedule ──────────────────────────────── */}
+        {sortedWorkouts.length > 0 && (
           <div>
             <button
               onClick={() => setShowAllWorkouts(v => !v)}
-              className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-3"
+              className="flex items-center gap-2 w-full px-1 mb-3 group"
             >
-              <ClipboardList className="w-4 h-4" />
-              Full Schedule ({plannedWorkouts.length} workouts)
-              {showAllWorkouts ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <ClipboardList className="w-3.5 h-3.5 text-muted-foreground/60" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60 flex-1 text-left">
+                Full Schedule ({sortedWorkouts.length} workouts)
+              </span>
+              {showAllWorkouts
+                ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground/40" />
+                : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+              }
             </button>
 
             {showAllWorkouts && (
-              <div className="space-y-2">
-                {[...plannedWorkouts]
-                  .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))
-                  .map(w => {
-                    const comp = completions.find(c => c.planned_workout_id === w.id);
-                    const done = comp?.status === 'completed';
-                    const isShowingNotes = showNotesFor === w.id;
+              <div className="rounded-2xl border border-border/30 bg-card overflow-hidden divide-y divide-border/20">
+                {sortedWorkouts.map(w => {
+                  const comp = completions.find(c => c.planned_workout_id === w.id);
+                  const done = comp?.status === 'completed';
+                  const isShowingNotes = showNotesFor === w.id;
+                  const isPast = new Date(w.scheduled_date) < today;
 
-                    return (
-                      <div
-                        key={w.id}
-                        className={cn(
-                          "rounded-xl border p-3 transition-all",
-                          done ? "bg-secondary/5 border-secondary/20" : "bg-card border-border/30"
-                        )}
-                      >
-                        <div className="flex items-start gap-3">
-                          {/* Date */}
-                          <div className="text-center shrink-0 w-9">
-                            <p className="text-[10px] text-muted-foreground">{format(new Date(w.scheduled_date), 'MMM')}</p>
-                            <p className={cn("text-base font-bold leading-none", isToday(new Date(w.scheduled_date)) && "text-primary")}>
-                              {format(new Date(w.scheduled_date), 'd')}
+                  return (
+                    <div
+                      key={w.id}
+                      className={cn(
+                        "px-4 py-3 transition-colors",
+                        done ? "bg-secondary/5" : "bg-transparent"
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Date stamp */}
+                        <div className="text-center shrink-0 w-9 pt-0.5">
+                          <p className="text-[9px] font-semibold uppercase text-muted-foreground/50 leading-none">
+                            {format(new Date(w.scheduled_date), 'MMM')}
+                          </p>
+                          <p className={cn(
+                            "text-sm font-bold leading-snug",
+                            isToday(new Date(w.scheduled_date)) ? "text-primary" : "text-foreground/70"
+                          )}>
+                            {format(new Date(w.scheduled_date), 'd')}
+                          </p>
+                          <p className="text-[9px] text-muted-foreground/40 leading-none">
+                            {format(new Date(w.scheduled_date), 'EEE')}
+                          </p>
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                            {done && <CheckCircle2 className="w-3.5 h-3.5 text-secondary shrink-0" />}
+                            <span className={cn(
+                              "text-sm font-semibold",
+                              done ? "text-secondary" : "text-foreground"
+                            )}>
+                              {w.title}
+                            </span>
+                            {w.intensity && (
+                              <span className={cn(
+                                "text-[10px] font-medium px-1.5 py-0.5 rounded-full border",
+                                intensityColors[w.intensity]
+                              )}>
+                                {w.intensity.replace('_', ' ')}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex gap-3">
+                            {w.target_duration_minutes && (
+                              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                                <Clock className="w-2.5 h-2.5" />{w.target_duration_minutes}m
+                              </span>
+                            )}
+                            {w.target_distance_km && (
+                              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                                <MapPin className="w-2.5 h-2.5" />{toDisplay(w.target_distance_km)} {label}
+                              </span>
+                            )}
+                          </div>
+
+                          {isShowingNotes && (
+                            <textarea
+                              className="mt-2 w-full rounded-lg bg-muted/40 border border-border/40 px-2.5 py-2 text-xs resize-none outline-none focus:ring-1 focus:ring-primary/40 placeholder:text-muted-foreground/40"
+                              rows={2}
+                              placeholder="How did it go?"
+                              value={notesMap[w.id] || ''}
+                              onChange={e => setNotesMap(m => ({ ...m, [w.id]: e.target.value }))}
+                              autoFocus
+                            />
+                          )}
+                          {done && comp?.notes && !isShowingNotes && (
+                            <p className="text-[11px] text-muted-foreground italic mt-1">
+                              "{comp.notes}"
                             </p>
-                            <p className="text-[10px] text-muted-foreground">{format(new Date(w.scheduled_date), 'EEE')}</p>
-                          </div>
+                          )}
+                        </div>
 
-                          {/* Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {done && <CheckCircle2 className="w-3.5 h-3.5 text-secondary shrink-0" />}
-                              <span className={cn("text-sm font-medium", done && "text-secondary")}>{w.title}</span>
-                              {w.intensity && (
-                                <Badge variant="outline" className={cn("text-[10px] capitalize", intensityColors[w.intensity])}>
-                                  {w.intensity.replace('_', ' ')}
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="flex gap-3 mt-0.5">
-                              {w.target_duration_minutes && (
-                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Clock className="w-2.5 h-2.5" />{w.target_duration_minutes}m
-                                </span>
-                              )}
-                              {w.target_distance_km && (
-                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <MapPin className="w-2.5 h-2.5" />{toDisplay(w.target_distance_km)}{label}
-                                </span>
-                              )}
-                            </div>
-                            {/* Notes textarea */}
-                            {isShowingNotes && (
-                              <textarea
-                                className="mt-2 w-full rounded-lg bg-muted/40 border border-border/40 px-2.5 py-2 text-xs resize-none outline-none focus:ring-1 focus:ring-primary/40 placeholder:text-muted-foreground/50"
-                                rows={2}
-                                placeholder="Add notes…"
-                                value={notesMap[w.id] || ''}
-                                onChange={e => setNotesMap(m => ({ ...m, [w.id]: e.target.value }))}
-                              />
-                            )}
-                            {done && comp?.notes && !isShowingNotes && (
-                              <p className="text-xs text-muted-foreground italic mt-1">"{comp.notes}"</p>
-                            )}
-                          </div>
-
-                          {/* Action */}
-                          <div className="shrink-0 flex gap-1">
-                            {!done && (
-                              <>
-                                <button
-                                  onClick={() => setShowNotesFor(isShowingNotes ? null : w.id)}
-                                  className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors"
-                                  title="Add note"
-                                >
-                                  <StickyNote className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setCompletingId(w.id);
-                                    completeMut.mutate({ workout: w, notes: notesMap[w.id] });
-                                  }}
-                                  disabled={completingId === w.id && completeMut.isPending}
-                                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary/10 text-secondary hover:bg-secondary/20 text-xs font-medium transition-colors"
-                                >
-                                  {completingId === w.id && completeMut.isPending
-                                    ? <Loader2 className="w-3 h-3 animate-spin" />
-                                    : <><CheckCircle2 className="w-3 h-3" /> Done</>
-                                  }
-                                </button>
-                              </>
-                            )}
-                            {done && (
-                              <span className="text-[10px] font-medium text-secondary bg-secondary/10 px-2 py-1 rounded-full">✓</span>
-                            )}
-                          </div>
+                        {/* Action */}
+                        <div className="shrink-0 flex items-center gap-1">
+                          {!done ? (
+                            <>
+                              <button
+                                onClick={() => setShowNotesFor(isShowingNotes ? null : w.id)}
+                                className={cn(
+                                  "p-1.5 rounded-lg transition-colors",
+                                  isShowingNotes
+                                    ? "bg-muted text-foreground"
+                                    : "hover:bg-muted text-muted-foreground"
+                                )}
+                              >
+                                <StickyNote className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setCompletingId(w.id);
+                                  completeMut.mutate({ workout: w, notes: notesMap[w.id] });
+                                }}
+                                disabled={completingId === w.id && completeMut.isPending}
+                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary/10 hover:bg-secondary/20 text-secondary text-[11px] font-semibold transition-colors"
+                              >
+                                {completingId === w.id && completeMut.isPending
+                                  ? <Loader2 className="w-3 h-3 animate-spin" />
+                                  : <><CheckCircle2 className="w-3 h-3" /> Done</>
+                                }
+                              </button>
+                            </>
+                          ) : (
+                            <span className="w-6 h-6 flex items-center justify-center rounded-full bg-secondary/15">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-secondary" />
+                            </span>
+                          )}
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
