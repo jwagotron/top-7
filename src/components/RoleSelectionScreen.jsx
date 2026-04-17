@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRole } from '@/lib/RoleContext';
+import { useAuth } from '@/lib/AuthContext';
 import { Dumbbell, Users, ShieldCheck } from 'lucide-react';
 
 const roles = [
@@ -35,8 +36,11 @@ const roles = [
 
 export default function RoleSelectionScreen() {
   const { setRole } = useRole();
+  const { user } = useAuth();
   const [selected, setSelected] = useState(null);
   const [confirming, setConfirming] = useState(false);
+
+  const visibleRoles = roles.filter(r => r.id !== 'admin' || user?.role === 'admin');
 
   const handleConfirm = () => {
     if (!selected) return;
@@ -77,7 +81,7 @@ export default function RoleSelectionScreen() {
         </p>
 
         <div className="space-y-3">
-          {roles.map((r) => {
+          {visibleRoles.map((r) => {
             const Icon = r.icon;
             const isSelected = selected === r.id;
             return (
