@@ -85,11 +85,11 @@ export default function WeeklyTrainingBoard({
           const loggedWorkouts = getLoggedForDay(day);
           const unlinkedLogged = loggedWorkouts.filter(w => !dayWorkouts.some(p => p.id === w.planned_workout_id));
           
-          // Filter: only show PENDING/UPCOMING assigned workouts (exclude completed)
+          // Filter: ONLY assigned workouts that are not completed
           const visibleAssigned = dayWorkouts.filter(w => getCompletion(w.id)?.status !== 'completed' && w.status !== 'completed');
           
-          // Debug: header uses visible (non-completed) assigned workouts
-          console.debug(`[Day ${format(day, 'EEE')}] visible_pending=${visibleAssigned.length} total_assigned=${dayWorkouts.length} unlinked_activity=${unlinkedLogged.length}`);
+          // Debug: only assigned pending workouts
+          console.debug(`[Day ${format(day, 'EEE')}] visible_assigned_pending=${visibleAssigned.length}`);
           
           const isToday = isSameDay(day, today);
 
@@ -125,7 +125,7 @@ export default function WeeklyTrainingBoard({
                     </p>
                   </div>
                   <div className="text-right">
-                    {visibleAssigned.length === 0 && unlinkedLogged.length === 0 ? (
+                    {visibleAssigned.length === 0 ? (
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">No workouts</p>
                     ) : null}
                   </div>
@@ -134,11 +134,11 @@ export default function WeeklyTrainingBoard({
 
               {/* Day content */}
               <div className="px-4 py-3">
-                {visibleAssigned.length === 0 && unlinkedLogged.length === 0 ? (
+                {visibleAssigned.length === 0 ? (
                   <p className="text-sm text-muted-foreground/60 italic py-6 text-center">Rest day</p>
                 ) : (
                   <div className="space-y-3">
-                    {/* Pending/upcoming assigned workouts only (no completed) */}
+                    {/* Only assigned pending workouts */}
                     {visibleAssigned.map(pw => (
                       <PlannedWorkoutCard
                         key={pw.id}
@@ -151,38 +151,6 @@ export default function WeeklyTrainingBoard({
                         role={role}
                       />
                     ))}
-
-                    {/* Logged workouts (unlinked) */}
-                    {unlinkedLogged.map(w => (
-                        <div key={w.id} className="bg-secondary/5 border border-secondary/20 rounded-lg p-3">
-                          <div className="flex items-start gap-2">
-                            <div className="w-2 h-2 rounded-full bg-secondary mt-1.5 shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-foreground">{w.title}</p>
-                              <div className="flex gap-3 mt-1 flex-wrap text-xs text-muted-foreground">
-                                {w.distance_km && (
-                                  <span className="flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" /> {w.distance_km} km
-                                  </span>
-                                )}
-                                {w.duration_minutes && (
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="w-3 h-3" /> {w.duration_minutes} min
-                                  </span>
-                                )}
-                                {w.avg_pace && (
-                                  <span className="flex items-center gap-1">
-                                    <Zap className="w-3 h-3" /> {w.avg_pace} /km
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            {w.feeling && (
-                              <span className="text-lg">{{ great: '🔥', good: '💪', okay: '👌', tired: '😓', exhausted: '😵' }[w.feeling]}</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
                   </div>
                 )}
               </div>
