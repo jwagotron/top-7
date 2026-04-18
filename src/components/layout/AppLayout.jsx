@@ -17,13 +17,15 @@ export default function AppLayout() {
   // On role change → always redirect to that role's default home
   const prevRoleRef = useRef(role);
   useEffect(() => {
+    // Don't redirect while role is still loading (null)
     if (!role) return;
     const defaultRoute = DEFAULT_ROUTE[role] || '/';
-    if (prevRoleRef.current !== role) {
+    if (prevRoleRef.current !== role && prevRoleRef.current !== null) {
       prevRoleRef.current = role;
       navigate(defaultRoute, { replace: true });
       return;
     }
+    prevRoleRef.current = role;
     // Guard: redirect if current route not allowed for this role
     if (!isRouteAllowed(role, location.pathname)) {
       navigate(defaultRoute, { replace: true });
