@@ -27,9 +27,10 @@ export default function TeamsSection() {
     if (isCoach && !hasTeamCode && !autoGenerating) {
       setAutoGenerating(true);
       base44.functions.invoke('generateTeamCode', {})
-        .then(res => {
+        .then(async (res) => {
           if (res?.data?.team_code) {
-            refetchUser?.();
+            // Force refetch to get the newly saved code from the database
+            await refetchUser?.();
           }
         })
         .catch(err => console.error('Auto-generation failed:', err))

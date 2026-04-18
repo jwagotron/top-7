@@ -2,26 +2,13 @@
   "name": "User",
   "type": "object",
   "properties": {
-    "role": {
-      "type": "string",
-      "description": "The role of the user in the app",
-      "enum": [
-        "admin",
-        "user",
-        "athlete",
-        "coach"
-      ]
-    },
     "team_code": {
       "type": "string",
-      "description": "Unique team code for coaches (6 alphanumeric characters)"
+      "description": "Unique team code for coaches to invite athletes"
     },
     "coach_email": {
       "type": "string",
-      "description": "Email of the coach assigned to this athlete"
+      "description": "Email of the coach for this athlete"
     }
-  },
-  "required": [
-    "role"
-  ]
+  }
 }
