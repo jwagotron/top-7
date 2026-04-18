@@ -86,7 +86,6 @@ export default function CalendarDayCell({
         {dayPlanned.slice(0, 2).map((pw) => {
           const label = getWorkoutLabel(pw);
           const color = getWorkoutColor(pw);
-          // Check both PlannedWorkout.status and WorkoutCompletion records
           const hasCompletion = completions.some(c => c.planned_workout_id === pw.id && c.status === 'completed');
           const done = pw.status === 'completed' || hasCompletion;
           const skipped = pw.status === 'skipped';
@@ -94,16 +93,21 @@ export default function CalendarDayCell({
             <div
               key={pw.id}
               className={cn(
-                'px-2.5 py-1.5 rounded-md text-[8px] font-semibold transition-all duration-200 truncate max-w-[90%] whitespace-nowrap flex-shrink-0 shadow-xs',
+                'flex items-center gap-0.5 px-1.5 py-1 rounded-md text-[8px] font-semibold transition-all duration-200 truncate max-w-[90%] whitespace-nowrap flex-shrink-0',
                 done
-                  ? 'bg-secondary/15 text-secondary opacity-60 line-through'
+                  ? 'bg-secondary/20 text-secondary/80 ring-1 ring-secondary/25'
                   : skipped
-                  ? 'opacity-20 line-through'
+                  ? 'opacity-25 line-through bg-muted text-muted-foreground'
                   : color,
               )}
               title={done ? `✓ ${pw.title}` : pw.title}
             >
-              {done ? `✓ ${label}` : label}
+              {done && (
+                <svg className="w-1.5 h-1.5 shrink-0" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+              <span className="truncate">{label}</span>
             </div>
           );
         })}
