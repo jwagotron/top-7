@@ -139,7 +139,7 @@ export default function WeeklyTrainingBoard({
               {/* Day content */}
               <div className="px-4 py-3">
                 {dayWorkouts.length === 0 && loggedWorkouts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground italic py-6 text-center">No workouts scheduled</p>
+                  <p className="text-sm text-muted-foreground/60 italic py-6 text-center">Rest day</p>
                 ) : (
                   <div className="space-y-3">
                     {/* Planned workouts */}
