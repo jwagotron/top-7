@@ -80,15 +80,17 @@ export default function WeeklyTrainingBoard({
       {/* Days */}
       <div className="space-y-5">
         {days.map(day => {
-          // Single source of truth for this day
+          // Single source of truth for this day's ASSIGNED workouts
           const dayWorkouts = getWorkoutsForDay(day);
           const loggedWorkouts = getLoggedForDay(day);
           const unlinkedLogged = loggedWorkouts.filter(w => !dayWorkouts.some(p => p.id === w.planned_workout_id));
-          const allVisibleWorkouts = dayWorkouts.length + unlinkedLogged.length;
-          const completedCount = dayWorkouts.filter(w => getCompletion(w.id)?.status === 'completed').length;
           
-          // Debug: ensure header and list use same data
-          console.debug(`[Day ${format(day, 'EEE')}] visible=${allVisibleWorkouts} completed=${completedCount}`);
+          // Summary: based on ASSIGNED workouts only
+          const assignedTotal = dayWorkouts.length;
+          const completedAssigned = dayWorkouts.filter(w => getCompletion(w.id)?.status === 'completed').length;
+          
+          // Debug: header uses assigned workouts only
+          console.debug(`[Day ${format(day, 'EEE')}] assigned=${assignedTotal} completed=${completedAssigned} unlinked_activity=${unlinkedLogged.length}`);
           
           const isToday = isSameDay(day, today);
 
@@ -124,11 +126,11 @@ export default function WeeklyTrainingBoard({
                     </p>
                   </div>
                   <div className="text-right">
-                    {allVisibleWorkouts === 0 ? (
+                    {assignedTotal === 0 ? (
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">No workouts</p>
                     ) : (
                       <p className="text-sm font-semibold text-foreground">
-                        {completedCount} <span className="text-muted-foreground font-normal">/ {allVisibleWorkouts}</span>
+                        {completedAssigned} <span className="text-muted-foreground font-normal">/ {assignedTotal}</span>
                         <span className="text-[10px] text-muted-foreground font-normal ml-1">completed</span>
                       </p>
                     )}
@@ -138,7 +140,7 @@ export default function WeeklyTrainingBoard({
 
               {/* Day content */}
               <div className="px-4 py-3">
-                {allVisibleWorkouts === 0 ? (
+                {assignedTotal === 0 && unlinkedLogged.length === 0 ? (
                   <p className="text-sm text-muted-foreground/60 italic py-6 text-center">Rest day</p>
                 ) : (
                   <div className="space-y-3">
