@@ -133,9 +133,9 @@ export default function PlannedWorkoutCard({
           {/* Content */}
           <div className="flex-1 min-w-0">
             {/* Title row */}
-            <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex items-center gap-2 mb-2.5">
               <span className={cn(
-                'text-sm font-semibold leading-snug truncate',
+                'text-sm font-bold leading-snug truncate',
                 isSkipped && 'line-through text-muted-foreground',
                 isCompleted && showCompleteButton ? 'text-secondary' : 'text-foreground'
               )}>
@@ -161,17 +161,17 @@ export default function PlannedWorkoutCard({
                 </span>
               )}
               {planned.target_distance_km && (
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <span className="text-xs text-muted-foreground/75 flex items-center gap-1">
                   <MapPin className="w-3 h-3 shrink-0" />{planned.target_distance_km} km
                 </span>
               )}
               {planned.target_duration_minutes && (
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <span className="text-xs text-muted-foreground/75 flex items-center gap-1">
                   <Clock className="w-3 h-3 shrink-0" />{planned.target_duration_minutes} min
                 </span>
               )}
               {planned.target_pace && (
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <span className="text-xs text-muted-foreground/75 flex items-center gap-1">
                   <Zap className="w-3 h-3 shrink-0" />{planned.target_pace} /km
                 </span>
               )}
@@ -179,7 +179,7 @@ export default function PlannedWorkoutCard({
 
             {/* Coach notes preview — collapsed view */}
             {planned.coach_notes && (
-              <div className="text-xs text-muted-foreground/70 mt-2 line-clamp-2 leading-relaxed">
+              <div className="text-xs text-muted-foreground/60 mt-3 line-clamp-2 leading-relaxed">
                 {planned.coach_notes}
               </div>
             )}
