@@ -1,7 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
-import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 
 const AuthContext = createContext();
 
@@ -22,16 +21,28 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingPublicSettings(true);
       setAuthError(null);
 
-      const appClient = createAxiosClient({
-        baseURL: `/api/apps/public`,
-        headers: { 'X-App-Id': appParams.appId },
-        token: appParams.token,
-        interceptResponses: true
-      });
-
       try {
-        const publicSettings = await appClient.get(`/prod/public-settings/by-id/${appParams.appId}`);
-        setAppPublicSettings(publicSettings);
+        const res = await fetch(`/api/apps/public/prod/public-settings/by-id/${appParams.appId}`, {
+          headers: { 'X-App-Id': appParams.appId, ...(appParams.token ? { Authorization: `Bearer ${appParams.token}` } : {}) }
+        });
+        if (res.ok) {
+          const publicSettings = await res.json();
+          setAppPublicSettings(publicSettings);
+        } else if (res.status === 403) {
+          const data = await res.json().catch(() => ({}));
+          const reason = data?.extra_data?.reason;
+          if (reason) {
+            setAuthError({
+              type: reason === 'auth_required' ? 'auth_required'
+                  : reason === 'user_not_registered' ? 'user_not_registered'
+                  : reason,
+              message: data.message || 'Access denied'
+            });
+            setIsLoadingPublicSettings(false);
+            setIsLoadingAuth(false);
+            return;
+          }
+        }
 
         if (appParams.token) {
           await checkUserAuth();
@@ -41,17 +52,7 @@ export const AuthProvider = ({ children }) => {
         }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
-        if (appError.status === 403 && appError.data?.extra_data?.reason) {
-          const reason = appError.data.extra_data.reason;
-          setAuthError({
-            type: reason === 'auth_required' ? 'auth_required'
-                : reason === 'user_not_registered' ? 'user_not_registered'
-                : reason,
-            message: appError.message
-          });
-        } else {
-          setAuthError({ type: 'unknown', message: appError.message || 'Failed to load app' });
-        }
+        setAuthError({ type: 'unknown', message: appError.message || 'Failed to load app' });
         setIsLoadingPublicSettings(false);
         setIsLoadingAuth(false);
       }

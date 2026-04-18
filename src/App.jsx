@@ -12,6 +12,7 @@ import { ThemeProvider } from '@/lib/ThemeContext';
 import { RoleProvider, useRole } from '@/lib/RoleContext';
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
 import JoinTeam from '@/pages/JoinTeam';
+import ErrorBoundary from '@/lib/ErrorBoundary';
 
 import Dashboard from '@/pages/Dashboard';
 const Workouts        = lazy(() => import('@/pages/Workouts'));
@@ -107,18 +108,20 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <RoleProvider>
-          <QueryClientProvider client={queryClientInstance}>
-            <Router>
-              <AuthenticatedApp />
-            </Router>
-            <Toaster />
-          </QueryClientProvider>
-        </RoleProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <RoleProvider>
+            <QueryClientProvider client={queryClientInstance}>
+              <Router>
+                <AuthenticatedApp />
+              </Router>
+              <Toaster />
+            </QueryClientProvider>
+          </RoleProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
