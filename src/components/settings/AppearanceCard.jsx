@@ -41,26 +41,26 @@ function MiniPreview({ bg }) {
   return (
     <div className="rounded-xl overflow-hidden border border-border/40 shadow-md" style={{ background: bg }}>
       {/* Top bar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b hidden" style={{ borderColor: border, background: dark ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.4)' }}>
-        <div className="flex gap-1.5">
-          <div className="w-5 h-1.5 rounded-full" style={{ background: text }} />
-          <div className="w-3.5 h-1.5 rounded-full" style={{ background: textMuted }} />
-          <div className="w-4 h-1.5 rounded-full" style={{ background: textMuted }} />
-        </div>
-        <div className="w-4 h-4 rounded-full" style={{ background: 'hsl(var(--primary))' }} />
-      </div>
+      
+
+
+
+
+
+
+      
       {/* Content */}
-      <div className="p-2.5 space-y-2 hidden">
-        <div className="rounded-lg p-2.5 hidden" style={{ background: surface, border: `1px solid ${border}` }}>
-          <div className="w-16 h-1.5 rounded-full mb-1.5" style={{ background: text }} />
-          <div className="w-10 h-1 rounded-full mb-1" style={{ background: textMuted }} />
-          <div className="w-12 h-1 rounded-full" style={{ background: textMuted }} />
-        </div>
-        <div className="flex gap-1.5">
-          <div className="flex-1 h-5 rounded-md" style={{ background: 'hsl(var(--primary))', opacity: 0.9 }} />
-          <div className="flex-1 h-5 rounded-md" style={{ background: surface, border: `1px solid ${border}` }} />
-        </div>
-      </div>
+      
+
+
+
+
+
+
+
+
+
+      
     </div>);
 
 }
@@ -193,7 +193,7 @@ export default function AppearanceCard() {
 
         {/* Live preview */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 hidden">Preview</p>
+          
           <MiniPreview bg={currentBg} />
         </div>
 
