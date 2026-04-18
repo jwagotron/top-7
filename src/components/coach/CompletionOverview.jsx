@@ -55,7 +55,7 @@ export default function CompletionOverview({ plannedWorkouts = [], completions =
           <p className={cn('text-6xl font-extrabold leading-none tracking-tight', colors.text)}>
             {rate}<span className="text-3xl font-bold">%</span>
           </p>
-          <p className="text-xs text-muted-foreground mt-1.5 font-medium">Completion Rate</p>
+
         </div>
 
         {/* Assigned / Completed stacked */}
@@ -73,7 +73,7 @@ export default function CompletionOverview({ plannedWorkouts = [], completions =
       </div>
 
       {/* Progress bar */}
-      <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+      <div className="h-2.5 bg-muted rounded-full overflow-hidden mt-4">
         <div
           className={cn('h-full rounded-full transition-all duration-700', colors.bar)}
           style={{ width: `${rate}%` }}
