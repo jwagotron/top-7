@@ -19,8 +19,6 @@ const RUN_TYPE_COLORS = {
 
 export default function PlannedWorkoutCard({
   planned,
-  onLogRun,
-  onMarkSkipped,
   expanded,
   onToggle,
   // Completion props (athlete-facing only)
@@ -220,27 +218,22 @@ export default function PlannedWorkoutCard({
             </AnimatePresence>
           )}
 
-          {/* Coach/Admin: read-only status badges — never actionable */}
-          {isCoachView && isCompleted && (
-            <div className="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-muted/50 border border-border text-muted-foreground text-xs w-fit">
-              <CheckCircle2 className="w-3 h-3" />
-              Completed by athlete
-            </div>
-          )}
-
-          {/* Coach/Admin: read-only pending status */}
-          {isCoachView && !isCompleted && !isSkipped && (
-            <div className="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-muted/50 border border-border text-muted-foreground text-xs w-fit">
-              <Clock className="w-3 h-3" />
-              Pending
-            </div>
-          )}
-
-          {/* Coach actions (log/skip) */}
-          {isCoachView && !isCompleted && !isSkipped && (
-            <div className="flex gap-2">
-              {onLogRun && <Button size="sm" className="flex-1 h-8 text-xs" onClick={onLogRun}>Log This Run</Button>}
-              {onMarkSkipped && <Button size="sm" variant="outline" className="h-8 text-xs text-muted-foreground" onClick={onMarkSkipped}>Skip</Button>}
+          {/* Coach/Admin: read-only status — no actionable controls */}
+          {isCoachView && (
+            <div className={cn(
+              'flex items-center gap-1.5 h-7 px-2.5 rounded-md border text-xs w-fit',
+              isCompleted
+                ? 'bg-secondary/10 border-secondary/25 text-secondary'
+                : isSkipped
+                ? 'bg-muted/50 border-border text-muted-foreground'
+                : 'bg-muted/50 border-border text-muted-foreground'
+            )}>
+              {isCompleted
+                ? <><CheckCircle2 className="w-3 h-3" /> Completed by athlete</>
+                : isSkipped
+                ? <><Clock className="w-3 h-3" /> Skipped</>
+                : <><Clock className="w-3 h-3" /> Pending</>
+              }
             </div>
           )}
 

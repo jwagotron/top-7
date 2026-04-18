@@ -239,8 +239,6 @@ export default function Workouts() {
                 planned={pw}
                 expanded={expandedPlanned === pw.id}
                 onToggle={() => setExpandedPlanned(expandedPlanned === pw.id ? null : pw.id)}
-                onLogRun={canCreate ? () => handleLogFromPlanned(pw) : undefined}
-                onMarkSkipped={canCreate ? () => handleMarkSkipped(pw) : undefined}
                 completion={isAthlete ? getCompletion(pw.id) : null}
                 showCompleteButton={isAthlete}
                 onMarkComplete={isAthlete ? ({ workout, notes }) => completeMut.mutateAsync({ workout, notes }) : undefined}
