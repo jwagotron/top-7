@@ -10,10 +10,11 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from '@/components/layout/AppLayout';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import { RoleProvider, useRole } from '@/lib/RoleContext';
-import RoleSelectionScreen from '@/components/RoleSelectionScreen';
+import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
+import JoinTeam from '@/pages/JoinTeam';
 
 import Dashboard from '@/pages/Dashboard';
-const Workouts       = lazy(() => import('@/pages/Workouts'));
+const Workouts        = lazy(() => import('@/pages/Workouts'));
 const TrainingPlans  = lazy(() => import('@/pages/TrainingPlans'));
 const Analytics      = lazy(() => import('@/pages/Analytics'));
 const Goals          = lazy(() => import('@/pages/Goals'));
@@ -52,6 +53,8 @@ function AnimatedRoutes() {
           </div>
         }>
           <Routes location={location}>
+            {/* Public route — no layout needed */}
+            <Route path="/join" element={<JoinTeam />} />
             <Route element={<AppLayout />}>
               <Route path="/"                element={<Dashboard />} />
               <Route path="/workouts"        element={<Workouts />} />
@@ -77,7 +80,7 @@ function AnimatedRoutes() {
 }
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, isAuthenticated } = useAuth();
   const { role } = useRole();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -93,9 +96,12 @@ const AuthenticatedApp = () => {
     if (authError.type === 'auth_required') { navigateToLogin(); return null; }
   }
 
-  // Gate on role selection — works in preview without auth
-  if (!role) return <RoleSelectionScreen />;
+  // Show onboarding wizard if authenticated but no user_type set yet (and not admin)
+  if (isAuthenticated && user && !user.user_type && user.role !== 'admin') {
+    return <OnboardingWizard />;
+  }
 
+  // Not authenticated or no role — show routes (join page is public)
   return <AnimatedRoutes />;
 };
 

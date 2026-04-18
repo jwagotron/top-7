@@ -28,10 +28,14 @@ export default function JoinTeamModal({ open, onOpenChange, onSuccess }) {
 
     try {
       const response = await base44.functions.invoke('joinTeam', {
-        team_code: teamCode.toUpperCase().trim(),
+        invite_code: teamCode.toUpperCase().trim(),
       });
 
-      toast.success('Successfully joined team!');
+      const data = response.data;
+      const msg = data.status === 'active'
+        ? `Joined ${data.team_name}!`
+        : `Request sent to ${data.team_name} — awaiting approval.`;
+      toast.success(msg);
       setTeamCode('');
       onOpenChange(false);
       onSuccess?.();
@@ -66,19 +70,19 @@ export default function JoinTeamModal({ open, onOpenChange, onSuccess }) {
               Team Code
             </label>
             <Input
-              placeholder="e.g., ABC123"
+              placeholder="e.g., ABC12345"
               value={teamCode}
               onChange={(e) => {
-                setTeamCode(e.target.value);
+                setTeamCode(e.target.value.toUpperCase());
                 setError('');
               }}
               onKeyDown={handleKeyDown}
               disabled={loading}
-              className="uppercase"
-              maxLength={6}
+              className="uppercase font-mono tracking-widest"
+              maxLength={8}
             />
             <p className="text-xs text-muted-foreground mt-1.5">
-              Ask your coach for their 6-character team code
+              Ask your coach for their 8-character invite code
             </p>
           </div>
 

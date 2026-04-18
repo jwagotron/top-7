@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
-import { Activity, Wifi, AlertCircle, CheckCircle2, Clock, RefreshCw, Users, Shield } from 'lucide-react';
+import { Activity, Wifi, AlertCircle, CheckCircle2, Clock, RefreshCw, Users, Shield, UserCog } from 'lucide-react';
 
 const statusDot = { success: 'bg-secondary', failed: 'bg-destructive', pending: 'bg-accent', duplicate: 'bg-muted-foreground' };
 
@@ -30,6 +30,26 @@ export default function AdminPanel() {
     queryKey: ['all-activities'],
     queryFn: () => base44.entities.Activity.list('-created_date', 200),
   });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['all-users'],
+    queryFn: () => base44.entities.User.list(),
+  });
+
+  const { data: allTeams = [] } = useQuery({
+    queryKey: ['all-teams'],
+    queryFn: () => base44.entities.Team.list(),
+  });
+
+  const { data: allMemberships = [] } = useQuery({
+    queryKey: ['all-memberships-admin'],
+    queryFn: () => base44.entities.TeamMembership.list(),
+  });
+
+  const handleChangeUserType = async (userId, newType) => {
+    await base44.entities.User.update(userId, { user_type: newType });
+    qc.invalidateQueries({ queryKey: ['all-users'] });
+  };
 
   const resyncMut = useMutation({
     mutationFn: (email) => base44.entities.GarminSyncEvent.create({
@@ -99,12 +119,77 @@ export default function AdminPanel() {
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="webhook-log">
+        <Tabs defaultValue="users">
           <TabsList className="w-full">
+            <TabsTrigger value="users" className="flex-1 text-xs">Users</TabsTrigger>
+            <TabsTrigger value="teams" className="flex-1 text-xs">Teams</TabsTrigger>
             <TabsTrigger value="webhook-log" className="flex-1 text-xs">Sync Log</TabsTrigger>
             <TabsTrigger value="connections" className="flex-1 text-xs">Connections</TabsTrigger>
             <TabsTrigger value="activities" className="flex-1 text-xs">Activities</TabsTrigger>
           </TabsList>
+
+          {/* USERS TAB */}
+          <TabsContent value="users" className="mt-4 space-y-2">
+            <p className="text-xs text-muted-foreground mb-3">{allUsers.length} total users</p>
+            {allUsers.map(u => (
+              <Card key={u.id}>
+                <CardContent className="p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                      {(u.full_name || u.email || '?')[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{u.full_name || u.email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge variant="outline" className="text-[10px]">{u.role || 'user'}</Badge>
+                    <select
+                      value={u.user_type || ''}
+                      onChange={e => handleChangeUserType(u.id, e.target.value)}
+                      className="text-xs border border-border rounded-md px-2 py-1 bg-background text-foreground"
+                    >
+                      <option value="">No type</option>
+                      <option value="athlete">athlete</option>
+                      <option value="coach">coach</option>
+                    </select>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          {/* TEAMS TAB */}
+          <TabsContent value="teams" className="mt-4 space-y-2">
+            <p className="text-xs text-muted-foreground mb-3">{allTeams.length} total teams</p>
+            {allTeams.map(t => {
+              const mems = allMemberships.filter(m => m.team_id === t.id && m.status === 'active');
+              const pending = allMemberships.filter(m => m.team_id === t.id && m.status === 'pending');
+              return (
+                <Card key={t.id}>
+                  <CardContent className="p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {t.logo_url && <img src={t.logo_url} alt="logo" className="w-8 h-8 rounded-lg object-cover shrink-0" />}
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate">{t.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{t.coach_email} · {t.school_club || t.location || ''}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                        <Badge variant="outline" className="text-[10px]">{mems.length} athletes</Badge>
+                        {pending.length > 0 && <Badge className="text-[10px] bg-accent/10 text-accent border-accent/20">{pending.length} pending</Badge>}
+                        <Badge variant="outline" className="text-[10px]">{t.auto_join ? 'Auto-Join' : 'Approval'}</Badge>
+                        <Badge className={`text-[10px] ${t.status === 'active' ? 'bg-secondary/10 text-secondary' : 'bg-muted text-muted-foreground'}`} variant="outline">{t.status}</Badge>
+                      </div>
+                    </div>
+                    <p className="text-[10px] font-mono text-muted-foreground mt-1.5">Code: {t.invite_code}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </TabsContent>
 
           <TabsContent value="webhook-log" className="mt-4 space-y-2">
             {loadingEvents && <p className="text-sm text-muted-foreground">Loading…</p>}

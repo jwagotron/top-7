@@ -17,13 +17,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
-import TeamsSection from '@/components/TeamsSection';
-
-const ROLE_LABELS = { athlete: 'Athlete', coach: 'Coach', admin: 'Admin' };
+import TeamSettingsCard from '@/components/settings/TeamSettingsCard';
 
 export default function AccountSettings() {
   const { user } = useAuth();
-  const { role, setRole } = useRole();
+  const { role } = useRole();
   const { units, setUnits } = useUnits();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -69,36 +67,30 @@ export default function AccountSettings() {
           </CardContent>
         </Card>
 
-        {/* Role */}
+        {/* Role — read-only display */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2"><Shield className="w-4 h-4 shrink-0" /> Role & Access</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-sm font-medium mb-1">Switch Role</p>
-              <p className="text-xs text-muted-foreground mb-3">Your role controls which features and navigation items are visible.</p>
-              <div className="flex rounded-xl border border-border overflow-hidden">
-                {['athlete', 'coach', 'admin'].map((r) => (
-                  <button
-                    key={r}
-                    onClick={() => setRole(r)}
-                    className={`flex-1 py-2.5 text-sm font-semibold capitalize transition-all duration-200 ${
-                      role === r
-                        ? 'bg-primary text-primary-foreground shadow-inner'
-                        : 'bg-background text-muted-foreground hover:bg-muted'
-                    }`}
-                  >
-                    {ROLE_LABELS[r]}
-                  </button>
-                ))}
+          <CardContent>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border">
+              <div>
+                <p className="text-sm font-semibold capitalize">{role || 'Not set'}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {role === 'athlete' && 'View workouts, log activities, connect Garmin.'}
+                  {role === 'coach' && 'Manage athletes, assign workouts, build plans.'}
+                  {role === 'admin' && 'Full access including admin panel and all tools.'}
+                </p>
+              </div>
+              <div className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                role === 'coach' ? 'bg-secondary/10 text-secondary' :
+                role === 'admin' ? 'bg-accent/10 text-accent' :
+                'bg-primary/10 text-primary'
+              }`}>
+                {role || '—'}
               </div>
             </div>
-            <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground space-y-1">
-              <p><strong>Athlete:</strong> View workouts, log activities, connect Garmin.</p>
-              <p><strong>Coach:</strong> Manage athletes, assign workouts, build plans.</p>
-              <p><strong>Admin:</strong> Full access including admin panel and all tools.</p>
-            </div>
+            <p className="text-xs text-muted-foreground mt-2">Your role is permanent. Contact an admin to change it.</p>
           </CardContent>
         </Card>
 
@@ -132,7 +124,7 @@ export default function AccountSettings() {
         </Card>
 
         {/* Team */}
-        <TeamsSection />
+        <TeamSettingsCard />
 
         {/* Appearance */}
         <AppearanceCard />

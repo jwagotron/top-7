@@ -53,13 +53,7 @@ export default function AppLayout() {
         {/* Bottom tab bar — mobile only */}
         <MobileNav />
 
-        {/* Debug role badge — below header, non-overlapping */}
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 pointer-events-none lg:bottom-4 lg:left-auto lg:right-4 lg:translate-x-0">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/50 text-white text-[10px] font-mono font-medium backdrop-blur-sm select-none whitespace-nowrap opacity-60">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block shrink-0" />
-            {role}
-          </span>
-        </div>
+
       </div>
     </DrawerProvider>
   );
