@@ -42,11 +42,19 @@ export default function WeeklyTrainingBoard({
 
   const getDayStats = (day) => {
     const dayWorkouts = getWorkoutsForDay(day);
-    const completed = dayWorkouts.filter(w => {
+    const dayLogged = getLoggedForDay(day);
+    
+    // Count completed workouts (from WorkoutCompletion records)
+    const completedCount = dayWorkouts.filter(w => {
       const c = getCompletion(w.id);
       return c?.status === 'completed';
     }).length;
-    return { total: dayWorkouts.length, completed };
+    
+    // Total = all planned + unlinked logged workouts
+    const unlinkedLogged = dayLogged.filter(w => !dayWorkouts.some(p => p.id === w.planned_workout_id)).length;
+    const total = dayWorkouts.length + unlinkedLogged;
+    
+    return { total, completed: completedCount };
   };
 
   return (
