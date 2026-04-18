@@ -123,16 +123,16 @@ export default function WeeklyTrainingBoard({
                       {isToday && <span className="ml-2 text-[10px] font-bold uppercase">Today</span>}
                     </p>
                   </div>
-                  {dayWorkouts.length > 0 && (
-                    <div className="text-right">
+                  <div className="text-right">
+                    {dayWorkouts.length === 0 ? (
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">No workouts</p>
+                    ) : (
                       <p className="text-sm font-semibold text-foreground">
                         {stats.completed} <span className="text-muted-foreground font-normal">/ {stats.total}</span>
+                        <span className="text-[10px] text-muted-foreground font-normal ml-1">completed</span>
                       </p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                        {stats.completed === stats.total ? '✓ All Done' : 'In Progress'}
-                      </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
 
