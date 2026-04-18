@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +13,23 @@ export default function TeamsSection() {
   const { user, refetchUser } = useAuth();
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [autoGenerating, setAutoGenerating] = useState(false);
 
   const isCoach = user?.role === 'coach';
   const isAthlete = user?.role === 'athlete';
   const hasCoach = !!user?.coach_email;
   const hasTeamCode = !!user?.team_code;
+
+  // Auto-generate team code for coaches on first load
+  useEffect(() => {
+    if (isCoach && !hasTeamCode && !autoGenerating) {
+      setAutoGenerating(true);
+      base44.functions.invoke('generateTeamCode', {})
+        .then(() => refetchUser?.())
+        .catch(err => console.error('Auto-generation failed:', err))
+        .finally(() => setAutoGenerating(false));
+    }
+  }, [isCoach, hasTeamCode, autoGenerating, refetchUser]);
 
   // Fetch coach info if athlete is connected
   const { data: coachInfo } = useQuery({
