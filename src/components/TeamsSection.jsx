@@ -70,48 +70,28 @@ export default function TeamsSection() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {isCoach && !hasTeamCode && (
-            <div>
-              <p className="text-sm text-muted-foreground mb-3">
-                Generate a team code to invite athletes to join your team.
-              </p>
-              <Button
-                onClick={async () => {
-                  try {
-                    await base44.functions.invoke('generateTeamCode', {});
-                    await refetchUser?.();
-                    toast.success('Team code generated!');
-                  } catch (err) {
-                    toast.error('Failed to generate team code');
-                  }
-                }}
-                variant="outline"
-              >
-                Generate Team Code
-              </Button>
-            </div>
-          )}
-
-          {isCoach && hasTeamCode && (
+          {isCoach && (
             <div className="space-y-3">
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-2">
                   Your Team Code
                 </p>
                 <div className="flex items-center gap-2">
-                  <Badge className="text-base py-1 px-3 font-mono">{user.team_code}</Badge>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleCopyCode}
-                    className="h-8 w-8 p-0"
-                  >
-                    {copied ? (
-                      <Check className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </Button>
+                  <Badge className="text-base py-1 px-3 font-mono">{user.team_code || '—'}</Badge>
+                  {user.team_code && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleCopyCode}
+                      className="h-8 w-8 p-0"
+                    >
+                      {copied ? (
+                        <Check className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
