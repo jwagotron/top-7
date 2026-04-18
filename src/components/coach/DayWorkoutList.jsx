@@ -76,14 +76,7 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
              return (
              <div key={w.id} className={cn('rounded-xl border p-3 transition-all group', STATUS_STYLES[statusKey])}>
                <div className="flex items-start justify-between gap-3">
-                 <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                   <div className={cn(
-                     'w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center',
-                     completion?.status === 'completed' ? 'border-emerald-500 bg-emerald-500' : isMissed ? 'border-red-500' : completion?.status === 'skipped' ? 'border-slate-400' : 'border-slate-300'
-                   )}>
-                     {completion?.status === 'completed' && <CheckCircle2 className="w-3 h-3 text-white" />}
-                   </div>
-                   <div className="flex-1 min-w-0">
+                 <div className="flex-1 min-w-0">
                       <div className="flex items-start gap-1.5 flex-wrap mb-0.5">
                         <span className={cn('text-sm font-semibold break-words flex-1', w.status === 'skipped' && 'line-through text-muted-foreground')}>{w.title}</span>
                        {w.run_type && (
@@ -115,7 +108,6 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
                       <p className="text-xs mt-0.5">{w.athlete_feedback}</p>
                     </div>
                   )}
-                  </div>
                   </div>
 
                   <div className="flex flex-col items-end gap-2 shrink-0">
