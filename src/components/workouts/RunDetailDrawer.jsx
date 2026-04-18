@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { Clock, MapPin, Heart, Mountain, Zap, Footprints, Pencil, Trash2, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
@@ -73,7 +74,7 @@ export default function RunDetailDrawer({ workout, open, onClose, onEdit, onDele
             </div>
           </div>
 
-          <p className="text-sm text-muted-foreground">{format(new Date(workout.date), 'EEEE, MMMM d, yyyy')}</p>
+          <p className="text-sm text-muted-foreground">{format(parseDateOnly(workout.date), 'EEEE, MMMM d, yyyy')}</p>
 
           {/* Key metrics */}
           {metrics.length > 0 && (
