@@ -16,13 +16,15 @@ import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
+import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 
 export default function Workouts() {
   const { user } = useAuth();
   const { role } = useRole();
-  // Athletes log their own runs; coaches/admin use this as a read-only calendar view
   const isAthlete = role === 'athlete';
   const canCreate = !isAthlete; // coaches/admins can log runs; athletes view-only
+  // Athlete's assigned workouts from the single source of truth
+  const { plannedWorkouts: assignedWorkouts } = useAssignedPlan();
   const { toDisplay, label } = useUnits();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -47,14 +49,16 @@ export default function Workouts() {
     queryFn: () => base44.entities.Workout.list('-date', 500),
   });
 
-  const { data: plannedWorkouts = [] } = useQuery({
+  const { data: allPlannedWorkouts = [] } = useQuery({
     queryKey: ['planned-workouts'],
     queryFn: () => base44.entities.PlannedWorkout.list('scheduled_date', 500),
+    enabled: !isAthlete, // coaches/admins fetch all; athletes use assignedWorkouts
   });
 
-  const myPlanned = plannedWorkouts.filter(p =>
-    !p.assigned_to || p.assigned_to === user?.email
-  );
+  // Athletes use assigned workouts from the shared hook; coaches see all
+  const myPlanned = isAthlete
+    ? assignedWorkouts
+    : allPlannedWorkouts.filter(p => !p.assigned_to || p.assigned_to === user?.email);
 
   const createMut = useMutation({
     mutationFn: (data) => base44.entities.Workout.create(data),
