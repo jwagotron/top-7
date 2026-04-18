@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { CheckCircle2, XCircle, UserMinus, Clock, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -19,14 +20,49 @@ export default function TeamMembershipList({ teamId, coachEmail }) {
   const pending = memberships.filter(m => m.status === 'pending');
   const active = memberships.filter(m => m.status === 'active');
 
+  const [removingId, setRemovingId] = useState(null);
+  const removingAthlete = memberships.find(m => m.id === removingId);
+
   const handleAction = async (membershipId, action) => {
+    // Require confirmation for removal
+    if (action === 'remove') {
+      setRemovingId(membershipId);
+      return;
+    }
+    
     await base44.functions.invoke('manageMembership', { membership_id: membershipId, action });
     qc.invalidateQueries({ queryKey: ['memberships', teamId] });
     toast.success(action === 'approve' ? 'Athlete approved!' : 'Athlete removed');
   };
 
+  const confirmRemove = async () => {
+    if (!removingId) return;
+    await base44.functions.invoke('manageMembership', { membership_id: removingId, action: 'remove' });
+    qc.invalidateQueries({ queryKey: ['memberships', teamId] });
+    toast.success('Athlete removed');
+    setRemovingId(null);
+  };
+
   return (
-    <div className="space-y-4">
+    <>
+      <AlertDialog open={!!removingId} onOpenChange={(open) => !open && setRemovingId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove athlete from team?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {removingAthlete ? `${removingAthlete.athlete_name || removingAthlete.athlete_email} will be removed from the team. This action cannot be undone.` : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2 justify-end">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemove} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remove
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="space-y-4">
       {/* Pending requests */}
       {pending.length > 0 && (
         <div>
@@ -91,6 +127,7 @@ export default function TeamMembershipList({ teamId, coachEmail }) {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

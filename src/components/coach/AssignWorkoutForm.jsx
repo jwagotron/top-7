@@ -202,6 +202,12 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Prevent submission if no athletes selected
+    if (selectedAthletes.length === 0) {
+      return;
+    }
+
     const base = { ...form };
     if (base.target_duration_minutes) base.target_duration_minutes = Number(base.target_duration_minutes);
     if (base.target_distance_km) base.target_distance_km = toKm(Number(base.target_distance_km));
@@ -209,7 +215,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
     if (selectedAthletes.length > 1) {
       onSubmit(selectedAthletes.map(email => ({ ...base, assigned_to: email })));
     } else {
-      onSubmit({ ...base, assigned_to: selectedAthletes[0] || '' });
+      onSubmit({ ...base, assigned_to: selectedAthletes[0] });
     }
   };
 
@@ -397,7 +403,10 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                 <Button type="button" variant="outline" onClick={() => setActiveTab('details')}>← Details</Button>
                 <div className="flex gap-2">
                   <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-                  <Button type="submit">
+                  <Button 
+                    type="submit"
+                    disabled={selectedAthletes.length === 0}
+                  >
                     {isEditing
                       ? 'Update Workout'
                       : selectedAthletes.length > 1
