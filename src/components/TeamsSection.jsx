@@ -111,7 +111,7 @@ export default function TeamsSection() {
           {isAthlete && !hasCoach && (
             <div className="space-y-3">
               <div>
-                <p className="font-medium text-foreground">No team connected</p>
+                <p className="font-medium text-foreground">No team joined</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   Join a team to receive workouts from your coach
                 </p>
@@ -155,6 +155,14 @@ export default function TeamsSection() {
                 <LogOut className="w-4 h-4 mr-2" />
                 Leave Team
               </Button>
+            </div>
+          )}
+
+          {!isAthlete && !isCoach && (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Team information will appear here once you select a role.
+              </p>
             </div>
           )}
         </CardContent>
