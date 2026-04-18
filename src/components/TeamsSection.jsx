@@ -163,6 +163,9 @@ export default function TeamsSection() {
               <p className="text-sm text-muted-foreground">
                 Team information will appear here once you join a team.
               </p>
+              <Button onClick={() => setShowJoinModal(true)} className="w-full">
+                Join Team
+              </Button>
             </div>
           )}
         </CardContent>
