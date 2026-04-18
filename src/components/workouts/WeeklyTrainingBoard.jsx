@@ -44,17 +44,22 @@ export default function WeeklyTrainingBoard({
     const dayWorkouts = getWorkoutsForDay(day);
     const dayLogged = getLoggedForDay(day);
     
-    // Count completed workouts (from WorkoutCompletion records)
-    const completedCount = dayWorkouts.filter(w => {
+    // Unlinked logged workouts (same filter as rendered)
+    const unlinkedLogged = dayLogged.filter(w => !dayWorkouts.some(p => p.id === w.planned_workout_id));
+    
+    // Total visible workouts = planned + unlinked logged
+    const total = dayWorkouts.length + unlinkedLogged.length;
+    
+    // Completed count from WorkoutCompletion records (same as rendered cards)
+    const completed = dayWorkouts.filter(w => {
       const c = getCompletion(w.id);
       return c?.status === 'completed';
     }).length;
     
-    // Total = all planned + unlinked logged workouts
-    const unlinkedLogged = dayLogged.filter(w => !dayWorkouts.some(p => p.id === w.planned_workout_id)).length;
-    const total = dayWorkouts.length + unlinkedLogged;
+    // Debug log
+    console.debug(`[getDayStats] ${format(day, 'EEEE yyyy-MM-dd')}: planned=${dayWorkouts.length} unlinked=${unlinkedLogged.length} total=${total} completed=${completed}`);
     
-    return { total, completed: completedCount };
+    return { total, completed };
   };
 
   return (
