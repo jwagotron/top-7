@@ -58,9 +58,32 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
   const { toDisplay, label, paceLabel } = useUnits();
   
   const getCompletion = (workoutId) => completions.find(c => c.planned_workout_id === workoutId);
+  
+  // Calculate completion stats
+  const completedCount = workouts.filter(w => {
+    const completion = getCompletion(w.id);
+    return completion?.status === 'completed';
+  }).length;
+  const totalCount = workouts.length;
+  const completionPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  
+  // Color feedback based on completion percentage
+  const getSummaryColor = () => {
+    if (totalCount === 0) return 'text-muted-foreground';
+    if (completionPercent === 100) return 'text-emerald-600 dark:text-emerald-400';
+    if (completionPercent === 0) return 'text-red-600 dark:text-red-400';
+    return 'text-slate-600 dark:text-slate-400';
+  };
   return (
     <div>
-      <h3 className="font-semibold text-base mb-4 text-foreground">{format(date, 'EEEE, MMMM d')}</h3>
+      <div className="mb-4">
+        <h3 className="font-semibold text-base mb-1.5 text-foreground">{format(date, 'EEEE, MMMM d')}</h3>
+        {totalCount > 0 && (
+          <p className={cn('text-sm font-medium', getSummaryColor())}>
+            <span className="font-bold">{completedCount}</span> / <span className="font-bold">{totalCount}</span> completed
+          </p>
+        )}
+      </div>
       {workouts.length === 0 ? (
         <div className="text-center py-8 border-2 border-dashed border-border rounded-xl">
           <p className="text-sm text-muted-foreground">No workouts scheduled</p>
