@@ -48,6 +48,7 @@ export default function MyPlan() {
   const navigate = useNavigate();
   const { toDisplay, label } = useUnits();
   const [selectedDayWorkout, setSelectedDayWorkout] = useState(undefined);
+  const [selectedDay, setSelectedDay] = useState(null); // tracks the calendar day even if no workout
   const [showAllWorkouts, setShowAllWorkouts] = useState(false);
   const [completingId, setCompletingId] = useState(null);
   const [notesMap, setNotesMap] = useState({});
@@ -194,7 +195,9 @@ export default function MyPlan() {
                 ? 'Today · ' + format(today, 'EEEE, MMM d')
                 : displayWorkout
                   ? format(parseDateOnly(displayWorkout.scheduled_date), 'EEEE, MMM d')
-                  : format(new Date(), 'EEEE, MMM d') + ' · Rest'
+                  : selectedDay
+                  ? format(selectedDay, 'EEEE, MMM d') + ' · Rest'
+                  : format(today, 'EEEE, MMM d') + ' · Rest'
               }
             </SectionLabel>
             {!isViewingToday && (
@@ -226,9 +229,12 @@ export default function MyPlan() {
               const workout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), day));
               if (isToday(day)) {
                 setSelectedDayWorkout(undefined);
+                setSelectedDay(null);
               } else {
                 setSelectedDayWorkout(workout || null);
+                setSelectedDay(day);
               }
+              console.debug('[MyPlan] selected day:', format(day, 'yyyy-MM-dd'), '| workout:', workout?.scheduled_date ?? 'rest');
             }}
           />
         </div>

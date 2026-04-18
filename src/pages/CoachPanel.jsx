@@ -81,9 +81,9 @@ export default function CoachPanel() {
 
   const dayWorkouts = filteredWorkouts.filter(w => isSameDay(parseDateOnly(w.scheduled_date), selectedDate));
 
-  // DEBUG: date sync logging (preview only)
-  console.debug('[CoachPanel DateSync] selectedDate:', format(selectedDate, 'yyyy-MM-dd'));
-  dayWorkouts.forEach(w => console.debug('[CoachPanel DateSync] workout scheduled_date:', w.scheduled_date, '| title:', w.title));
+  // DEBUG: date sync logging
+  console.debug('[CoachPanel] selectedDate:', format(selectedDate, 'yyyy-MM-dd'), '| dayWorkouts:', dayWorkouts.length);
+  dayWorkouts.forEach(w => console.debug('[CoachPanel] workout:', w.scheduled_date, w.title));
 
   // Month stats
   const mStart = startOfMonth(currentMonth);
