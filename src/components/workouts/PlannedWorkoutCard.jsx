@@ -151,6 +151,13 @@ export default function PlannedWorkoutCard({
                 </span>
               )}
             </div>
+
+            {/* Coach notes preview — collapsed view */}
+            {planned.coach_notes && (
+              <div className="text-xs text-muted-foreground/70 mt-2 line-clamp-2 leading-relaxed">
+                {planned.coach_notes}
+              </div>
+            )}
           </div>
 
           {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />}
