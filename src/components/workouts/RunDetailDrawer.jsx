@@ -7,6 +7,7 @@ import { parseDateOnly } from '@/lib/dateUtils';
 import { Clock, MapPin, Heart, Mountain, Zap, Footprints, Pencil, Trash2, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
+import WorkoutComments from '@/components/workouts/WorkoutComments';
 
 const RUN_TYPE_COLORS = {
   easy: 'bg-secondary/10 text-secondary border-secondary/20',
@@ -125,8 +126,11 @@ export default function RunDetailDrawer({ workout, open, onClose, onEdit, onDele
               <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{workout.notes}</p>
             </div>
           )}
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
+
+          {/* Workout comments */}
+          <WorkoutComments workoutId={workout.id} role="athlete" />
+          </div>
+          </SheetContent>
+          </Sheet>
+          );
+          }

@@ -12,7 +12,6 @@ export const NAV_ITEMS = {
     { path: '/workouts',   label: 'My Runs',           icon: Dumbbell },
     { path: '/analytics',  label: 'Analytics',         icon: BarChart3 },
     { path: '/goals',      label: 'Goals',             icon: Target },
-    { path: '/messages',   label: 'Messages',          icon: MessageSquare },
     { path: '/shoes',      label: 'Shoe Tracker',      icon: Activity },
     { path: '/garmin',     label: 'Garmin Connect',    icon: Wifi },
     { path: '/settings',   label: 'Settings',          icon: Settings },
@@ -21,7 +20,6 @@ export const NAV_ITEMS = {
     { path: '/coach',           label: 'Coach Panel',     icon: ShieldCheck },
     { path: '/workout-builder', label: 'Workout Builder', icon: Hammer },
     { path: '/plans',           label: 'Training Plans',  icon: Calendar },
-    { path: '/messages',        label: 'Messages',        icon: MessageSquare },
     { path: '/athlete-profile', label: 'My Profile',      icon: Users },
     { path: '/settings',        label: 'Settings',        icon: Settings },
   ],
@@ -30,7 +28,6 @@ export const NAV_ITEMS = {
     { path: '/coach',           label: 'Coach Panel',     icon: ShieldCheck },
     { path: '/workout-builder', label: 'Workout Builder', icon: Hammer },
     { path: '/plans',           label: 'Training Plans',  icon: Calendar },
-    { path: '/messages',        label: 'Messages',        icon: MessageSquare },
     { path: '/settings',        label: 'Settings',        icon: Settings },
   ],
 };
@@ -47,14 +44,12 @@ export const MOBILE_NAV_TABS = {
     { path: '/coach',           label: 'Coach',   icon: ShieldCheck },
     { path: '/workout-builder', label: 'Builder', icon: Hammer },
     { path: '/plans',           label: 'Plans',   icon: Calendar },
-    { path: '/messages',        label: 'Messages',icon: MessageSquare },
     { path: '/settings',        label: 'Settings',icon: Settings },
   ],
   admin: [
     { path: '/admin',           label: 'Admin',   icon: Shield },
     { path: '/coach',           label: 'Coach',   icon: ShieldCheck },
     { path: '/plans',           label: 'Plans',   icon: Calendar },
-    { path: '/messages',        label: 'Messages',icon: MessageSquare },
     { path: '/settings',        label: 'Settings',icon: Settings },
   ],
 };
@@ -68,9 +63,9 @@ export const DEFAULT_ROUTE = {
 
 // Routes accessible per role (everything not in this list is blocked)
 export const ALLOWED_ROUTES = {
-  athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/messages', '/shoes', '/garmin', '/settings', '/athlete-profile'],
-  coach:   ['/coach', '/workout-builder', '/plans', '/messages', '/settings', '/athlete-profile'],
-  admin:   ['/admin', '/coach', '/workout-builder', '/plans', '/messages', '/settings', '/athlete-profile', '/activities'],
+  athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/shoes', '/garmin', '/settings', '/athlete-profile'],
+  coach:   ['/coach', '/workout-builder', '/plans', '/settings', '/athlete-profile'],
+  admin:   ['/admin', '/coach', '/workout-builder', '/plans', '/settings', '/athlete-profile', '/activities'],
 };
 
 export function isRouteAllowed(role, pathname) {

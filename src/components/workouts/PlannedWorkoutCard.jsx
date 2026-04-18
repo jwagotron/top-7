@@ -4,6 +4,7 @@ import { CheckCircle2, Clock, MapPin, Zap, ChevronDown, ChevronUp, Loader2, Stic
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import WorkoutComments from '@/components/workouts/WorkoutComments';
 
 const RUN_TYPE_COLORS = {
   easy: 'bg-secondary/10 text-secondary border-secondary/20',
@@ -262,6 +263,9 @@ export default function PlannedWorkoutCard({
               <p className="text-xs">{planned.athlete_feedback}</p>
             </div>
           )}
+
+          {/* Workout comments section */}
+          <WorkoutComments workoutId={planned.id} role={role} />
         </div>
       )}
     </motion.div>

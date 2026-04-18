@@ -1,0 +1,40 @@
+{
+  "name": "WorkoutComment",
+  "type": "object",
+  "properties": {
+    "workout_id": {
+      "type": "string",
+      "description": "Reference to PlannedWorkout or Workout"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of comment author"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Display name of comment author"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "coach",
+        "athlete"
+      ],
+      "description": "Role of comment author"
+    },
+    "content": {
+      "type": "string",
+      "description": "Comment text"
+    },
+    "is_feedback": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if athlete feedback after completion"
+    }
+  },
+  "required": [
+    "workout_id",
+    "user_email",
+    "content"
+  ]
+}

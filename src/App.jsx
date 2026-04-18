@@ -17,7 +17,6 @@ const Workouts       = lazy(() => import('@/pages/Workouts'));
 const TrainingPlans  = lazy(() => import('@/pages/TrainingPlans'));
 const Analytics      = lazy(() => import('@/pages/Analytics'));
 const Goals          = lazy(() => import('@/pages/Goals'));
-const Messages       = lazy(() => import('@/pages/Messages'));
 const CoachPanel     = lazy(() => import('@/pages/CoachPanel'));
 const Activities     = lazy(() => import('@/pages/Activities'));
 const GarminConnect  = lazy(() => import('@/pages/GarminConnect'));
@@ -59,7 +58,6 @@ function AnimatedRoutes() {
               <Route path="/plans"           element={<TrainingPlans />} />
               <Route path="/analytics"       element={<Analytics />} />
               <Route path="/goals"           element={<Goals />} />
-              <Route path="/messages"        element={<Messages />} />
               <Route path="/coach"           element={<CoachPanel />} />
               <Route path="/activities"      element={<Activities />} />
               <Route path="/garmin"          element={<GarminConnect />} />
