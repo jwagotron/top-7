@@ -73,10 +73,10 @@ export default function CompletionOverview({ plannedWorkouts = [], completions =
       </div>
 
       {/* Progress bar */}
-      <div className="h-2.5 bg-muted rounded-full overflow-hidden mt-4">
+      <div className="h-3 bg-muted/60 border border-border/40 rounded-full overflow-hidden mt-4">
         <div
-          className={cn('h-full rounded-full transition-all duration-700', colors.bar)}
-          style={{ width: `${rate}%` }}
+          className={cn('h-full rounded-full transition-all duration-700 shadow-sm', colors.bar)}
+          style={{ width: `${rate}%`, minWidth: rate > 0 ? '6px' : '0' }}
         />
       </div>
     </div>
