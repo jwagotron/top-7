@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Users, CheckCircle2, Calendar, TrendingUp, ShieldCheck } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import AthleteRoster from '@/components/coach/AthleteRoster';
+import CompletionOverview from '@/components/coach/CompletionOverview';
 import AthleteProgress from '@/components/coach/AthleteProgress';
 import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
@@ -137,6 +138,13 @@ export default function CoachPanel() {
             </div>
           ))}
         </div>
+
+        {/* Completion Overview — this week */}
+        <CompletionOverview
+          plannedWorkouts={filteredWorkouts}
+          completions={completions}
+          athleteFilter={athleteFilter}
+        />
 
         {/* Calendar + Day panel */}
         <div className="grid lg:grid-cols-3 gap-4 lg:gap-6">
