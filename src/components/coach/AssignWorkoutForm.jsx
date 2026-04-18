@@ -188,7 +188,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
       if (athleteFilter && athleteFilter !== 'all') {
         setSelectedAthletes([athleteFilter]);
       } else if (athleteFilter === 'all' && athletes.length > 0) {
-        setSelectedAthletes([]); // don't pre-select all — let coach choose
+        setSelectedAthletes(athletes.map(a => a.email)); // header says "All Athletes" → pre-select all
       } else {
         setSelectedAthletes([]);
       }
