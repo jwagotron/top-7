@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, LogOut, Copy, Check } from 'lucide-react';
+import { Users, LogOut, Copy, Check, Mail } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import JoinTeamModal from '@/components/JoinTeamModal';
@@ -17,6 +18,16 @@ export default function TeamsSection() {
   const isAthlete = user?.role === 'athlete';
   const hasCoach = !!user?.coach_email;
   const hasTeamCode = !!user?.team_code;
+
+  // Fetch coach info if athlete is connected
+  const { data: coachInfo } = useQuery({
+    queryKey: ['coach-info', user?.coach_email],
+    queryFn: async () => {
+      const users = await base44.asServiceRole.entities.User.filter({});
+      return users.find(u => u.email === user.coach_email);
+    },
+    enabled: !!user?.coach_email,
+  });
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(user.team_code);
@@ -98,30 +109,42 @@ export default function TeamsSection() {
           )}
 
           {isAthlete && !hasCoach && (
-            <div>
-              <p className="text-sm text-muted-foreground mb-3">
-                Join a coach's team to receive personalized training plans.
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                You're not connected to a coach yet. Enter your coach's team code to join their team and receive personalized training plans.
               </p>
               <Button onClick={() => setShowJoinModal(true)} className="w-full">
-                Join a Team
+                Enter Team Code
               </Button>
             </div>
           )}
 
           {isAthlete && hasCoach && (
-            <div className="space-y-3">
-              <div>
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-2">
                   Connected Coach
                 </p>
-                <Badge variant="secondary" className="text-base py-1 px-3">
-                  {user.coach_email}
-                </Badge>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+                    {(coachInfo?.full_name || user.coach_email)[0].toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground text-sm">
+                      {coachInfo?.full_name || 'Coach'}
+                    </p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                      <Mail className="w-3 h-3 shrink-0" />
+                      {user.coach_email}
+                    </p>
+                  </div>
+                </div>
               </div>
               <Button
                 onClick={handleLeaveTeam}
                 variant="outline"
                 className="w-full text-destructive hover:text-destructive"
+                size="sm"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Leave Team

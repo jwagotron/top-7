@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
@@ -8,6 +8,7 @@ import WeeklyChart from '@/components/dashboard/WeeklyChart';
 import UpcomingWorkouts from '@/components/dashboard/UpcomingWorkouts';
 import RecentActivity from '@/components/dashboard/RecentActivity';
 import RacePredictor from '@/components/predictor/RacePredictor';
+import JoinTeamCTA from '@/components/dashboard/JoinTeamCTA';
 import { Activity, MapPin, Clock, Flame } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
@@ -16,10 +17,12 @@ import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 import { useCompletions } from '@/hooks/useCompletions';
 import { startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Dashboard() {
   const { role } = useRole();
   const navigate = useNavigate();
+  const { user, refetchUser } = useAuth();
   const { athleteEmail, plannedWorkouts, activePlan, isLoading } = useAssignedPlan();
   const { completions } = useCompletions(athleteEmail);
 
@@ -70,6 +73,10 @@ export default function Dashboard() {
     <div>
       <TopBar title="My Progress" />
       <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-5 lg:space-y-7 pb-24 lg:pb-8">
+        {!user?.coach_email && (
+          <JoinTeamCTA onSuccess={refetchUser} />
+        )}
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
           <StatCard title="Workouts" value={totalWorkouts} icon={Activity} color="primary" />
           <StatCard title="Distance" value={totalDistance.toFixed(1)} unit={label} icon={MapPin} color="secondary" />
