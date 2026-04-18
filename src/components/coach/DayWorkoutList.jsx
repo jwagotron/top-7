@@ -58,9 +58,25 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
   const { toDisplay, label, paceLabel } = useUnits();
   
   const getCompletion = (workoutId) => completions.find(c => c.planned_workout_id === workoutId);
+  
+  const totalWorkouts = workouts.length;
+  const completedCount = workouts.filter(w => {
+    const completion = getCompletion(w.id);
+    return completion?.status === 'completed';
+  }).length;
+  const completionPercent = totalWorkouts > 0 ? (completedCount / totalWorkouts) * 100 : 0;
+  const summaryColor = completionPercent === 100 ? 'text-emerald-600 dark:text-emerald-400' : 
+                       completionPercent === 0 ? 'text-red-600 dark:text-red-400' : 
+                       'text-muted-foreground';
+  
   return (
     <div>
-      <h3 className="font-semibold text-base mb-4 text-foreground">{format(date, 'EEEE, MMMM d')}</h3>
+      <h3 className="font-semibold text-base mb-2 text-foreground">{format(date, 'EEEE, MMMM d')}</h3>
+      {totalWorkouts > 0 && (
+        <p className={cn('text-sm mb-4', summaryColor)}>
+          <span className="font-semibold">{completedCount} / {totalWorkouts}</span> completed
+        </p>
+      )}
       {workouts.length === 0 ? (
         <div className="text-center py-8 border-2 border-dashed border-border rounded-xl">
           <p className="text-sm text-muted-foreground">No workouts scheduled</p>
