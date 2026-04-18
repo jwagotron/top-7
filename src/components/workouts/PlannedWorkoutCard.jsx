@@ -5,6 +5,9 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import WorkoutComments from '@/components/workouts/WorkoutComments';
+import CompletionFeedbackPrompt from '@/components/workouts/CompletionFeedbackPrompt';
+import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 
 const RUN_TYPE_COLORS = {
   easy: 'bg-secondary/10 text-secondary border-secondary/20',
@@ -61,6 +64,9 @@ export default function PlannedWorkoutCard({
   const [notes, setNotes] = useState(completion?.notes || '');
   const [showNotes, setShowNotes] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showFeedbackPrompt, setShowFeedbackPrompt] = useState(false);
+  const [savingFeedback, setSavingFeedback] = useState(false);
+  const { user } = useAuth();
 
   const isCompleted = completion?.status === 'completed' || planned.status === 'completed';
   const isSkipped = planned.status === 'skipped';
@@ -74,12 +80,31 @@ export default function PlannedWorkoutCard({
     try {
       await onMarkComplete({ workout: planned, notes });
       setShowNotes(false);
+      setShowFeedbackPrompt(true);
       toast.success('Workout completed! 🎉', {
         description: 'Great work — keep the momentum going.',
         duration: 3000,
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleFeedbackSubmit = async (feedback) => {
+    setSavingFeedback(true);
+    try {
+      if (feedback.trim()) {
+        await base44.entities.WorkoutComment.create({
+          workout_id: planned.id,
+          user_email: user.email,
+          user_name: user.full_name || user.email,
+          role: 'athlete',
+          content: feedback,
+        });
+      }
+      setShowFeedbackPrompt(false);
+    } finally {
+      setSavingFeedback(false);
     }
   };
 
@@ -275,6 +300,14 @@ export default function PlannedWorkoutCard({
           <WorkoutComments workoutId={planned.id} role={role} />
         </div>
       )}
+
+      {/* Feedback prompt modal */}
+      <CompletionFeedbackPrompt
+        open={showFeedbackPrompt}
+        onClose={() => setShowFeedbackPrompt(false)}
+        onSubmit={handleFeedbackSubmit}
+        isLoading={savingFeedback}
+      />
     </motion.div>
   );
 }
