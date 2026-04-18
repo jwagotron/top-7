@@ -22,24 +22,24 @@ export const INTENSITY_LABELS = {
 
 // Color mapping for workout types - soft, premium palette
 export const WORKOUT_COLORS = {
-  easy: 'bg-emerald-500/70 text-white',
-  long_run: 'bg-blue-500/70 text-white',
-  tempo: 'bg-cyan-500/70 text-white',
-  interval: 'bg-orange-500/70 text-white',
-  fartlek: 'bg-purple-500/70 text-white',
-  hill_repeats: 'bg-orange-600/70 text-white',
-  race: 'bg-red-500/70 text-white',
-  recovery: 'bg-slate-400/70 text-white',
-  progression: 'bg-teal-500/70 text-white',
+  easy: 'bg-emerald-500 text-white',
+  long_run: 'bg-blue-500 text-white',
+  tempo: 'bg-cyan-500 text-white',
+  interval: 'bg-orange-500 text-white',
+  fartlek: 'bg-purple-500 text-white',
+  hill_repeats: 'bg-orange-600 text-white',
+  race: 'bg-red-500 text-white',
+  recovery: 'bg-slate-500 text-white',
+  progression: 'bg-teal-500 text-white',
 };
 
 // Fallback color for non-run workouts
 export const DEFAULT_SPORT_COLORS = {
-  run: 'bg-blue-500/70 text-white',
-  bike: 'bg-purple-500/70 text-white',
-  swim: 'bg-cyan-500/70 text-white',
-  strength: 'bg-amber-600/70 text-white',
-  other: 'bg-slate-400/70 text-white',
+  run: 'bg-blue-500 text-white',
+  bike: 'bg-purple-500 text-white',
+  swim: 'bg-cyan-500 text-white',
+  strength: 'bg-amber-600 text-white',
+  other: 'bg-slate-500 text-white',
 };
 
 export function getWorkoutLabel(workout) {
