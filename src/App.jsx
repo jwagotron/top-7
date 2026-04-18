@@ -25,7 +25,7 @@ const GarminConnect  = lazy(() => import('@/pages/GarminConnect'));
 const WorkoutBuilder = lazy(() => import('@/pages/WorkoutBuilder'));
 const AthleteProfile = lazy(() => import('@/pages/AthleteProfile'));
 const AccountSettings = lazy(() => import('@/pages/AccountSettings'));
-const AdminPanel     = lazy(() => import('@/pages/AdminPanel'));
+import AdminPanel from '@/pages/AdminPanel';
 const ShoeTracker    = lazy(() => import('@/pages/ShoeTracker'));
 const MyPlan         = lazy(() => import('@/pages/MyPlan'));
 
