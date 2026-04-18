@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
+import { useRole } from '@/lib/RoleContext';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,12 +12,13 @@ import JoinTeamModal from '@/components/JoinTeamModal';
 
 export default function TeamsSection() {
   const { user, refetchUser } = useAuth();
+  const { role } = useRole();
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [autoGenerating, setAutoGenerating] = useState(false);
 
-  const isCoach = user?.role === 'coach';
-  const isAthlete = user?.role === 'athlete';
+  const isCoach = role === 'coach';
+  const isAthlete = role === 'athlete';
   const hasCoach = !!user?.coach_email;
   const hasTeamCode = !!user?.team_code;
 
