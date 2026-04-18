@@ -17,11 +17,11 @@ const RUN_TYPE_COLORS = {
   progression: 'bg-secondary/10 text-secondary border-secondary/20',
 };
 
-function CoachStatusBadge({ isCompleted, isSkipped, isMissed, verbose = false }) {
+function StatusBadge({ isCompleted, isSkipped, isMissed, verbose = false, isAthleteView = false }) {
   if (isCompleted) return (
     <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-emerald-500/10 border-emerald-500/25 text-emerald-600 dark:text-emerald-400">
       <CheckCircle2 className="w-2.5 h-2.5" />
-      {verbose ? 'Completed by athlete' : 'Completed'}
+      {verbose || isAthleteView ? 'Completed' : 'Completed by athlete'}
     </span>
   );
   if (isSkipped) return (
@@ -31,7 +31,7 @@ function CoachStatusBadge({ isCompleted, isSkipped, isMissed, verbose = false })
     </span>
   );
   if (isMissed) return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-amber-500/10 border-amber-500/25 text-amber-600 dark:text-amber-400">
+    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-red-500/10 border-red-500/25 text-red-600 dark:text-red-400">
       <AlertTriangle className="w-2.5 h-2.5" />
       Missed
     </span>
@@ -63,8 +63,8 @@ export default function PlannedWorkoutCard({
 
   const isCompleted = completion?.status === 'completed' || planned.status === 'completed';
   const isSkipped = planned.status === 'skipped';
-  // For coach view: a workout is "missed" if it was scheduled in the past and not completed/skipped
-  const isMissed = isCoachView && !isCompleted && !isSkipped &&
+  // A workout is "missed" if it was scheduled in the past and not completed/skipped
+  const isMissed = !isCompleted && !isSkipped &&
     planned.scheduled_date && new Date(planned.scheduled_date) < new Date(new Date().toDateString());
 
   const handleComplete = async () => {
@@ -119,7 +119,7 @@ export default function PlannedWorkoutCard({
                 <span className="shrink-0 text-[10px] font-semibold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded-full">✓ Done</span>
               )}
               {isCoachView && (
-                <CoachStatusBadge isCompleted={isCompleted} isSkipped={isSkipped} isMissed={isMissed} />
+                <StatusBadge isCompleted={isCompleted} isSkipped={isSkipped} isMissed={isMissed} isAthleteView={false} />
               )}
             </div>
 
@@ -252,7 +252,7 @@ export default function PlannedWorkoutCard({
           {isCoachView && (
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold">Athlete Status:</span>
-              <CoachStatusBadge isCompleted={isCompleted} isSkipped={isSkipped} isMissed={isMissed} verbose />
+              <StatusBadge isCompleted={isCompleted} isSkipped={isSkipped} isMissed={isMissed} verbose isAthleteView={false} />
             </div>
           )}
 

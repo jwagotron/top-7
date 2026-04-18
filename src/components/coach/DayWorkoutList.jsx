@@ -20,7 +20,7 @@ const RUN_TYPE_COLORS = {
 
 const STATUS_STYLES = {
   completed: 'bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-200/40 dark:border-emerald-800/40',
-  missed: 'bg-red-50/30 dark:bg-red-950/20 border-red-200/40 dark:border-red-800/40',
+  missed: 'bg-red-50/20 dark:bg-red-950/15 border-red-200/30 dark:border-red-800/30',
   skipped: 'bg-slate-100/30 dark:bg-slate-800/30 border-slate-300/30 dark:border-slate-600/30 opacity-70',
   pending: 'bg-card border-border',
 };
@@ -63,6 +63,11 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
   const completedCount = workouts.filter(w => {
     const completion = getCompletion(w.id);
     return completion?.status === 'completed';
+  }).length;
+  const missedCount = workouts.filter(w => {
+    const completion = getCompletion(w.id);
+    const isMissed = !completion?.status && w.scheduled_date && new Date(w.scheduled_date) < new Date(new Date().toDateString());
+    return isMissed;
   }).length;
   const totalCount = workouts.length;
   const completionPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
