@@ -79,8 +79,8 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
       <div className="mb-4">
         <h3 className="font-semibold text-base mb-1.5 text-foreground">{format(date, 'EEEE, MMMM d')}</h3>
         {totalCount > 0 && (
-          <p className={cn('text-sm font-medium', getSummaryColor())}>
-            <span className="font-bold">{completedCount}</span> / <span className="font-bold">{totalCount}</span> completed
+          <p className={cn('text-sm', getSummaryColor())}>
+            <span className="font-bold text-base">{completedCount}</span> / <span className="font-bold text-base">{totalCount}</span> <span className="font-normal text-muted-foreground">completed</span>
           </p>
         )}
       </div>
