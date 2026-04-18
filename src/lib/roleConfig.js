@@ -1,7 +1,8 @@
 import {
   LayoutDashboard, Dumbbell, Calendar, BarChart3,
   Target, MessageSquare, ShieldCheck, History,
-  Wifi, Hammer, Settings, Shield, Activity, Users
+  Wifi, Hammer, Settings, Shield, Activity, Users,
+  HelpCircle, LogOut
 } from 'lucide-react';
 
 // Nav items per role
@@ -32,7 +33,7 @@ export const NAV_ITEMS = {
   ],
 };
 
-// Bottom mobile nav tabs per role
+// Bottom mobile nav tabs per role (primary actions only)
 export const MOBILE_NAV_TABS = {
   athlete: [
     { path: '/',         label: 'Dashboard', icon: LayoutDashboard },
@@ -51,6 +52,61 @@ export const MOBILE_NAV_TABS = {
     { path: '/coach',           label: 'Coach',   icon: ShieldCheck },
     { path: '/plans',           label: 'Plans',   icon: Calendar },
     { path: '/settings',        label: 'Settings',icon: Settings },
+  ],
+};
+
+// Side menu sections (secondary features and account)
+export const SIDE_MENU_SECTIONS = {
+  athlete: [
+    {
+      section: 'TOOLS & FEATURES',
+      items: [
+        { path: '/analytics',  label: 'Analytics',       icon: BarChart3 },
+        { path: '/goals',      label: 'Goals',           icon: Target },
+        { path: '/shoes',      label: 'Shoe Tracker',    icon: Activity },
+        { path: '/garmin',     label: 'Garmin Connect',  icon: Wifi },
+      ],
+    },
+    {
+      section: 'ACCOUNT',
+      items: [
+        { path: '/settings',   label: 'Settings',        icon: Settings, highlight: true },
+        { path: '#help',       label: 'Help & Support',  icon: HelpCircle, action: 'help' },
+        { path: '#logout',     label: 'Log Out',         icon: LogOut, action: 'logout' },
+      ],
+    },
+  ],
+  coach: [
+    {
+      section: 'TOOLS & FEATURES',
+      items: [
+        { path: '/athlete-profile', label: 'My Profile', icon: Users },
+      ],
+    },
+    {
+      section: 'ACCOUNT',
+      items: [
+        { path: '/settings',   label: 'Settings',        icon: Settings, highlight: true },
+        { path: '#help',       label: 'Help & Support',  icon: HelpCircle, action: 'help' },
+        { path: '#logout',     label: 'Log Out',         icon: LogOut, action: 'logout' },
+      ],
+    },
+  ],
+  admin: [
+    {
+      section: 'TOOLS & FEATURES',
+      items: [
+        { path: '/athlete-profile', label: 'My Profile', icon: Users },
+      ],
+    },
+    {
+      section: 'ACCOUNT',
+      items: [
+        { path: '/settings',   label: 'Settings',        icon: Settings, highlight: true },
+        { path: '#help',       label: 'Help & Support',  icon: HelpCircle, action: 'help' },
+        { path: '#logout',     label: 'Log Out',         icon: LogOut, action: 'logout' },
+      ],
+    },
   ],
 };
 
