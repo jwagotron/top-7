@@ -181,6 +181,7 @@ export default function CoachPanel() {
             <DayWorkoutList
               date={selectedDate}
               workouts={dayWorkouts}
+              completions={completions}
               onEdit={(w) => setEditingWorkout(w)}
               onDelete={(id) => deleteMut.mutate(id)}
             />

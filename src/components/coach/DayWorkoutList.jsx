@@ -2,7 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { Pencil, Trash2, User, Clock, MapPin, Zap, CheckCircle2 } from 'lucide-react';
+import { Pencil, Trash2, User, Clock, MapPin, Zap, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
 
@@ -24,8 +24,39 @@ const STATUS_STYLES = {
   skipped: 'bg-muted/50 border-dashed opacity-60',
 };
 
-export default function DayWorkoutList({ date, workouts, onEdit, onDelete }) {
+function CompletionStatusBadge({ completion, scheduled_date }) {
+  const isMissed = !completion && scheduled_date && new Date(scheduled_date) < new Date(new Date().toDateString());
+  
+  if (completion?.status === 'completed') return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded border bg-emerald-500/10 border-emerald-500/25 text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+      <CheckCircle2 className="w-2.5 h-2.5" />
+      Completed
+    </span>
+  );
+  if (completion?.status === 'skipped') return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded border bg-muted border-border text-muted-foreground whitespace-nowrap">
+      <Clock className="w-2.5 h-2.5" />
+      Skipped
+    </span>
+  );
+  if (isMissed) return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded border bg-amber-500/10 border-amber-500/25 text-amber-600 dark:text-amber-400 whitespace-nowrap">
+      <AlertTriangle className="w-2.5 h-2.5" />
+      Missed
+    </span>
+  );
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded border bg-muted/50 border-border text-muted-foreground whitespace-nowrap">
+      <Clock className="w-2.5 h-2.5" />
+      Pending
+    </span>
+  );
+}
+
+export default function DayWorkoutList({ date, workouts, completions = [], onEdit, onDelete }) {
   const { toDisplay, label, paceLabel } = useUnits();
+  
+  const getCompletion = (workoutId) => completions.find(c => c.planned_workout_id === workoutId);
   return (
     <div>
       <h3 className="font-semibold text-base mb-4 text-foreground">{format(date, 'EEEE, MMMM d')}</h3>
@@ -53,8 +84,7 @@ export default function DayWorkoutList({ date, workouts, onEdit, onDelete }) {
                         {w.run_type.replace('_', ' ')}
                       </Badge>
                     )}
-                    {w.status === 'completed' && <Badge className="text-[10px] bg-secondary/20 text-secondary border-0">Done</Badge>}
-                    {w.status === 'skipped' && <Badge variant="outline" className="text-[10px] text-muted-foreground">Skipped</Badge>}
+                    <CompletionStatusBadge completion={getCompletion(w.id)} scheduled_date={w.scheduled_date} />
                   </div>
 
                   {w.assigned_to && (
