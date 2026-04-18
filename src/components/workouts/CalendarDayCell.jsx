@@ -95,9 +95,9 @@ export default function CalendarDayCell({
               className={cn(
                 'flex items-center gap-0.5 px-1.5 py-1 rounded-md text-[8px] font-semibold transition-all duration-200 truncate max-w-[90%] whitespace-nowrap flex-shrink-0',
                 done
-                  ? 'bg-secondary/20 text-secondary/80 ring-1 ring-secondary/25'
+                  ? 'bg-secondary/30 text-secondary ring-1 ring-secondary/40'
                   : skipped
-                  ? 'opacity-25 line-through bg-muted text-muted-foreground'
+                  ? 'opacity-40 bg-muted text-muted-foreground'
                   : color,
               )}
               title={done ? `✓ ${pw.title}` : pw.title}
