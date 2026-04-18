@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, Clock, MapPin, Zap, StickyNote, Loader2, Moon, Flame } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 const intensityConfig = {
   easy:      { label: 'Easy',       color: 'text-secondary',    bg: 'bg-secondary/10',    dot: 'bg-secondary' },
@@ -48,6 +50,10 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
       setShowNotes(false);
+      toast.success('Workout completed! 🎉', {
+        description: 'Great work — keep the momentum going.',
+        duration: 3000,
+      });
     },
   });
 
@@ -176,29 +182,57 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
         )}
 
         {/* Actions */}
-        {!isCompleted && (
-          <div className="flex gap-2 pl-7 pt-1">
-            <Button
-              className="flex-1 gap-2 h-10 bg-secondary hover:bg-secondary/90 text-white font-semibold shadow-sm shadow-secondary/20 active:scale-[0.98]"
-              onClick={() => completeMut.mutate()}
-              disabled={completeMut.isPending}
-            >
-              {completeMut.isPending
-                ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
-                : <><CheckCircle2 className="w-4 h-4" /> Mark Complete</>
-              }
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className={cn("h-10 w-10 shrink-0", showNotes && "bg-muted border-primary/30")}
-              onClick={() => setShowNotes(v => !v)}
-              title="Add a note"
-            >
-              <StickyNote className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
+        <div className="flex gap-2 pl-7 pt-1">
+          <AnimatePresence mode="wait">
+            {isCompleted ? (
+              <motion.div
+                key="completed"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                className="flex-1 flex items-center gap-2 h-10 px-4 rounded-md bg-secondary/15 border border-secondary/30 text-secondary font-semibold text-sm"
+              >
+                <motion.div
+                  initial={{ scale: 0, rotate: -30 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.05 }}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                </motion.div>
+                Completed
+              </motion.div>
+            ) : (
+              <motion.div key="action" className="flex gap-2 flex-1">
+                <Button
+                  className="flex-1 gap-2 h-10 bg-secondary hover:bg-secondary/90 text-white font-semibold shadow-sm shadow-secondary/20"
+                  onClick={() => completeMut.mutate()}
+                  disabled={completeMut.isPending}
+                >
+                  <AnimatePresence mode="wait">
+                    {completeMut.isPending ? (
+                      <motion.span key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Saving…
+                      </motion.span>
+                    ) : (
+                      <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" /> Mark Complete
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={cn("h-10 w-10 shrink-0", showNotes && "bg-muted border-primary/30")}
+                  onClick={() => setShowNotes(v => !v)}
+                  title="Add a note"
+                >
+                  <StickyNote className="w-4 h-4" />
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

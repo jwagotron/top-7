@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useRole } from '@/lib/RoleContext';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
@@ -80,6 +82,10 @@ export default function MyPlan() {
       onSuccess: (...a) => {
         setCompletingId(null);
         setShowNotesFor(null);
+        toast.success('Workout completed! 🎉', {
+          description: 'Great work — keep the momentum going.',
+          duration: 3000,
+        });
         opts?.onSuccess?.(...a);
       },
     }),
@@ -324,38 +330,44 @@ export default function MyPlan() {
                         </div>
 
                         <div className="shrink-0 flex items-center gap-1">
-                          {!done ? (
-                            <React.Fragment>
-                              <button
-                                onClick={() => setShowNotesFor(isShowingNotes ? null : w.id)}
-                                className={cn(
-                                  "p-1.5 rounded-lg transition-colors",
-                                  isShowingNotes
-                                    ? "bg-muted text-foreground"
-                                    : "hover:bg-muted text-muted-foreground"
-                                )}
+                          <AnimatePresence mode="wait">
+                            {done ? (
+                              <motion.span
+                                key="done"
+                                initial={{ opacity: 0, scale: 0.7 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ type: 'spring', stiffness: 350, damping: 20 }}
+                                className="w-6 h-6 flex items-center justify-center rounded-full bg-secondary/15"
                               >
-                                <StickyNote className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setCompletingId(w.id);
-                                  completeMut.mutate({ workout: w, notes: notesMap[w.id] });
-                                }}
-                                disabled={completingId === w.id && completeMut.isPending}
-                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary/10 hover:bg-secondary/20 text-secondary text-[11px] font-semibold transition-colors"
-                              >
-                                {completingId === w.id && completeMut.isPending
-                                  ? <Loader2 className="w-3 h-3 animate-spin" />
-                                  : <React.Fragment><CheckCircle2 className="w-3 h-3" /> Done</React.Fragment>
-                                }
-                              </button>
-                            </React.Fragment>
-                          ) : (
-                            <span className="w-6 h-6 flex items-center justify-center rounded-full bg-secondary/15">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-secondary" />
-                            </span>
-                          )}
+                                <CheckCircle2 className="w-3.5 h-3.5 text-secondary" />
+                              </motion.span>
+                            ) : (
+                              <motion.div key="actions" className="flex items-center gap-1">
+                                <button
+                                  onClick={() => setShowNotesFor(isShowingNotes ? null : w.id)}
+                                  className={cn(
+                                    "p-1.5 rounded-lg transition-colors",
+                                    isShowingNotes ? "bg-muted text-foreground" : "hover:bg-muted text-muted-foreground"
+                                  )}
+                                >
+                                  <StickyNote className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setCompletingId(w.id);
+                                    completeMut.mutate({ workout: w, notes: notesMap[w.id] });
+                                  }}
+                                  disabled={completingId === w.id && completeMut.isPending}
+                                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary/10 hover:bg-secondary/20 text-secondary text-[11px] font-semibold transition-colors"
+                                >
+                                  {completingId === w.id && completeMut.isPending
+                                    ? <Loader2 className="w-3 h-3 animate-spin" />
+                                    : <React.Fragment><CheckCircle2 className="w-3 h-3" /> Done</React.Fragment>
+                                  }
+                                </button>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
                     </div>

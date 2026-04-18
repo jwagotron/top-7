@@ -3,6 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Clock, MapPin, Zap, ChevronDown, ChevronUp, Loader2, StickyNote } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 const RUN_TYPE_COLORS = {
   easy: 'bg-secondary/10 text-secondary border-secondary/20',
@@ -40,18 +42,25 @@ export default function PlannedWorkoutCard({
     try {
       await onMarkComplete({ workout: planned, notes });
       setShowNotes(false);
+      toast.success('Workout completed! 🎉', {
+        description: 'Great work — keep the momentum going.',
+        duration: 3000,
+      });
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className={cn(
-      'rounded-xl border transition-all',
-      isCompleted ? 'bg-secondary/5 border-secondary/20' :
-      isSkipped ? 'bg-muted/50 border-dashed opacity-60' :
-      'bg-card border-border hover:shadow-sm'
-    )}>
+    <motion.div
+      layout
+      className={cn(
+        'rounded-xl border transition-colors duration-300',
+        isCompleted ? 'bg-secondary/5 border-secondary/20' :
+        isSkipped ? 'bg-muted/50 border-dashed opacity-60' :
+        'bg-card border-border hover:shadow-sm'
+      )}
+    >
       <div className="p-3 cursor-pointer" onClick={onToggle}>
         <div className="flex items-start gap-2.5">
           <div className={cn('mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center',
@@ -141,27 +150,48 @@ export default function PlannedWorkoutCard({
           )}
 
           {/* Athlete actions */}
-          {showCompleteButton && !isCompleted && !isSkipped && (
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                className="flex-1 h-8 text-xs bg-secondary hover:bg-secondary/90 text-white gap-1.5"
-                onClick={handleComplete}
-                disabled={saving}
-              >
-                {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
-                {saving ? 'Saving…' : 'Mark Complete'}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className={cn("h-8 w-8 p-0", showNotes && "bg-muted border-primary/30")}
-                onClick={() => setShowNotes(v => !v)}
-                title="Add note"
-              >
-                <StickyNote className="w-3 h-3" />
-              </Button>
-            </div>
+          {showCompleteButton && !isSkipped && (
+            <AnimatePresence mode="wait">
+              {isCompleted ? (
+                <motion.div
+                  key="done"
+                  initial={{ opacity: 0, scale: 0.88 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+                  className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-secondary/15 border border-secondary/25 text-secondary text-xs font-semibold"
+                >
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.06 }}
+                  >
+                    <CheckCircle2 className="w-3 h-3" />
+                  </motion.div>
+                  Completed
+                </motion.div>
+              ) : (
+                <motion.div key="actions" className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="flex-1 h-8 text-xs bg-secondary hover:bg-secondary/90 text-white gap-1.5"
+                    onClick={handleComplete}
+                    disabled={saving}
+                  >
+                    {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                    {saving ? 'Saving…' : 'Mark Complete'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className={cn("h-8 w-8 p-0", showNotes && "bg-muted border-primary/30")}
+                    onClick={() => setShowNotes(v => !v)}
+                    title="Add note"
+                  >
+                    <StickyNote className="w-3 h-3" />
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           )}
 
           {/* Coach actions */}
@@ -180,6 +210,6 @@ export default function PlannedWorkoutCard({
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
