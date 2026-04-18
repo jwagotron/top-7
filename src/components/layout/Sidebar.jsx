@@ -23,41 +23,49 @@ function NavLink({ path, label, icon: Icon, collapsed, isActive }) {
   );
 }
 
-function MenuSection({ section, collapsed, isActive, onAction }) {
+function MenuSection({ section, collapsed, isActive, onAction, isLast }) {
   return (
-    <div className="flex flex-col gap-2">
-      {/* Section Header */}
-      {!collapsed && (
-        <h3 className="px-4 pt-3 pb-2 text-[10px] uppercase tracking-widest font-semibold text-sidebar-foreground/40">
-          {section.section}
-        </h3>
-      )}
-      
-      {/* Section Items Container */}
-      <div className="px-2 space-y-1">
-        {section.items.map(item => (
-          item.action ? (
-            <button
-              key={item.path}
-              onClick={() => onAction(item.action)}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 active:scale-[0.97] active:opacity-80",
-                "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-              )}
-            >
-              <item.icon className="w-5 h-5 shrink-0" />
-              {!collapsed && <span className="text-sm font-medium text-left">{item.label}</span>}
-            </button>
-          ) : (
-            <NavLink
-              key={item.path}
-              {...item}
-              collapsed={collapsed}
-              isActive={isActive(item.path)}
-            />
-          )
-        ))}
+    <div className="flex flex-col">
+      {/* Section Container with background */}
+      <div className="px-3 py-3 rounded-lg bg-sidebar-accent/20 border border-sidebar-border/40">
+        {/* Section Header */}
+        {!collapsed && (
+          <h3 className="px-2 pb-3 text-[10px] uppercase tracking-widest font-bold text-sidebar-foreground/60">
+            {section.section}
+          </h3>
+        )}
+        
+        {/* Section Items */}
+        <div className={cn("space-y-1", !collapsed && "pl-1")}>
+          {section.items.map(item => (
+            item.action ? (
+              <button
+                key={item.path}
+                onClick={() => onAction(item.action)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-all duration-150 active:scale-[0.97] active:opacity-80",
+                  "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                )}
+              >
+                <item.icon className="w-5 h-5 shrink-0" />
+                {!collapsed && <span className="text-sm font-medium text-left">{item.label}</span>}
+              </button>
+            ) : (
+              <NavLink
+                key={item.path}
+                {...item}
+                collapsed={collapsed}
+                isActive={isActive(item.path)}
+              />
+            )
+          ))}
+        </div>
       </div>
+
+      {/* Divider between sections */}
+      {!isLast && !collapsed && (
+        <div className="my-4 mx-3 border-t border-sidebar-border/50" />
+      )}
     </div>
   );
 }
@@ -109,7 +117,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       )}
 
       {/* Menu Sections */}
-      <nav className="flex-1 overflow-y-auto py-4 space-y-6">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-0">
         {sidebarMenu.map((section, idx) => (
           <MenuSection
             key={idx}
@@ -117,6 +125,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             collapsed={collapsed}
             isActive={isActive}
             onAction={handleAction}
+            isLast={idx === sidebarMenu.length - 1}
           />
         ))}
       </nav>
