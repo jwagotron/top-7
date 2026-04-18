@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,20 +35,30 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
   const [activeTab, setActiveTab] = useState('details');
   const [selectedAthletes, setSelectedAthletes] = useState([]);
 
+  // Reset form whenever the dialog opens (new workout) or the source workout/date changes
+  const prevOpenRef = useRef(false);
   useEffect(() => {
-    if (open) {
-      if (workout) {
-        setForm({
-          ...defaults,
-          ...workout,
-          target_distance_km: workout.target_distance_km ? toDisplay(workout.target_distance_km) : '',
-        });
-        setSelectedAthletes(workout.assigned_to ? [workout.assigned_to] : []);
-      } else {
-        setForm({ ...defaults, scheduled_date: defaultDate || '' });
-        setSelectedAthletes([]);
-      }
+    const justOpened = open && !prevOpenRef.current;
+    prevOpenRef.current = open;
+
+    if (!open) return;
+
+    if (workout) {
+      setForm({
+        ...defaults,
+        ...workout,
+        target_distance_km: workout.target_distance_km ? toDisplay(workout.target_distance_km) : '',
+      });
+      setSelectedAthletes(workout.assigned_to ? [workout.assigned_to] : []);
       setActiveTab('details');
+    } else if (justOpened) {
+      // Full reset on open, seeded with the selected calendar day
+      setForm({ ...defaults, scheduled_date: defaultDate || '' });
+      setSelectedAthletes([]);
+      setActiveTab('details');
+    } else {
+      // Form already open — only update the date field when selected day changes
+      setForm(prev => ({ ...prev, scheduled_date: defaultDate || '' }));
     }
   }, [open, workout, defaultDate]);
 
