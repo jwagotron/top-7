@@ -12,8 +12,15 @@ export function useCompletions(athleteEmail) {
 
   const { data: completions = [], isLoading } = useQuery({
     queryKey: ['completions', athleteEmail],
-    queryFn: () => base44.entities.WorkoutCompletion.filter({ athlete_email: athleteEmail }, '-completed_at', 500),
-    enabled: !!athleteEmail,
+    queryFn: () => {
+      // If athleteEmail is null (all athletes), fetch all completions without filter
+      if (!athleteEmail) {
+        return base44.entities.WorkoutCompletion.list('-completed_at', 500);
+      }
+      // Otherwise filter by athlete
+      return base44.entities.WorkoutCompletion.filter({ athlete_email: athleteEmail }, '-completed_at', 500);
+    },
+    enabled: true, // Always enabled—fetch all or filter by athlete
   });
 
   // Real-time updates
