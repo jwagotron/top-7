@@ -110,10 +110,10 @@ export default function Workouts() {
   const dayWorkouts = workouts.filter(w => isSameDay(parseDateOnly(w.date), selectedDate));
   const dayPlanned = myPlanned.filter(p => isSameDay(parseDateOnly(p.scheduled_date), selectedDate));
 
-  // DEBUG: date sync logging
-  console.debug('[Workouts] selectedDate:', format(selectedDate, 'yyyy-MM-dd'), '| dayPlanned:', dayPlanned.length, '| dayLogged:', dayWorkouts.length);
-  dayPlanned.forEach(p => console.debug('[Workouts] planned:', p.scheduled_date, p.title));
-  dayWorkouts.forEach(w => console.debug('[Workouts] logged:', w.date, w.title));
+  // DEBUG: athlete workout visibility
+  console.debug('[Workouts] role:', role, '| athlete:', athleteEmail, '| today:', format(new Date(), 'yyyy-MM-dd'), '| selectedDate:', format(selectedDate, 'yyyy-MM-dd'));
+  console.debug('[Workouts] assignedWorkouts total:', assignedWorkouts.length, '| myPlanned:', myPlanned.length, '| dayPlanned:', dayPlanned.length, '| dayLogged:', dayWorkouts.length);
+  dayPlanned.forEach(p => console.debug('[Workouts] planned for day:', p.scheduled_date, p.title, '| assigned_to:', p.assigned_to));
 
   // Weekly stats
   const now = new Date();

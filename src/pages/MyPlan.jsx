@@ -65,6 +65,12 @@ export default function MyPlan() {
 
   const todayWorkout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), today));
 
+  // DEBUG: athlete workout visibility
+  console.debug('[MyPlan] athlete:', athleteEmail, '| today:', format(today, 'yyyy-MM-dd'), '| plannedWorkouts:', plannedWorkouts.length, '| todayWorkout:', todayWorkout?.title ?? 'none');
+  plannedWorkouts.filter(w => isSameDay(parseDateOnly(w.scheduled_date), today)).forEach(w =>
+    console.debug('[MyPlan] today match:', w.scheduled_date, w.title, '| assigned_to:', w.assigned_to)
+  );
+
   const displayWorkout = selectedDayWorkout === undefined ? todayWorkout : selectedDayWorkout;
   const displayCompletion = displayWorkout
     ? completions.find(c => c.planned_workout_id === displayWorkout.id)
@@ -105,7 +111,8 @@ export default function MyPlan() {
     );
   }
 
-  if (!activePlan) {
+  // Only show "no plan" if there are also no directly-assigned workouts
+  if (!activePlan && plannedWorkouts.length === 0) {
     return (
       <div className="min-h-screen bg-background">
         <TopBar title="My Plan" />
@@ -124,7 +131,7 @@ export default function MyPlan() {
     );
   }
 
-  const sc = statusConfig[activePlan.status] || statusConfig.draft;
+  const sc = activePlan ? (statusConfig[activePlan.status] || statusConfig.draft) : null;
   const sortedWorkouts = [...plannedWorkouts].sort(
     (a, b) => parseDateOnly(a.scheduled_date) - parseDateOnly(b.scheduled_date)
   );
@@ -135,8 +142,8 @@ export default function MyPlan() {
 
       <div className="max-w-2xl mx-auto px-4 lg:px-6 pt-5 pb-28 lg:pb-10 space-y-7">
 
-        {/* Plan overview */}
-        <div className="rounded-2xl bg-card border border-border/30 shadow-sm overflow-hidden">
+        {/* Plan overview — only shown when a formal plan is assigned */}
+        {activePlan && sc && <div className="rounded-2xl bg-card border border-border/30 shadow-sm overflow-hidden">
           <div className="h-1 bg-gradient-to-r from-primary via-secondary to-accent opacity-60" />
           <div className="p-5 space-y-4">
             <div className="flex items-start justify-between gap-3">
@@ -185,7 +192,7 @@ export default function MyPlan() {
               </div>
             )}
           </div>
-        </div>
+        </div>}
 
         {/* Today's / selected workout */}
         <div>

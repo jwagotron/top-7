@@ -52,6 +52,9 @@ export default function Dashboard() {
   const totalCalories = thisWeekWorkouts.reduce((s, w) => s + (w.calories || 0), 0);
   const totalWorkouts = thisWeekWorkouts.length;
 
+  // DEBUG: athlete workout visibility
+  console.debug('[Dashboard] athlete:', athleteEmail, '| plannedWorkouts:', plannedWorkouts.length, '| today upcoming:', plannedWorkouts.filter(w => parseDateOnly(w.scheduled_date) >= new Date(new Date().setHours(0,0,0,0))).length);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">

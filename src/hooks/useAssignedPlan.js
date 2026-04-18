@@ -58,8 +58,10 @@ export function useAssignedPlan() {
   useEffect(() => {
     if (!athleteEmail) return;
     const unsubscribe = base44.entities.PlannedWorkout.subscribe(() => {
-      qc.invalidateQueries({ queryKey: ['assigned-plan-workouts'] });
+      // Use partial key match so ALL plan-based workout queries are invalidated
+      qc.invalidateQueries({ queryKey: ['assigned-plan-workouts'], exact: false });
       qc.invalidateQueries({ queryKey: ['direct-assigned-workouts', athleteEmail] });
+      qc.invalidateQueries({ queryKey: ['assigned-plans', athleteEmail] });
     });
     return unsubscribe;
   }, [athleteEmail, qc]);
