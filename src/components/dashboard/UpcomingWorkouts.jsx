@@ -23,13 +23,17 @@ const intensityColors = {
   recovery: "bg-muted text-muted-foreground border-border",
 };
 
-export default function UpcomingWorkouts({ plannedWorkouts = [] }) {
+export default function UpcomingWorkouts({ plannedWorkouts = [], completions = [] }) {
   const { toDisplay, label } = useUnits();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  const isCompleted = (w) =>
+    w.status === 'completed' ||
+    completions.some(c => c.planned_workout_id === w.id && c.status === 'completed');
   
   const upcoming = (plannedWorkouts || [])
-    .filter(w => w && w.status !== 'completed' && parseDateOnly(w.scheduled_date) >= today)
+    .filter(w => w && !isCompleted(w) && parseDateOnly(w.scheduled_date) >= today)
     .sort((a, b) => parseDateOnly(a.scheduled_date) - parseDateOnly(b.scheduled_date))
     .slice(0, 5);
 

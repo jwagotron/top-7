@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
+import { useCompletions } from '@/hooks/useCompletions';
 
 export default function Workouts() {
   const { user } = useAuth();
@@ -24,7 +25,8 @@ export default function Workouts() {
   const isAthlete = role === 'athlete';
   const canCreate = !isAthlete; // coaches/admins can log runs; athletes view-only
   // Athlete's assigned workouts from the single source of truth
-  const { plannedWorkouts: assignedWorkouts } = useAssignedPlan();
+  const { plannedWorkouts: assignedWorkouts, athleteEmail } = useAssignedPlan();
+  const { completions, completeMut, getCompletion, isCompleted: isWorkoutCompleted } = useCompletions(isAthlete ? athleteEmail : null);
   const { toDisplay, label } = useUnits();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -156,6 +158,7 @@ export default function Workouts() {
               onMonthChange={handleMonthChange}
               workouts={workouts}
               plannedWorkouts={myPlanned}
+              completions={completions}
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
             />
@@ -195,7 +198,10 @@ export default function Workouts() {
                 expanded={expandedPlanned === pw.id}
                 onToggle={() => setExpandedPlanned(expandedPlanned === pw.id ? null : pw.id)}
                 onLogRun={canCreate ? () => handleLogFromPlanned(pw) : undefined}
-                onMarkSkipped={() => handleMarkSkipped(pw)}
+                onMarkSkipped={canCreate ? () => handleMarkSkipped(pw) : undefined}
+                completion={isAthlete ? getCompletion(pw.id) : null}
+                showCompleteButton={isAthlete}
+                onMarkComplete={isAthlete ? ({ workout, notes }) => completeMut.mutateAsync({ workout, notes }) : undefined}
               />
             ))}
 

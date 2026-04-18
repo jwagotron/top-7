@@ -22,6 +22,7 @@ export default function CalendarDayCell({
   selectedDate,
   plannedWorkouts = [],
   workouts = [],
+  completions = [],   // WorkoutCompletion records to reflect completed state
   onSelectDate,
   onAddClick,
   showAddButton,
@@ -85,20 +86,24 @@ export default function CalendarDayCell({
         {dayPlanned.slice(0, 2).map((pw) => {
           const label = getWorkoutLabel(pw);
           const color = getWorkoutColor(pw);
+          // Check both PlannedWorkout.status and WorkoutCompletion records
+          const hasCompletion = completions.some(c => c.planned_workout_id === pw.id && c.status === 'completed');
+          const done = pw.status === 'completed' || hasCompletion;
+          const skipped = pw.status === 'skipped';
           return (
             <div
               key={pw.id}
               className={cn(
                 'px-2.5 py-1.5 rounded-md text-[8px] font-semibold transition-all duration-200 truncate max-w-[90%] whitespace-nowrap flex-shrink-0 shadow-xs',
-                pw.status === 'completed'
-                  ? 'opacity-35 line-through'
-                  : pw.status === 'skipped'
+                done
+                  ? 'bg-secondary/15 text-secondary opacity-60 line-through'
+                  : skipped
                   ? 'opacity-20 line-through'
                   : color,
               )}
-              title={pw.title}
+              title={done ? `✓ ${pw.title}` : pw.title}
             >
-              {label}
+              {done ? `✓ ${label}` : label}
             </div>
           );
         })}

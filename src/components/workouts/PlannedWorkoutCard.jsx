@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Clock, MapPin, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle2, Clock, MapPin, Zap, ChevronDown, ChevronUp, Loader2, StickyNote } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const RUN_TYPE_COLORS = {
@@ -16,13 +16,34 @@ const RUN_TYPE_COLORS = {
   progression: 'bg-secondary/10 text-secondary border-secondary/20',
 };
 
-const INTENSITY_BAR = {
-  recovery: 1, easy: 2, moderate: 3, hard: 4, race_pace: 5,
-};
+export default function PlannedWorkoutCard({
+  planned,
+  onLogRun,
+  onMarkSkipped,
+  expanded,
+  onToggle,
+  // Completion props (athlete-facing)
+  completion = null,
+  onMarkComplete,   // async fn({ workout, notes })
+  showCompleteButton = false,
+}) {
+  const [notes, setNotes] = useState(completion?.notes || '');
+  const [showNotes, setShowNotes] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-export default function PlannedWorkoutCard({ planned, onLogRun, onMarkSkipped, expanded, onToggle }) {
-  const isCompleted = planned.status === 'completed';
+  const isCompleted = completion?.status === 'completed' || planned.status === 'completed';
   const isSkipped = planned.status === 'skipped';
+
+  const handleComplete = async () => {
+    if (!onMarkComplete) return;
+    setSaving(true);
+    try {
+      await onMarkComplete({ workout: planned, notes });
+      setShowNotes(false);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className={cn(
@@ -40,11 +61,14 @@ export default function PlannedWorkoutCard({ planned, onLogRun, onMarkSkipped, e
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className={cn('text-sm font-medium', isSkipped && 'line-through text-muted-foreground')}>{planned.title}</span>
+              <span className={cn('text-sm font-medium', isSkipped && 'line-through text-muted-foreground', isCompleted && 'text-secondary')}>{planned.title}</span>
               {planned.run_type && (
                 <Badge variant="outline" className={cn('text-[10px]', RUN_TYPE_COLORS[planned.run_type])}>
                   {planned.run_type.replace('_', ' ')}
                 </Badge>
+              )}
+              {isCompleted && (
+                <span className="text-[10px] font-semibold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded-full">✓ Done</span>
               )}
             </div>
             <div className="flex gap-3 mt-1 flex-wrap">
@@ -98,12 +122,56 @@ export default function PlannedWorkoutCard({ planned, onLogRun, onMarkSkipped, e
               <p className="text-xs text-foreground">{planned.coach_notes}</p>
             </div>
           )}
-          {!isCompleted && !isSkipped && (
+
+          {/* Completion note if done */}
+          {isCompleted && completion?.notes && (
+            <p className="text-xs text-secondary/80 italic border-l-2 border-secondary/30 pl-2">"{completion.notes}"</p>
+          )}
+
+          {/* Notes input for athlete */}
+          {showCompleteButton && !isCompleted && !isSkipped && showNotes && (
+            <textarea
+              className="w-full rounded-lg bg-muted/40 border border-border/40 px-2.5 py-2 text-xs resize-none outline-none focus:ring-1 focus:ring-primary/40 placeholder:text-muted-foreground/40"
+              rows={2}
+              placeholder="How did it go? (optional)"
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              autoFocus
+            />
+          )}
+
+          {/* Athlete actions */}
+          {showCompleteButton && !isCompleted && !isSkipped && (
             <div className="flex gap-2">
-              <Button size="sm" className="flex-1 h-8 text-xs" onClick={onLogRun}>Log This Run</Button>
-              <Button size="sm" variant="outline" className="h-8 text-xs text-muted-foreground" onClick={onMarkSkipped}>Skip</Button>
+              <Button
+                size="sm"
+                className="flex-1 h-8 text-xs bg-secondary hover:bg-secondary/90 text-white gap-1.5"
+                onClick={handleComplete}
+                disabled={saving}
+              >
+                {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                {saving ? 'Saving…' : 'Mark Complete'}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className={cn("h-8 w-8 p-0", showNotes && "bg-muted border-primary/30")}
+                onClick={() => setShowNotes(v => !v)}
+                title="Add note"
+              >
+                <StickyNote className="w-3 h-3" />
+              </Button>
             </div>
           )}
+
+          {/* Coach actions */}
+          {!showCompleteButton && !isCompleted && !isSkipped && (
+            <div className="flex gap-2">
+              {onLogRun && <Button size="sm" className="flex-1 h-8 text-xs" onClick={onLogRun}>Log This Run</Button>}
+              {onMarkSkipped && <Button size="sm" variant="outline" className="h-8 text-xs text-muted-foreground" onClick={onMarkSkipped}>Skip</Button>}
+            </div>
+          )}
+
           {planned.athlete_feedback && (
             <div className="bg-muted/50 rounded-lg p-2">
               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-0.5">Your Feedback</p>

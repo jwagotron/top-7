@@ -13,12 +13,14 @@ import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
 import { DEFAULT_ROUTE } from '@/lib/roleConfig';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
+import { useCompletions } from '@/hooks/useCompletions';
 import { startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 
 export default function Dashboard() {
   const { role } = useRole();
   const navigate = useNavigate();
   const { athleteEmail, plannedWorkouts, activePlan, isLoading } = useAssignedPlan();
+  const { completions } = useCompletions(athleteEmail);
 
   useEffect(() => {
     if (!role) return;
@@ -73,7 +75,7 @@ export default function Dashboard() {
 
         <div className="grid lg:grid-cols-2 gap-4 lg:gap-5">
           <WeeklyChart workouts={thisWeekWorkouts} />
-          <UpcomingWorkouts plannedWorkouts={plannedWorkouts} />
+          <UpcomingWorkouts plannedWorkouts={plannedWorkouts} completions={completions} />
         </div>
 
         <RecentActivity workouts={workouts} />

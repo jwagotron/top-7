@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
 import { useRole } from '@/lib/RoleContext';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
+import { useCompletions } from '@/hooks/useCompletions';
 import TopBar from '@/components/layout/TopBar';
 import TodayWorkout from '@/components/myplan/TodayWorkout';
 import WeeklySchedule from '@/components/myplan/WeeklySchedule';
@@ -51,22 +50,15 @@ export default function MyPlan() {
   const [completingId, setCompletingId] = useState(null);
   const [notesMap, setNotesMap] = useState({});
   const [showNotesFor, setShowNotesFor] = useState(null);
-  const qc = useQueryClient();
-
   useEffect(() => {
     if (role && role !== 'athlete') navigate('/coach', { replace: true });
   }, [role, navigate]);
 
   const { activePlan, plannedWorkouts, isLoading: plansLoading, athleteEmail } = useAssignedPlan();
+  const { completions, completeMut: sharedCompleteMut } = useCompletions(athleteEmail);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  const { data: completions = [] } = useQuery({
-    queryKey: ['completions', athleteEmail],
-    queryFn: () => base44.entities.WorkoutCompletion.filter({ athlete_email: athleteEmail }, '-completed_at', 200),
-    enabled: !!athleteEmail,
-  });
 
   const todayWorkout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), today));
 
@@ -81,32 +73,19 @@ export default function MyPlan() {
     c => c.status === 'completed' && c.plan_id === activePlan?.id
   ).length;
 
-  const completeMut = useMutation({
-    mutationFn: async ({ workout, notes }) => {
-      const existing = completions.find(c => c.planned_workout_id === workout.id);
-      if (existing) {
-        return base44.entities.WorkoutCompletion.update(existing.id, {
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          notes: notes || existing.notes,
-        });
-      }
-      return base44.entities.WorkoutCompletion.create({
-        athlete_email: athleteEmail,
-        planned_workout_id: workout.id,
-        plan_id: workout.plan_id,
-        scheduled_date: workout.scheduled_date,
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-        notes: notes || undefined,
-      });
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
-      setCompletingId(null);
-      setShowNotesFor(null);
-    },
-  });
+  const completeMut = {
+    ...sharedCompleteMut,
+    mutate: (args, opts) => sharedCompleteMut.mutate(args, {
+      ...opts,
+      onSuccess: (...a) => {
+        setCompletingId(null);
+        setShowNotesFor(null);
+        opts?.onSuccess?.(...a);
+      },
+    }),
+    mutateAsync: sharedCompleteMut.mutateAsync,
+    isPending: sharedCompleteMut.isPending,
+  };
 
   if (plansLoading) {
     return (

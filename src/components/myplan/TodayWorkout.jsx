@@ -46,7 +46,7 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
       });
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['completions'] });
+      qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
       setShowNotes(false);
     },
   });
