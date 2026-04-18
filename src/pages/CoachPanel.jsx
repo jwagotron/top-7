@@ -35,6 +35,7 @@ export default function CoachPanel() {
   const [editingWorkout, setEditingWorkout] = useState(null);
   const [athleteFilter, setAthleteFilter] = useState('all');
   const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
 
   // Fetch coach's teams
   const { data: myTeams = [], refetch: refetchTeams } = useQuery({
@@ -164,11 +165,11 @@ export default function CoachPanel() {
                 </div>
               </div>
 
-              {/* Prominent invite card */}
+              {/* Invite button */}
               {selectedTeam && (
-                <div className="mb-5">
-                  <TeamInviteCard team={selectedTeam} onTeamUpdated={refetchTeams} />
-                </div>
+                <Button onClick={() => setShowInvite(true)} className="mb-5 gap-2">
+                  <Plus className="w-4 h-4" /> Invite Athlete
+                </Button>
               )}
 
               <Tabs defaultValue="workouts">
@@ -282,6 +283,21 @@ export default function CoachPanel() {
           onCreated={() => { refetchTeams(); setShowCreateTeam(false); }}
           coachEmail={user?.email}
         />
+
+        {/* Invite modal */}
+        {showInvite && selectedTeam && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-card rounded-2xl shadow-xl max-w-md w-full">
+              <div className="flex items-center justify-between p-6 border-b border-border">
+                <h2 className="text-lg font-bold">Invite Athlete</h2>
+                <button onClick={() => setShowInvite(false)} className="text-muted-foreground hover:text-foreground">✕</button>
+              </div>
+              <div className="p-6">
+                <TeamInviteCard team={selectedTeam} onTeamUpdated={() => { refetchTeams(); setShowInvite(false); }} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </RoleGate>
   );
