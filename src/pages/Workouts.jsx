@@ -57,7 +57,8 @@ export default function Workouts() {
     enabled: !isAthlete, // coaches/admins fetch all; athletes use assignedWorkouts
   });
 
-  // Athletes use assigned workouts from the shared hook; coaches see all
+  // Athletes: only workouts assigned to them (from their active plan)
+  // Coaches/admins: workouts assigned to themselves as an athlete, or unassigned
   const myPlanned = isAthlete
     ? assignedWorkouts
     : allPlannedWorkouts.filter(p => !p.assigned_to || p.assigned_to === user?.email);
@@ -161,6 +162,10 @@ export default function Workouts() {
               completions={completions}
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
+              permissions={{
+                canAssign: !isAthlete,
+                canComplete: isAthlete,
+              }}
             />
           </div>
 

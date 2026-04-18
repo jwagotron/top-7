@@ -131,6 +131,11 @@ function DayCell({ day, currentMonth, selectedDate, plannedWorkouts, workouts, c
 
 const DAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+/**
+ * permissions prop controls role-based behavior:
+ *   canAssign   – show the "+" add button on cells (coach/admin)
+ *   canComplete – show completion state from completions array (athlete)
+ */
 export default function TrainingMonthGrid({
   currentMonth,
   onMonthChange,
@@ -139,9 +144,13 @@ export default function TrainingMonthGrid({
   completions = [],
   selectedDate,
   onSelectDate,
+  // role-based flags (replaces showAddButton for clearer intent)
   showAddButton = false,
   onAddClick = () => {},
+  permissions = {},
 }) {
+  const canAssign   = permissions.canAssign   ?? showAddButton;
+  const canComplete = permissions.canComplete ?? true;
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -205,9 +214,9 @@ export default function TrainingMonthGrid({
               selectedDate={selectedDate}
               plannedWorkouts={plannedWorkouts}
               workouts={workouts}
-              completions={completions}
+              completions={canComplete ? completions : []}
               onSelectDate={onSelectDate}
-              showAddButton={showAddButton}
+              showAddButton={canAssign}
               onAddClick={onAddClick}
             />
           ))}

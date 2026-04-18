@@ -16,6 +16,7 @@ import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth } fro
 import { useAuth } from '@/lib/AuthContext';
 import { useRole } from '@/lib/RoleContext';
 import RoleGate from '@/components/RoleGate';
+import { useCompletions } from '@/hooks/useCompletions';
 
 export default function CoachPanel() {
   const { user } = useAuth();
@@ -27,6 +28,11 @@ export default function CoachPanel() {
   const qc = useQueryClient();
 
   const { role } = useRole();
+  const isAdmin = role === 'admin';
+
+  // For the coach grid: fetch completions for the selected athlete (or all if 'all')
+  const selectedAthleteEmail = athleteFilter !== 'all' ? athleteFilter : null;
+  const { completions } = useCompletions(selectedAthleteEmail);
 
   const { data: plannedWorkouts = [], isLoading } = useQuery({
     queryKey: ['planned-workouts'],
@@ -139,9 +145,13 @@ export default function CoachPanel() {
                 currentMonth={currentMonth}
                 onMonthChange={handleMonthChange}
                 plannedWorkouts={filteredWorkouts}
+                completions={completions}
                 selectedDate={selectedDate}
                 onSelectDate={setSelectedDate}
-                showAddButton={true}
+                permissions={{
+                  canAssign: true,   // coaches + admins can assign
+                  canComplete: false, // coaches never mark complete for athletes
+                }}
                 onAddClick={handleAddClick}
               />
             )}
