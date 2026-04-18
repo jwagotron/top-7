@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/lib/RoleContext';
 import { useAuth } from '@/lib/AuthContext';
-import { NAV_ITEMS, MOBILE_NAV_TABS, SIDE_MENU_SECTIONS } from '@/lib/roleConfig';
+import { SIDEBAR_MENU } from '@/lib/roleConfig';
 
 function NavLink({ path, label, icon: Icon, collapsed, isActive }) {
   return (
@@ -28,9 +28,7 @@ export default function Sidebar({ collapsed, onToggle }) {
   const { role } = useRole();
   const { logout } = useAuth();
   
-  // Desktop shows primary nav items only (no secondary features)
-  const items = MOBILE_NAV_TABS[role] || MOBILE_NAV_TABS.athlete;
-  const sideMenuSections = SIDE_MENU_SECTIONS[role] || SIDE_MENU_SECTIONS.athlete;
+  const sidebarMenu = SIDEBAR_MENU[role] || SIDEBAR_MENU.athlete;
 
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
@@ -39,7 +37,6 @@ export default function Sidebar({ collapsed, onToggle }) {
     if (action === 'logout') {
       logout();
     } else if (action === 'help') {
-      // Placeholder for help action
       window.open('mailto:support@example.com', '_blank');
     }
   };
@@ -72,30 +69,22 @@ export default function Sidebar({ collapsed, onToggle }) {
         </div>
       )}
 
-      {/* Primary Nav */}
-      <nav className="py-4 px-3 space-y-1 border-b border-sidebar-border/50">
-        {items.map(item => (
-          <NavLink
-            key={item.path}
-            {...item}
-            collapsed={collapsed}
-            isActive={isActive(item.path)}
-          />
-        ))}
-      </nav>
-
-      {/* Secondary Menu */}
-      <nav className="flex-1 py-4 px-3 space-y-4 overflow-y-auto">
-        {sideMenuSections.map((section, idx) => (
-          <div key={idx} className="space-y-2">
+      {/* Grouped Menu Sections */}
+      <nav className="flex-1 overflow-y-auto">
+        {sidebarMenu.map((section, idx) => (
+          <div key={idx}>
+            {/* Section Header */}
             {!collapsed && (
-              <div className="px-3 py-1.5">
+              <div className="px-4 py-3 pt-4">
                 <span className="text-[10px] uppercase tracking-widest text-sidebar-foreground/40 font-semibold">
                   {section.section}
                 </span>
               </div>
             )}
-            <div className="space-y-1">
+            {collapsed && idx > 0 && <div className="my-2" />}
+
+            {/* Section Items */}
+            <div className="px-2 space-y-1">
               {section.items.map(item => (
                 item.action ? (
                   <button
@@ -119,6 +108,11 @@ export default function Sidebar({ collapsed, onToggle }) {
                 )
               ))}
             </div>
+
+            {/* Section Divider */}
+            {idx < sidebarMenu.length - 1 && (
+              <div className="my-2 mx-3 border-t border-sidebar-border/30" />
+            )}
           </div>
         ))}
       </nav>

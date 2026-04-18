@@ -55,56 +55,75 @@ export const MOBILE_NAV_TABS = {
   ],
 };
 
-// Side menu sections (secondary features and account)
-export const SIDE_MENU_SECTIONS = {
+// Complete sidebar menu structure with all sections
+export const SIDEBAR_MENU = {
   athlete: [
     {
-      section: 'TOOLS & FEATURES',
+      section: 'PRIMARY',
       items: [
-        { path: '/analytics',  label: 'Analytics',       icon: BarChart3 },
-        { path: '/goals',      label: 'Goals',           icon: Target },
-        { path: '/shoes',      label: 'Shoe Tracker',    icon: Activity },
-        { path: '/garmin',     label: 'Garmin Connect',  icon: Wifi },
+        { path: '/',           label: 'Dashboard',        icon: LayoutDashboard },
+        { path: '/my-plan',    label: 'My Plan',          icon: Calendar },
+        { path: '/workouts',   label: 'My Runs',          icon: Dumbbell },
+      ],
+    },
+    {
+      section: 'TOOLS',
+      items: [
+        { path: '/analytics',  label: 'Analytics',        icon: BarChart3 },
+        { path: '/goals',      label: 'Goals',            icon: Target },
+        { path: '/shoes',      label: 'Shoe Tracker',     icon: Activity },
+        { path: '/garmin',     label: 'Garmin Connect',   icon: Wifi },
       ],
     },
     {
       section: 'ACCOUNT',
       items: [
-        { path: '/settings',   label: 'Settings',        icon: Settings, highlight: true },
-        { path: '#help',       label: 'Help & Support',  icon: HelpCircle, action: 'help' },
-        { path: '#logout',     label: 'Log Out',         icon: LogOut, action: 'logout' },
+        { path: '/settings',   label: 'Settings',         icon: Settings },
+        { path: '#help',       label: 'Help & Support',   icon: HelpCircle, action: 'help' },
+        { path: '#logout',     label: 'Log Out',          icon: LogOut, action: 'logout' },
       ],
     },
   ],
   coach: [
     {
-      section: 'TOOLS & FEATURES',
+      section: 'PRIMARY',
       items: [
-        { path: '/athlete-profile', label: 'My Profile', icon: Users },
+        { path: '/coach',           label: 'Coach Panel',      icon: ShieldCheck },
+        { path: '/workout-builder', label: 'Workout Builder',  icon: Hammer },
+        { path: '/plans',           label: 'Training Plans',   icon: Calendar },
+      ],
+    },
+    {
+      section: 'TOOLS',
+      items: [
+        { path: '/athlete-profile', label: 'My Profile',       icon: Users },
       ],
     },
     {
       section: 'ACCOUNT',
       items: [
-        { path: '/settings',   label: 'Settings',        icon: Settings, highlight: true },
-        { path: '#help',       label: 'Help & Support',  icon: HelpCircle, action: 'help' },
-        { path: '#logout',     label: 'Log Out',         icon: LogOut, action: 'logout' },
+        { path: '/settings',   label: 'Settings',             icon: Settings },
+        { path: '#help',       label: 'Help & Support',       icon: HelpCircle, action: 'help' },
+        { path: '#logout',     label: 'Log Out',              icon: LogOut, action: 'logout' },
       ],
     },
   ],
   admin: [
     {
-      section: 'TOOLS & FEATURES',
+      section: 'PRIMARY',
       items: [
-        { path: '/athlete-profile', label: 'My Profile', icon: Users },
+        { path: '/admin',           label: 'Admin Panel',      icon: Shield },
+        { path: '/coach',           label: 'Coach Panel',      icon: ShieldCheck },
+        { path: '/workout-builder', label: 'Workout Builder',  icon: Hammer },
+        { path: '/plans',           label: 'Training Plans',   icon: Calendar },
       ],
     },
     {
       section: 'ACCOUNT',
       items: [
-        { path: '/settings',   label: 'Settings',        icon: Settings, highlight: true },
-        { path: '#help',       label: 'Help & Support',  icon: HelpCircle, action: 'help' },
-        { path: '#logout',     label: 'Log Out',         icon: LogOut, action: 'logout' },
+        { path: '/settings',   label: 'Settings',             icon: Settings },
+        { path: '#help',       label: 'Help & Support',       icon: HelpCircle, action: 'help' },
+        { path: '#logout',     label: 'Log Out',              icon: LogOut, action: 'logout' },
       ],
     },
   ],
