@@ -98,7 +98,7 @@ export default function WeeklyTrainingBoard({
               className={cn(
                 'rounded-2xl border-2 overflow-hidden transition-all',
                 isToday
-                  ? 'bg-primary/5 border-primary/40 shadow-sm ring-2 ring-primary/20'
+                  ? 'bg-primary/5 border-primary/20 shadow-lg shadow-primary/15'
                   : 'bg-card border-border hover:border-border/80'
               )}
             >
