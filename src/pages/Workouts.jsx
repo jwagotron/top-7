@@ -4,14 +4,14 @@ import usePullToRefresh from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/ui/PullToRefreshIndicator';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
-import TrainingMonthGrid from '@/components/workouts/TrainingMonthGrid';
+import WeeklyTrainingBoard from '@/components/workouts/WeeklyTrainingBoard';
 import RunLogForm from '@/components/workouts/RunLogForm';
 import RunDetailDrawer from '@/components/workouts/RunDetailDrawer';
 import PlannedWorkoutCard from '@/components/workouts/PlannedWorkoutCard';
 import { Button } from '@/components/ui/button';
 import { Plus, CalendarDays, Footprints, Clock, MapPin, Upload } from 'lucide-react';
 import GpxImportDialog from '@/components/workouts/GpxImportDialog';
-import { format, isSameDay, addMonths, subMonths } from 'date-fns';
+import { format, isSameDay, addMonths, subMonths, startOfWeek, addDays } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
@@ -29,9 +29,11 @@ export default function Workouts() {
   const { plannedWorkouts: assignedWorkouts, athleteEmail } = useAssignedPlan();
   const { completions, completeMut, getCompletion, isCompleted: isWorkoutCompleted } = useCompletions(isAthlete ? athleteEmail : null);
   const { toDisplay, label } = useUnits();
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const d = new Date(); d.setHours(0, 0, 0, 0); return d;
+  const [weekStart, setWeekStart] = useState(() => {
+    const today = new Date();
+    const start = startOfWeek(today, { weekStartsOn: 1 });
+    start.setHours(0, 0, 0, 0);
+    return start;
   });
   const [showLogForm, setShowLogForm] = useState(false);
   const [editingWorkout, setEditingWorkout] = useState(null);
@@ -91,13 +93,14 @@ export default function Workouts() {
     onSuccess: () => invalidateAll(),
   });
 
-  const handleMonthChange = (dir) => {
+  const handleWeekChange = (dir) => {
     if (dir === 0) {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      setCurrentMonth(today);
-      setSelectedDate(today);
+      const today = new Date();
+      const start = startOfWeek(today, { weekStartsOn: 1 });
+      start.setHours(0, 0, 0, 0);
+      setWeekStart(start);
     } else {
-      setCurrentMonth(p => dir === 1 ? addMonths(p, 1) : subMonths(p, 1));
+      setWeekStart(p => addDays(p, dir * 7));
     }
   };
 
@@ -118,39 +121,19 @@ export default function Workouts() {
     }
   };
 
-  // Auto-expand today's workout for athletes on initial load
-  useEffect(() => {
-    if (!isAthlete) return;
-    const today = new Date();
-    const todayWorkout = myPlanned.find(p => isSameDay(parseDateOnly(p.scheduled_date), today));
-    if (todayWorkout && expandedPlanned === null) {
-      setExpandedPlanned(todayWorkout.id);
-    }
-  }, [isAthlete, myPlanned]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Selected day data — compare as YYYY-MM-DD strings to avoid all timezone edge cases
-  const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
-  const dayWorkouts = workouts.filter(w => {
-    const s = w.date ? String(w.date).split('T')[0] : null;
-    return s === selectedDateStr;
-  });
-  const dayPlanned = myPlanned.filter(p => {
-    const s = p.scheduled_date ? String(p.scheduled_date).split('T')[0] : null;
-    const match = s === selectedDateStr;
-    console.debug('[Workouts] dayPlanned filter:', p.scheduled_date, '->', s, '=== selectedDate:', selectedDateStr, '| match:', match, '| title:', p.title, '| assigned_to:', p.assigned_to);
-    return match;
-  });
 
   // DEBUG: athlete workout visibility
-  console.debug('[Workouts] role:', role, '| athlete:', athleteEmail, '| today:', format(new Date(), 'yyyy-MM-dd'), '| selectedDate:', selectedDateStr);
-  console.debug('[Workouts] assignedWorkouts total:', assignedWorkouts.length, '| myPlanned total:', myPlanned.length, '| dayPlanned:', dayPlanned.length, '| dayLogged:', dayWorkouts.length);
+  console.debug('[Workouts] role:', role, '| athlete:', athleteEmail, '| weekStart:', format(weekStart, 'yyyy-MM-dd'));
+  console.debug('[Workouts] assignedWorkouts total:', assignedWorkouts.length, '| myPlanned total:', myPlanned.length);
   console.debug('[Workouts] all myPlanned dates:', myPlanned.map(p => p.scheduled_date + '(' + p.title + ')').join(', '));
 
-  // Weekly stats
-  const now = new Date();
-  const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay() + 1);
-  weekStart.setHours(0, 0, 0, 0);
-  const weekWorkouts = workouts.filter(w => parseDateOnly(w.date) >= weekStart);
+  // Weekly stats for the current week
+  const weekEnd = addDays(weekStart, 6);
+  const weekWorkouts = workouts.filter(w => {
+    const d = parseDateOnly(w.date);
+    return d >= weekStart && d <= weekEnd;
+  });
   const weekKm = weekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0);
   const weekMin = weekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0);
 
@@ -170,7 +153,7 @@ export default function Workouts() {
         )}
       </TopBar>
 
-      <div className="p-4 lg:p-6 max-w-7xl mx-auto pb-24 lg:pb-6">
+      <div className="p-4 lg:p-6 max-w-5xl mx-auto pb-24 lg:pb-6">
         {/* Weekly summary strip */}
         <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-6">
           {[
@@ -188,87 +171,19 @@ export default function Workouts() {
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-5 lg:gap-6">
-          {/* Calendar */}
-          <div className="lg:col-span-2">
-            <TrainingMonthGrid
-              currentMonth={currentMonth}
-              onMonthChange={handleMonthChange}
-              workouts={workouts}
-              plannedWorkouts={myPlanned}
-              completions={completions}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-              permissions={{
-                canAssign: !isAthlete,
-                canComplete: isAthlete,
-              }}
-            />
-          </div>
-
-          {/* Day panel */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-sm">{format(selectedDate, 'EEEE, MMM d')}</h3>
-              {canCreate && (
-                <button
-                  onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }}
-                  className="text-xs text-primary hover:underline flex items-center gap-1"
-                >
-                  <Plus className="w-3 h-3" /> Log run
-                </button>
-              )}
-            </div>
-
-            {dayPlanned.length === 0 && dayWorkouts.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-10 rounded-xl bg-muted/30 border border-border/40 gap-2">
-                <CalendarDays className="w-7 h-7 text-muted-foreground/50" />
-                <p className="text-sm font-medium text-muted-foreground">
-                  {isAthlete ? 'No sessions scheduled' : 'No workouts assigned for this day'}
-                </p>
-                {isAthlete && (
-                  <p className="text-xs text-muted-foreground/60">Check back or pick another day</p>
-                )}
-              </div>
-            )}
-
-            {/* Planned workouts for the day */}
-            {dayPlanned.map(pw => (
-              <PlannedWorkoutCard
-                key={pw.id}
-                planned={pw}
-                expanded={expandedPlanned === pw.id}
-                onToggle={() => setExpandedPlanned(expandedPlanned === pw.id ? null : pw.id)}
-                completion={isAthlete ? getCompletion(pw.id) : null}
-                showCompleteButton={isAthlete}
-                onMarkComplete={isAthlete ? ({ workout, notes }) => completeMut.mutateAsync({ workout, notes }) : undefined}
-                role={role}
-              />
-            ))}
-
-            {/* Logged workouts for the day (not linked to planned) */}
-            {dayWorkouts
-              .filter(w => !dayPlanned.some(p => p.id === w.planned_workout_id))
-              .map(w => (
-              <div
-                key={w.id}
-                onClick={() => setViewingWorkout(w)}
-                className="bg-secondary/5 border border-secondary/20 rounded-xl p-3 cursor-pointer hover:bg-secondary/10 transition-colors"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-secondary shrink-0" />
-                  <span className="text-sm font-medium">{w.title}</span>
-                  {w.feeling && <span className="text-xs">{{ great: '🔥', good: '💪', okay: '👌', tired: '😓', exhausted: '😵' }[w.feeling]}</span>}
-                </div>
-                <div className="flex gap-3 pl-4">
-                  {w.distance_km && <span className="text-xs text-muted-foreground">{toDisplay(w.distance_km)} {label}</span>}
-                  {w.duration_minutes && <span className="text-xs text-muted-foreground">{w.duration_minutes} min</span>}
-                  {w.avg_pace && <span className="text-xs text-muted-foreground">{w.avg_pace} /km</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Weekly training board */}
+        <WeeklyTrainingBoard
+          weekStart={weekStart}
+          onWeekChange={handleWeekChange}
+          plannedWorkouts={myPlanned}
+          workouts={workouts}
+          completions={completions}
+          expandedPlanned={expandedPlanned}
+          onToggleExpanded={(id) => setExpandedPlanned(expandedPlanned === id ? null : id)}
+          showCompleteButton={isAthlete}
+          onMarkComplete={isAthlete ? ({ workout, notes }) => completeMut.mutateAsync({ workout, notes }) : undefined}
+          role={role}
+        />
       </div>
 
       <GpxImportDialog
