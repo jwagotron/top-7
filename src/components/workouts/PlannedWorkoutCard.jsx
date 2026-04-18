@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Clock, MapPin, Zap, ChevronDown, ChevronUp, Loader2, StickyNote } from 'lucide-react';
+import { CheckCircle2, Clock, MapPin, Zap, ChevronDown, ChevronUp, Loader2, StickyNote, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -16,6 +16,33 @@ const RUN_TYPE_COLORS = {
   recovery: 'bg-muted text-muted-foreground border-border',
   progression: 'bg-secondary/10 text-secondary border-secondary/20',
 };
+
+function CoachStatusBadge({ isCompleted, isSkipped, isMissed, verbose = false }) {
+  if (isCompleted) return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-emerald-500/10 border-emerald-500/25 text-emerald-600 dark:text-emerald-400">
+      <CheckCircle2 className="w-2.5 h-2.5" />
+      {verbose ? 'Completed by athlete' : 'Completed'}
+    </span>
+  );
+  if (isSkipped) return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border bg-muted border-border text-muted-foreground">
+      <Clock className="w-2.5 h-2.5" />
+      Skipped
+    </span>
+  );
+  if (isMissed) return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-amber-500/10 border-amber-500/25 text-amber-600 dark:text-amber-400">
+      <AlertTriangle className="w-2.5 h-2.5" />
+      Missed
+    </span>
+  );
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border bg-muted/50 border-border text-muted-foreground">
+      <Clock className="w-2.5 h-2.5" />
+      Pending
+    </span>
+  );
+}
 
 export default function PlannedWorkoutCard({
   planned,
@@ -36,6 +63,9 @@ export default function PlannedWorkoutCard({
 
   const isCompleted = completion?.status === 'completed' || planned.status === 'completed';
   const isSkipped = planned.status === 'skipped';
+  // For coach view: a workout is "missed" if it was scheduled in the past and not completed/skipped
+  const isMissed = isCoachView && !isCompleted && !isSkipped &&
+    planned.scheduled_date && new Date(planned.scheduled_date) < new Date(new Date().toDateString());
 
   const handleComplete = async () => {
     if (!onMarkComplete) return;
@@ -88,8 +118,8 @@ export default function PlannedWorkoutCard({
               {isCompleted && isAthleteView && (
                 <span className="shrink-0 text-[10px] font-semibold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded-full">✓ Done</span>
               )}
-              {isCompleted && isCoachView && (
-                <span className="shrink-0 text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">Completed</span>
+              {isCoachView && (
+                <CoachStatusBadge isCompleted={isCompleted} isSkipped={isSkipped} isMissed={isMissed} />
               )}
             </div>
 
@@ -218,22 +248,11 @@ export default function PlannedWorkoutCard({
             </AnimatePresence>
           )}
 
-          {/* Coach/Admin: read-only status — no actionable controls */}
+          {/* Coach/Admin: read-only status in expanded section — slightly more descriptive */}
           {isCoachView && (
-            <div className={cn(
-              'flex items-center gap-1.5 h-7 px-2.5 rounded-md border text-xs w-fit',
-              isCompleted
-                ? 'bg-secondary/10 border-secondary/25 text-secondary'
-                : isSkipped
-                ? 'bg-muted/50 border-border text-muted-foreground'
-                : 'bg-muted/50 border-border text-muted-foreground'
-            )}>
-              {isCompleted
-                ? <><CheckCircle2 className="w-3 h-3" /> Completed by athlete</>
-                : isSkipped
-                ? <><Clock className="w-3 h-3" /> Skipped</>
-                : <><Clock className="w-3 h-3" /> Pending</>
-              }
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold">Athlete Status:</span>
+              <CoachStatusBadge isCompleted={isCompleted} isSkipped={isSkipped} isMissed={isMissed} verbose />
             </div>
           )}
 
