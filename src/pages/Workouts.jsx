@@ -223,6 +223,7 @@ export default function Workouts() {
                 completion={isAthlete ? getCompletion(pw.id) : null}
                 showCompleteButton={isAthlete}
                 onMarkComplete={isAthlete ? ({ workout, notes }) => completeMut.mutateAsync({ workout, notes }) : undefined}
+                role={role}
               />
             ))}
 
