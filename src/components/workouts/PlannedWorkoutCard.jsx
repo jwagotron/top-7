@@ -23,10 +23,10 @@ export default function PlannedWorkoutCard({
   onMarkSkipped,
   expanded,
   onToggle,
-  // Completion props (athlete-facing)
+  // Completion props (athlete-facing only)
   completion = null,
-  onMarkComplete,   // async fn({ workout, notes })
-  showCompleteButton = false,
+  onMarkComplete,   // async fn({ workout, notes }) — undefined for coach/admin
+  showCompleteButton = false, // true only for athletes
 }) {
   const [notes, setNotes] = useState(completion?.notes || '');
   const [showNotes, setShowNotes] = useState(false);
@@ -55,7 +55,8 @@ export default function PlannedWorkoutCard({
       layout
       className={cn(
         'rounded-xl border transition-colors duration-300',
-        isCompleted ? 'bg-secondary/5 border-secondary/20' :
+        isCompleted && showCompleteButton ? 'bg-secondary/5 border-secondary/20' :
+        isCompleted && !showCompleteButton ? 'bg-card border-border' :
         isSkipped ? 'bg-muted/50 border-dashed opacity-60' :
         'bg-card border-border hover:shadow-sm'
       )}
@@ -64,9 +65,11 @@ export default function PlannedWorkoutCard({
         <div className="flex items-start gap-2.5">
           {/* Status dot */}
           <div className={cn('mt-1 w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center',
-            isCompleted ? 'border-secondary bg-secondary' : isSkipped ? 'border-muted-foreground/40' : 'border-primary/60'
+            isCompleted && showCompleteButton ? 'border-secondary bg-secondary' :
+            isCompleted && !showCompleteButton ? 'border-muted-foreground/40 bg-muted/40' :
+            isSkipped ? 'border-muted-foreground/40' : 'border-primary/60'
           )}>
-            {isCompleted && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
+            {isCompleted && showCompleteButton && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
           </div>
 
           {/* Content */}
@@ -76,12 +79,15 @@ export default function PlannedWorkoutCard({
               <span className={cn(
                 'text-sm font-semibold leading-snug truncate',
                 isSkipped && 'line-through text-muted-foreground',
-                isCompleted ? 'text-secondary' : 'text-foreground'
+                isCompleted && showCompleteButton ? 'text-secondary' : 'text-foreground'
               )}>
                 {planned.title}
               </span>
-              {isCompleted && (
+              {isCompleted && showCompleteButton && (
                 <span className="shrink-0 text-[10px] font-semibold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded-full">✓ Done</span>
+              )}
+              {isCompleted && !showCompleteButton && (
+                <span className="shrink-0 text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">Completed</span>
               )}
             </div>
 
@@ -208,6 +214,14 @@ export default function PlannedWorkoutCard({
                 </motion.div>
               )}
             </AnimatePresence>
+          )}
+
+          {/* Coach/Admin: read-only status for completed workouts */}
+          {!showCompleteButton && isCompleted && (
+            <div className="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-muted/50 border border-border text-muted-foreground text-xs w-fit">
+              <CheckCircle2 className="w-3 h-3" />
+              Completed by athlete
+            </div>
           )}
 
           {/* Coach actions */}
