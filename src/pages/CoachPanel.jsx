@@ -13,6 +13,7 @@ import { useUnits } from '@/hooks/useUnits';
 import AthleteRoster from '@/components/coach/AthleteRoster';
 import AthleteProgress from '@/components/coach/AthleteProgress';
 import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { useAuth } from '@/lib/AuthContext';
 import { useRole } from '@/lib/RoleContext';
 import RoleGate from '@/components/RoleGate';
@@ -78,13 +79,13 @@ export default function CoachPanel() {
     ? plannedWorkouts
     : plannedWorkouts.filter(w => w.assigned_to === athleteFilter);
 
-  const dayWorkouts = filteredWorkouts.filter(w => isSameDay(new Date(w.scheduled_date), selectedDate));
+  const dayWorkouts = filteredWorkouts.filter(w => isSameDay(parseDateOnly(w.scheduled_date), selectedDate));
 
   // Month stats
   const mStart = startOfMonth(currentMonth);
   const mEnd = endOfMonth(currentMonth);
   const monthWorkouts = filteredWorkouts.filter(w => {
-    const d = new Date(w.scheduled_date);
+    const d = parseDateOnly(w.scheduled_date);
     return d >= mStart && d <= mEnd;
   });
   const completed = monthWorkouts.filter(w => w.status === 'completed').length;
@@ -181,13 +182,13 @@ export default function CoachPanel() {
           ) : (
             <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
               {monthWorkouts
-                .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))
+                .sort((a, b) => parseDateOnly(a.scheduled_date) - parseDateOnly(b.scheduled_date))
                 .map(w => (
                 <div key={w.id} className="bg-card border border-border rounded-xl p-3 flex items-start gap-3 group hover:shadow-sm transition-all">
                   <div className="text-center shrink-0 w-10">
-                    <p className="text-xs text-muted-foreground">{format(new Date(w.scheduled_date), 'MMM')}</p>
-                    <p className="text-lg font-bold leading-none">{format(new Date(w.scheduled_date), 'd')}</p>
-                    <p className="text-[10px] text-muted-foreground">{format(new Date(w.scheduled_date), 'EEE')}</p>
+                    <p className="text-xs text-muted-foreground">{format(parseDateOnly(w.scheduled_date), 'MMM')}</p>
+                    <p className="text-lg font-bold leading-none">{format(parseDateOnly(w.scheduled_date), 'd')}</p>
+                    <p className="text-[10px] text-muted-foreground">{format(parseDateOnly(w.scheduled_date), 'EEE')}</p>
                   </div>
                   <div className="flex-1 min-w-0 border-l border-border pl-3">
                     <div className="flex items-center gap-1.5 flex-wrap">

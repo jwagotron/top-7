@@ -1,18 +1,22 @@
 import React from 'react';
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  eachDayOfInterval, isSameMonth, isSameDay, isToday, format, parseISO,
+  eachDayOfInterval, isSameMonth, isSameDay, isToday, format,
 } from 'date-fns';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { getWorkoutLabel, getWorkoutColor } from '@/lib/workoutLabels';
+import { parseDateOnly } from '@/lib/dateUtils';
 
+// Always parse via parseDateOnly — never new Date() or parseISO on date strings
 const parseDate = (d) => {
   if (!d) return null;
   if (d instanceof Date) return d;
-  try { return parseISO(String(d).split('T')[0]); } catch { return null; }
+  // Strip time component if present, then parse as local date
+  const dateOnly = String(d).split('T')[0];
+  return parseDateOnly(dateOnly);
 };
 
 function WorkoutChip({ workout, done, skipped }) {

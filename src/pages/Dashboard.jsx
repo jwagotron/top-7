@@ -15,6 +15,7 @@ import { DEFAULT_ROUTE } from '@/lib/roleConfig';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 import { useCompletions } from '@/hooks/useCompletions';
 import { startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
+import { parseDateOnly } from '@/lib/dateUtils';
 
 export default function Dashboard() {
   const { role } = useRole();
@@ -40,7 +41,7 @@ export default function Dashboard() {
   const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
 
   const thisWeekWorkouts = workouts.filter(w => {
-    const d = new Date(w.date);
+    const d = parseDateOnly(w.date);
     return isWithinInterval(d, { start: weekStart, end: weekEnd });
   });
 

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, CalendarDays, Footprints, Clock, MapPin, Upload } from 'lucide-react';
 import GpxImportDialog from '@/components/workouts/GpxImportDialog';
 import { format, isSameDay, addMonths, subMonths } from 'date-fns';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
@@ -105,15 +106,15 @@ export default function Workouts() {
     }
   };
 
-  // Selected day data
-  const dayWorkouts = workouts.filter(w => isSameDay(new Date(w.date), selectedDate));
-  const dayPlanned = myPlanned.filter(p => isSameDay(new Date(p.scheduled_date), selectedDate));
+  // Selected day data — use parseDateOnly to avoid UTC shift
+  const dayWorkouts = workouts.filter(w => isSameDay(parseDateOnly(w.date), selectedDate));
+  const dayPlanned = myPlanned.filter(p => isSameDay(parseDateOnly(p.scheduled_date), selectedDate));
 
   // Weekly stats
   const now = new Date();
   const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay() + 1);
   weekStart.setHours(0, 0, 0, 0);
-  const weekWorkouts = workouts.filter(w => new Date(w.date) >= weekStart);
+  const weekWorkouts = workouts.filter(w => parseDateOnly(w.date) >= weekStart);
   const weekKm = weekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0);
   const weekMin = weekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0);
 
