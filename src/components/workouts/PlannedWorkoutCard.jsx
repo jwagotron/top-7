@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Clock, MapPin, Zap, ChevronDown, ChevronUp, Loader2, StickyNote } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -63,42 +62,59 @@ export default function PlannedWorkoutCard({
     >
       <div className="p-3 cursor-pointer" onClick={onToggle}>
         <div className="flex items-start gap-2.5">
-          <div className={cn('mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center',
-            isCompleted ? 'border-secondary bg-secondary' : isSkipped ? 'border-muted-foreground' : 'border-primary'
+          {/* Status dot */}
+          <div className={cn('mt-1 w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center',
+            isCompleted ? 'border-secondary bg-secondary' : isSkipped ? 'border-muted-foreground/40' : 'border-primary/60'
           )}>
-            {isCompleted && <CheckCircle2 className="w-3 h-3 text-white" />}
+            {isCompleted && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
           </div>
+
+          {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className={cn('text-sm font-medium', isSkipped && 'line-through text-muted-foreground', isCompleted && 'text-secondary')}>{planned.title}</span>
-              {planned.run_type && (
-                <Badge variant="outline" className={cn('text-[10px]', RUN_TYPE_COLORS[planned.run_type])}>
-                  {planned.run_type.replace('_', ' ')}
-                </Badge>
-              )}
+            {/* Title row */}
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className={cn(
+                'text-sm font-semibold leading-snug truncate',
+                isSkipped && 'line-through text-muted-foreground',
+                isCompleted ? 'text-secondary' : 'text-foreground'
+              )}>
+                {planned.title}
+              </span>
               {isCompleted && (
-                <span className="text-[10px] font-semibold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded-full">✓ Done</span>
+                <span className="shrink-0 text-[10px] font-semibold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded-full">✓ Done</span>
               )}
             </div>
-            <div className="flex gap-3 mt-1 flex-wrap">
+
+            {/* Stats row */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Run-type tag — only show if it's not redundant with the title */}
+              {planned.run_type && !planned.title.toLowerCase().includes(planned.run_type.replace('_', ' ')) && (
+                <span className={cn(
+                  'text-[10px] font-medium px-1.5 py-0.5 rounded border capitalize',
+                  RUN_TYPE_COLORS[planned.run_type]
+                )}>
+                  {planned.run_type.replace('_', ' ')}
+                </span>
+              )}
               {planned.target_distance_km && (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />{planned.target_distance_km} km
+                  <MapPin className="w-3 h-3 shrink-0" />{planned.target_distance_km} km
                 </span>
               )}
               {planned.target_duration_minutes && (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3" />{planned.target_duration_minutes} min
+                  <Clock className="w-3 h-3 shrink-0" />{planned.target_duration_minutes} min
                 </span>
               )}
               {planned.target_pace && (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Zap className="w-3 h-3" />{planned.target_pace} /km
+                  <Zap className="w-3 h-3 shrink-0" />{planned.target_pace} /km
                 </span>
               )}
             </div>
           </div>
-          {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
+
+          {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />}
         </div>
       </div>
 
