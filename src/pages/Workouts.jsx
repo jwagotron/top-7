@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import usePullToRefresh from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/ui/PullToRefreshIndicator';
@@ -105,6 +105,16 @@ export default function Workouts() {
       updatePlannedMut.mutate({ id: preFillPlanned.id, data: { status: 'completed' } });
     }
   };
+
+  // Auto-expand today's workout for athletes on initial load
+  useEffect(() => {
+    if (!isAthlete) return;
+    const today = new Date();
+    const todayWorkout = myPlanned.find(p => isSameDay(parseDateOnly(p.scheduled_date), today));
+    if (todayWorkout && expandedPlanned === null) {
+      setExpandedPlanned(todayWorkout.id);
+    }
+  }, [isAthlete, myPlanned]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Selected day data — use parseDateOnly to avoid UTC shift
   const dayWorkouts = workouts.filter(w => isSameDay(parseDateOnly(w.date), selectedDate));
