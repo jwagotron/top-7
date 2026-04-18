@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { Check, Users } from 'lucide-react';
+import { Check, Users, ChevronRight, User } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 
 const RUN_TYPES = [
@@ -29,18 +29,149 @@ const defaults = {
   assigned_to: '', status: 'upcoming'
 };
 
-export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, defaultDate, athletes }) {
+// Step 1 — who to assign to
+function AssignTargetStep({ athletes, selectedAthletes, setSelectedAthletes, athleteFilter, onNext }) {
+  const allEmails = athletes.map(a => a.email);
+  const allSelected = athletes.length > 0 && selectedAthletes.length === athletes.length;
+
+  const toggleAthlete = (email) => {
+    setSelectedAthletes(prev =>
+      prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">Who would you like to assign this workout to?</p>
+
+      {/* Quick options */}
+      <div className="space-y-2">
+        {/* All athletes shortcut */}
+        <button
+          type="button"
+          onClick={() => setSelectedAthletes(allSelected ? [] : allEmails)}
+          className={cn(
+            'w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all',
+            allSelected
+              ? 'bg-primary/8 border-primary/40 text-foreground'
+              : 'bg-muted/20 border-border hover:bg-muted/40 text-foreground'
+          )}
+        >
+          <div className={cn(
+            'w-9 h-9 rounded-lg flex items-center justify-center shrink-0',
+            allSelected ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
+          )}>
+            <Users className="w-4 h-4" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold">All Athletes</p>
+            <p className="text-xs text-muted-foreground">{athletes.length} athlete{athletes.length !== 1 ? 's' : ''}</p>
+          </div>
+          <div className={cn(
+            'w-5 h-5 rounded border-2 flex items-center justify-center transition-all shrink-0',
+            allSelected ? 'bg-primary border-primary' : 'border-muted-foreground/40'
+          )}>
+            {allSelected && <Check className="w-3 h-3 text-white" />}
+          </div>
+        </button>
+      </div>
+
+      {/* Individual athletes */}
+      {athletes.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Or pick specific athletes</p>
+          <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+            {athletes.map(a => {
+              const selected = selectedAthletes.includes(a.email);
+              const isHeaderFilter = athleteFilter && athleteFilter !== 'all' && athleteFilter === a.email;
+              return (
+                <button
+                  key={a.email}
+                  type="button"
+                  onClick={() => toggleAthlete(a.email)}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all',
+                    selected
+                      ? 'bg-primary/5 border-primary/30 text-foreground'
+                      : 'bg-muted/20 border-transparent hover:bg-muted/50 text-foreground'
+                  )}
+                >
+                  <div className={cn(
+                    'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0',
+                    selected ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
+                  )}>
+                    {(a.full_name || a.email)[0].toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium truncate">{a.full_name || a.email}</p>
+                      {isHeaderFilter && (
+                        <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium shrink-0">Selected</span>
+                      )}
+                    </div>
+                    {a.full_name && <p className="text-xs text-muted-foreground truncate">{a.email}</p>}
+                  </div>
+                  <div className={cn(
+                    'w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all',
+                    selected ? 'bg-primary border-primary' : 'border-muted-foreground/40'
+                  )}>
+                    {selected && <Check className="w-2.5 h-2.5 text-white" />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* No athletes fallback */}
+      {athletes.length === 0 && (
+        <div className="space-y-1.5">
+          <Label>Athlete Email</Label>
+          <Input
+            placeholder="athlete@email.com"
+            type="email"
+            onChange={e => setSelectedAthletes(e.target.value ? [e.target.value] : [])}
+            value={selectedAthletes[0] || ''}
+          />
+        </div>
+      )}
+
+      {selectedAthletes.length > 0 && (
+        <div className="flex items-center gap-2 p-2.5 bg-primary/5 border border-primary/20 rounded-lg">
+          <Users className="w-4 h-4 text-primary shrink-0" />
+          <p className="text-xs text-primary font-medium">
+            {selectedAthletes.length === 1
+              ? `Assigning to 1 athlete`
+              : `Assigning to ${selectedAthletes.length} athletes`}
+          </p>
+        </div>
+      )}
+
+      <div className="flex justify-end gap-3 pt-2 border-t">
+        <Button
+          type="button"
+          onClick={onNext}
+          disabled={selectedAthletes.length === 0}
+          className="gap-1.5"
+        >
+          Continue <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, defaultDate, athletes = [], athleteFilter = 'all' }) {
   const { toDisplay, toKm, label, paceLabel } = useUnits();
   const [form, setForm] = useState(defaults);
-  const [activeTab, setActiveTab] = useState('details');
+  const [activeTab, setActiveTab] = useState('assign');
   const [selectedAthletes, setSelectedAthletes] = useState([]);
 
-  // Reset form whenever the dialog opens (new workout) or the source workout/date changes
   const prevOpenRef = useRef(false);
   useEffect(() => {
     const justOpened = open && !prevOpenRef.current;
     prevOpenRef.current = open;
-
     if (!open) return;
 
     if (workout) {
@@ -50,25 +181,24 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
         target_distance_km: workout.target_distance_km ? toDisplay(workout.target_distance_km) : '',
       });
       setSelectedAthletes(workout.assigned_to ? [workout.assigned_to] : []);
-      setActiveTab('details');
+      setActiveTab('details'); // editing — skip assign step
     } else if (justOpened) {
-      // Full reset on open, seeded with the selected calendar day
       setForm({ ...defaults, scheduled_date: defaultDate || '' });
-      setSelectedAthletes([]);
-      setActiveTab('details');
+      // Pre-fill from header filter
+      if (athleteFilter && athleteFilter !== 'all') {
+        setSelectedAthletes([athleteFilter]);
+      } else if (athleteFilter === 'all' && athletes.length > 0) {
+        setSelectedAthletes([]); // don't pre-select all — let coach choose
+      } else {
+        setSelectedAthletes([]);
+      }
+      setActiveTab('assign'); // always start at assign step for new workouts
     } else {
-      // Form already open — only update the date field when selected day changes
       setForm(prev => ({ ...prev, scheduled_date: defaultDate || '' }));
     }
-  }, [open, workout, defaultDate]);
+  }, [open, workout, defaultDate, athleteFilter]);
 
   const set = (f, v) => setForm(p => ({ ...p, [f]: v }));
-
-  const toggleAthlete = (email) => {
-    setSelectedAthletes(prev =>
-      prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
-    );
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -77,40 +207,95 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
     if (base.target_distance_km) base.target_distance_km = toKm(Number(base.target_distance_km));
 
     if (selectedAthletes.length > 1) {
-      // Bulk assign — one record per athlete
       onSubmit(selectedAthletes.map(email => ({ ...base, assigned_to: email })));
     } else {
       onSubmit({ ...base, assigned_to: selectedAthletes[0] || '' });
     }
   };
 
-  const tabs = [
+  const workoutTabs = [
     { id: 'details', label: 'Details' },
     { id: 'structure', label: 'Structure' },
-    { id: 'assign', label: 'Assign' },
   ];
+
+  const isEditing = !!workout;
+
+  // Summary of who's being assigned (shown in header during details/structure steps)
+  const assigneeSummary = selectedAthletes.length === 0
+    ? null
+    : selectedAthletes.length === 1
+    ? athletes.find(a => a.email === selectedAthletes[0])?.full_name || selectedAthletes[0]
+    : `${selectedAthletes.length} athletes`;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-xl max-h-[92vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>{workout ? 'Edit Workout' : 'Assign Workout'}</DialogTitle>
+          <DialogTitle>
+            {isEditing ? 'Edit Workout' : activeTab === 'assign' ? 'Assign Workout' : 'Workout Details'}
+          </DialogTitle>
+          {/* Show assignee pill when past the assign step */}
+          {!isEditing && activeTab !== 'assign' && assigneeSummary && (
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="text-xs text-muted-foreground">For:</span>
+              <button
+                type="button"
+                onClick={() => setActiveTab('assign')}
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/8 border border-primary/20 px-2 py-0.5 rounded-full hover:bg-primary/15 transition-colors"
+              >
+                <User className="w-3 h-3" />
+                {assigneeSummary}
+              </button>
+            </div>
+          )}
         </DialogHeader>
 
-        <div className="flex gap-1 bg-muted rounded-lg p-1 shrink-0">
-          {tabs.map(t => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setActiveTab(t.id)}
-              className={cn('flex-1 text-sm py-1.5 rounded-md font-medium transition-all', activeTab === t.id ? 'bg-card shadow text-foreground' : 'text-muted-foreground hover:text-foreground')}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {/* Step indicator — only shown after assign step */}
+        {(!isEditing && activeTab !== 'assign') && (
+          <div className="flex gap-1 bg-muted rounded-lg p-1 shrink-0">
+            {workoutTabs.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setActiveTab(t.id)}
+                className={cn('flex-1 text-sm py-1.5 rounded-md font-medium transition-all', activeTab === t.id ? 'bg-card shadow text-foreground' : 'text-muted-foreground hover:text-foreground')}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Editing mode: show tabs for details/structure */}
+        {isEditing && (
+          <div className="flex gap-1 bg-muted rounded-lg p-1 shrink-0">
+            {workoutTabs.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setActiveTab(t.id)}
+                className={cn('flex-1 text-sm py-1.5 rounded-md font-medium transition-all', activeTab === t.id ? 'bg-card shadow text-foreground' : 'text-muted-foreground hover:text-foreground')}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-4 pr-1">
+
+          {/* ── STEP 1: Who to assign to ── */}
+          {activeTab === 'assign' && !isEditing && (
+            <AssignTargetStep
+              athletes={athletes}
+              selectedAthletes={selectedAthletes}
+              setSelectedAthletes={setSelectedAthletes}
+              athleteFilter={athleteFilter}
+              onNext={() => setActiveTab('details')}
+            />
+          )}
+
+          {/* ── STEP 2: Details ── */}
           {activeTab === 'details' && (
             <div className="space-y-4">
               <div>
@@ -173,9 +358,22 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                 <Label>General Description</Label>
                 <Textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Overview of what this workout is about..." rows={2} />
               </div>
+
+              <div className="flex justify-between gap-3 pt-2 border-t">
+                {!isEditing && (
+                  <Button type="button" variant="outline" onClick={() => setActiveTab('assign')}>← Back</Button>
+                )}
+                <div className="flex gap-2 ml-auto">
+                  <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+                  <Button type="button" onClick={() => setActiveTab('structure')} className="gap-1.5">
+                    Structure <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
 
+          {/* ── STEP 3: Structure ── */}
           {activeTab === 'structure' && (
             <div className="space-y-4">
               <div>
@@ -194,96 +392,22 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                 <Label>Coach Notes (private)</Label>
                 <Textarea value={form.coach_notes} onChange={e => set('coach_notes', e.target.value)} placeholder="Notes only visible to athlete after completion check..." rows={2} />
               </div>
-            </div>
-          )}
 
-          {activeTab === 'assign' && (
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label>Assign to Athletes</Label>
-                  {athletes && athletes.length > 0 && (
-                    <button
-                      type="button"
-                      className="text-xs text-primary hover:underline"
-                      onClick={() => setSelectedAthletes(
-                        selectedAthletes.length === athletes.length ? [] : athletes.map(a => a.email)
-                      )}
-                    >
-                      {selectedAthletes.length === athletes.length ? 'Deselect all' : 'Select all'}
-                    </button>
-                  )}
+              <div className="flex justify-between gap-3 pt-2 border-t">
+                <Button type="button" variant="outline" onClick={() => setActiveTab('details')}>← Details</Button>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+                  <Button type="submit">
+                    {isEditing
+                      ? 'Update Workout'
+                      : selectedAthletes.length > 1
+                      ? `Assign to ${selectedAthletes.length} Athletes`
+                      : 'Assign Workout'}
+                  </Button>
                 </div>
-
-                {athletes && athletes.length > 0 ? (
-                  <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                    {athletes.map(a => {
-                      const selected = selectedAthletes.includes(a.email);
-                      return (
-                        <button
-                          key={a.email}
-                          type="button"
-                          onClick={() => toggleAthlete(a.email)}
-                          className={cn(
-                            'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all',
-                            selected
-                              ? 'bg-primary/5 border-primary/30 text-foreground'
-                              : 'bg-muted/30 border-transparent hover:bg-muted/60 text-foreground'
-                          )}
-                        >
-                          <div className={cn(
-                            'w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all',
-                            selected ? 'bg-primary border-primary' : 'border-muted-foreground'
-                          )}>
-                            {selected && <Check className="w-2.5 h-2.5 text-white" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">{a.full_name || a.email}</p>
-                            {a.full_name && <p className="text-xs text-muted-foreground">{a.email}</p>}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <Input
-                    value={selectedAthletes[0] || ''}
-                    onChange={e => setSelectedAthletes(e.target.value ? [e.target.value] : [])}
-                    placeholder="athlete@email.com"
-                    type="email"
-                  />
-                )}
-
-                {selectedAthletes.length > 1 && (
-                  <div className="flex items-center gap-2 mt-2 p-2.5 bg-primary/5 border border-primary/20 rounded-lg">
-                    <Users className="w-4 h-4 text-primary shrink-0" />
-                    <p className="text-xs text-primary font-medium">
-                      This workout will be assigned to {selectedAthletes.length} athletes individually.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <Label>Status</Label>
-                <Select value={form.status} onValueChange={v => set('status', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="upcoming">Upcoming</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="skipped">Skipped</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           )}
-
-          <div className="flex justify-end gap-3 pt-2 border-t">
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit">
-              {workout ? 'Update' : selectedAthletes.length > 1 ? `Assign to ${selectedAthletes.length} Athletes` : 'Assign Workout'}
-            </Button>
-          </div>
         </form>
       </DialogContent>
     </Dialog>

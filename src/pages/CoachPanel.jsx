@@ -243,6 +243,7 @@ export default function CoachPanel() {
         onSubmit={(d) => createMut.mutate(d)}
         defaultDate={format(selectedDate, 'yyyy-MM-dd')}
         athletes={athletes}
+        athleteFilter={athleteFilter}
       />
       {editingWorkout && (
         <AssignWorkoutForm
@@ -251,6 +252,7 @@ export default function CoachPanel() {
           onSubmit={(d) => updateMut.mutate({ id: editingWorkout.id, data: d })}
           workout={editingWorkout}
           athletes={athletes}
+          athleteFilter={athleteFilter}
         />
       )}
     </div>
