@@ -85,12 +85,11 @@ export default function WeeklyTrainingBoard({
           const loggedWorkouts = getLoggedForDay(day);
           const unlinkedLogged = loggedWorkouts.filter(w => !dayWorkouts.some(p => p.id === w.planned_workout_id));
           
-          // Summary: based on ASSIGNED workouts only
-          const assignedTotal = dayWorkouts.length;
-          const completedAssigned = dayWorkouts.filter(w => getCompletion(w.id)?.status === 'completed').length;
+          // Filter: only show PENDING/UPCOMING assigned workouts (exclude completed)
+          const visibleAssigned = dayWorkouts.filter(w => getCompletion(w.id)?.status !== 'completed' && w.status !== 'completed');
           
-          // Debug: header uses assigned workouts only
-          console.debug(`[Day ${format(day, 'EEE')}] assigned=${assignedTotal} completed=${completedAssigned} unlinked_activity=${unlinkedLogged.length}`);
+          // Debug: header uses visible (non-completed) assigned workouts
+          console.debug(`[Day ${format(day, 'EEE')}] visible_pending=${visibleAssigned.length} total_assigned=${dayWorkouts.length} unlinked_activity=${unlinkedLogged.length}`);
           
           const isToday = isSameDay(day, today);
 
@@ -126,26 +125,21 @@ export default function WeeklyTrainingBoard({
                     </p>
                   </div>
                   <div className="text-right">
-                    {assignedTotal === 0 ? (
+                    {visibleAssigned.length === 0 && unlinkedLogged.length === 0 ? (
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">No workouts</p>
-                    ) : (
-                      <p className="text-sm font-semibold text-foreground">
-                        {completedAssigned} <span className="text-muted-foreground font-normal">/ {assignedTotal}</span>
-                        <span className="text-[10px] text-muted-foreground font-normal ml-1">completed</span>
-                      </p>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>
 
               {/* Day content */}
               <div className="px-4 py-3">
-                {assignedTotal === 0 && unlinkedLogged.length === 0 ? (
+                {visibleAssigned.length === 0 && unlinkedLogged.length === 0 ? (
                   <p className="text-sm text-muted-foreground/60 italic py-6 text-center">Rest day</p>
                 ) : (
                   <div className="space-y-3">
-                    {/* Planned workouts */}
-                    {dayWorkouts.map(pw => (
+                    {/* Pending/upcoming assigned workouts only (no completed) */}
+                    {visibleAssigned.map(pw => (
                       <PlannedWorkoutCard
                         key={pw.id}
                         planned={pw}
