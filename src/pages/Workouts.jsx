@@ -111,11 +111,9 @@ export default function Workouts() {
   const dayPlanned = myPlanned.filter(p => isSameDay(parseDateOnly(p.scheduled_date), selectedDate));
 
   // DEBUG: date sync logging (preview only)
-  if (process.env.NODE_ENV !== 'production') {
-    console.debug('[DateSync] selectedDate:', format(selectedDate, 'yyyy-MM-dd'));
-    dayPlanned.forEach(p => console.debug('[DateSync] planned workout scheduled_date:', p.scheduled_date, '| title:', p.title));
-    dayWorkouts.forEach(w => console.debug('[DateSync] logged workout date:', w.date, '| title:', w.title));
-  }
+  console.debug('[DateSync] selectedDate:', format(selectedDate, 'yyyy-MM-dd'));
+  dayPlanned.forEach(p => console.debug('[DateSync] planned workout scheduled_date:', p.scheduled_date, '| title:', p.title));
+  dayWorkouts.forEach(w => console.debug('[DateSync] logged workout date:', w.date, '| title:', w.title));
 
   // Weekly stats
   const now = new Date();
