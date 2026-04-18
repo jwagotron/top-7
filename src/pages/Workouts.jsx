@@ -4,7 +4,7 @@ import usePullToRefresh from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/ui/PullToRefreshIndicator';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
-import WorkoutCalendar from '@/components/workouts/WorkoutCalendar';
+import TrainingMonthGrid from '@/components/workouts/TrainingMonthGrid';
 import RunLogForm from '@/components/workouts/RunLogForm';
 import RunDetailDrawer from '@/components/workouts/RunDetailDrawer';
 import PlannedWorkoutCard from '@/components/workouts/PlannedWorkoutCard';
@@ -153,7 +153,7 @@ export default function Workouts() {
         <div className="grid lg:grid-cols-3 gap-5 lg:gap-6">
           {/* Calendar */}
           <div className="lg:col-span-2">
-            <WorkoutCalendar
+            <TrainingMonthGrid
               currentMonth={currentMonth}
               onMonthChange={handleMonthChange}
               workouts={workouts}

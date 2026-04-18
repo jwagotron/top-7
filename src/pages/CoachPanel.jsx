@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
-import CoachCalendar from '@/components/coach/CoachCalendar';
+import TrainingMonthGrid from '@/components/workouts/TrainingMonthGrid';
 import DayWorkoutList from '@/components/coach/DayWorkoutList';
 import AssignWorkoutForm from '@/components/coach/AssignWorkoutForm';
 import { Button } from '@/components/ui/button';
@@ -135,12 +135,13 @@ export default function CoachPanel() {
                 <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
               </div>
             ) : (
-              <CoachCalendar
+              <TrainingMonthGrid
                 currentMonth={currentMonth}
                 onMonthChange={handleMonthChange}
                 plannedWorkouts={filteredWorkouts}
                 selectedDate={selectedDate}
                 onSelectDate={setSelectedDate}
+                showAddButton={true}
                 onAddClick={handleAddClick}
               />
             )}
