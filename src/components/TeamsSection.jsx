@@ -27,11 +27,15 @@ export default function TeamsSection() {
     if (isCoach && !hasTeamCode && !autoGenerating) {
       setAutoGenerating(true);
       base44.functions.invoke('generateTeamCode', {})
-        .then(() => refetchUser?.())
+        .then(res => {
+          if (res?.data?.team_code) {
+            refetchUser?.();
+          }
+        })
         .catch(err => console.error('Auto-generation failed:', err))
         .finally(() => setAutoGenerating(false));
     }
-  }, [isCoach, hasTeamCode, autoGenerating, refetchUser]);
+  }, [isCoach, hasTeamCode]);
 
   // Fetch coach info if athlete is connected
   const { data: coachInfo } = useQuery({
@@ -73,33 +77,36 @@ export default function TeamsSection() {
         </CardHeader>
         <CardContent className="space-y-4">
           {isCoach && (
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-2">
-                  Your Team Code
-                </p>
-                <div className="flex items-center gap-2">
-                  <Badge className="text-base py-1 px-3 font-mono">{user.team_code || '—'}</Badge>
-                  {user.team_code && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleCopyCode}
-                      className="h-8 w-8 p-0"
-                    >
-                      {copied ? (
-                        <Check className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Share this code with athletes so they can join your team.
-              </p>
-            </div>
+           <div className="space-y-3">
+             <div>
+               <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-2">
+                 Your Team Code
+               </p>
+               <div className="flex items-center gap-2">
+                 <Badge className="text-base py-1 px-3 font-mono">
+                   {autoGenerating ? 'Generating...' : (user?.team_code || '—')}
+                 </Badge>
+                 {user?.team_code && (
+                   <Button
+                     size="sm"
+                     variant="ghost"
+                     onClick={handleCopyCode}
+                     className="h-8 w-8 p-0"
+                     title="Copy team code"
+                   >
+                     {copied ? (
+                       <Check className="w-4 h-4 text-green-600" />
+                     ) : (
+                       <Copy className="w-4 h-4" />
+                     )}
+                   </Button>
+                 )}
+               </div>
+             </div>
+             <p className="text-xs text-muted-foreground">
+               Share this code with athletes so they can join your team.
+             </p>
+           </div>
           )}
 
           {isAthlete && !hasCoach && (
