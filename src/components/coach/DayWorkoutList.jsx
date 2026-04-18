@@ -71,8 +71,8 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
   const getSummaryColor = () => {
     if (totalCount === 0) return 'text-muted-foreground';
     if (completionPercent === 100) return 'text-emerald-600 dark:text-emerald-400';
-    if (completionPercent === 0) return 'text-red-600 dark:text-red-400';
-    return 'text-slate-600 dark:text-slate-400';
+    if (completionPercent === 0) return 'text-amber-600 dark:text-amber-400';
+    return 'text-slate-700 dark:text-slate-300';
   };
   return (
     <div>
