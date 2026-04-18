@@ -161,7 +161,7 @@ export default function TeamsSection() {
           {!isAthlete && !isCoach && (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Team information will appear here once you select a role.
+                Team information will appear here once you join a team.
               </p>
             </div>
           )}
