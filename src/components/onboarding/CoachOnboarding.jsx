@@ -50,13 +50,18 @@ export default function CoachOnboarding() {
     }
     setSaving(true);
     const inviteCode = generateInviteCode();
-    await base44.entities.Team.create({
-      ...form,
-      coach_email: user.email,
-      invite_code: inviteCode,
-      status: 'active',
-    });
-    setDone(true);
+    try {
+      await base44.entities.Team.create({
+        ...form,
+        coach_email: user.email,
+        invite_code: inviteCode,
+        status: 'active',
+      });
+      setDone(true);
+    } catch (err) {
+      console.error('Failed to create team:', err);
+      toast.error('Failed to create team');
+    }
     setSaving(false);
   };
 

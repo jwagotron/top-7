@@ -97,8 +97,8 @@ const AuthenticatedApp = () => {
     if (authError.type === 'auth_required') { navigateToLogin(); return null; }
   }
 
-  // Show onboarding wizard if authenticated but setup not completed (and not admin)
-  if (isAuthenticated && user && user.role !== 'admin' && !user.onboarding_completed) {
+  // Show onboarding wizard if authenticated but user_type not set (and not admin)
+  if (isAuthenticated && user && user.role !== 'admin' && !user.user_type) {
     return <OnboardingWizard />;
   }
 

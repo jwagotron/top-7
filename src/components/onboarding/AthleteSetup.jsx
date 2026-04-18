@@ -26,11 +26,17 @@ export default function AthleteSetup() {
       return;
     }
     setSaving(true);
-    await base44.auth.updateMe({
-      full_name: form.display_name,
-      unit_preference: form.unit_preference,
-      onboarding_completed: true,
-    });
+    try {
+      await base44.auth.updateMe({
+        full_name: form.display_name,
+        unit_preference: form.unit_preference,
+      });
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      toast.error('Failed to save profile');
+      setSaving(false);
+      return;
+    }
     await refetchUser();
     setDone(true);
     setSaving(false);
