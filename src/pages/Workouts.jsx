@@ -41,12 +41,17 @@ export default function Workouts() {
   const [showGpxImport, setShowGpxImport] = useState(false);
   const qc = useQueryClient();
 
-  const handleRefresh = useCallback(async () => {
-    await Promise.all([
-      qc.invalidateQueries({ queryKey: ['workouts'] }),
-      qc.invalidateQueries({ queryKey: ['planned-workouts'] }),
-    ]);
+  const invalidateAll = useCallback(() => {
+    qc.invalidateQueries({ queryKey: ['workouts'] });
+    qc.invalidateQueries({ queryKey: ['planned-workouts'] });
+    qc.invalidateQueries({ queryKey: ['assigned-plan-workouts'], exact: false });
+    qc.invalidateQueries({ queryKey: ['direct-assigned-workouts'], exact: false });
+    qc.invalidateQueries({ queryKey: ['assigned-plans'], exact: false });
   }, [qc]);
+
+  const handleRefresh = useCallback(async () => {
+    invalidateAll();
+  }, [invalidateAll]);
   const ptr = usePullToRefresh(handleRefresh);
 
   const { data: workouts = [] } = useQuery({
@@ -68,22 +73,22 @@ export default function Workouts() {
 
   const createMut = useMutation({
     mutationFn: (data) => base44.entities.Workout.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workouts'] }); setShowLogForm(false); setPreFillPlanned(null); },
+    onSuccess: () => { invalidateAll(); setShowLogForm(false); setPreFillPlanned(null); },
   });
 
   const updateWorkoutMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Workout.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workouts'] }); setEditingWorkout(null); },
+    onSuccess: () => { invalidateAll(); setEditingWorkout(null); },
   });
 
   const deleteWorkoutMut = useMutation({
     mutationFn: (id) => base44.entities.Workout.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['workouts'] }),
+    onSuccess: () => invalidateAll(),
   });
 
   const updatePlannedMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.PlannedWorkout.update(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['planned-workouts'] }),
+    onSuccess: () => invalidateAll(),
   });
 
   const handleMonthChange = (dir) => {

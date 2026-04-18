@@ -46,22 +46,29 @@ export default function CoachPanel() {
     queryFn: () => base44.entities.User.list(),
   });
 
+  const invalidatePlanned = () => {
+    qc.invalidateQueries({ queryKey: ['planned-workouts'] });
+    qc.invalidateQueries({ queryKey: ['assigned-plan-workouts'], exact: false });
+    qc.invalidateQueries({ queryKey: ['direct-assigned-workouts'], exact: false });
+    qc.invalidateQueries({ queryKey: ['assigned-plans'], exact: false });
+  };
+
   const createMut = useMutation({
     mutationFn: (d) =>
       Array.isArray(d)
         ? base44.entities.PlannedWorkout.bulkCreate(d)
         : base44.entities.PlannedWorkout.create(d),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['planned-workouts'] }); setShowForm(false); },
+    onSuccess: () => { invalidatePlanned(); setShowForm(false); },
   });
 
   const updateMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.PlannedWorkout.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['planned-workouts'] }); setEditingWorkout(null); },
+    onSuccess: () => { invalidatePlanned(); setEditingWorkout(null); },
   });
 
   const deleteMut = useMutation({
     mutationFn: (id) => base44.entities.PlannedWorkout.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['planned-workouts'] }),
+    onSuccess: () => invalidatePlanned(),
   });
 
   const handleMonthChange = (dir) => {
