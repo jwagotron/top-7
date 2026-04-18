@@ -3,12 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import TopBar from '@/components/layout/TopBar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
-import { Activity, Wifi, AlertCircle, CheckCircle2, Clock, RefreshCw, Users, Shield, UserCog } from 'lucide-react';
+import { Activity, Wifi, AlertCircle, Clock, RefreshCw, Shield } from 'lucide-react';
 
 const statusDot = { success: 'bg-secondary', failed: 'bg-destructive', pending: 'bg-accent', duplicate: 'bg-muted-foreground' };
 
