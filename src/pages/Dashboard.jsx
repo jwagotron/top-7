@@ -73,9 +73,9 @@ export default function Dashboard() {
     <div>
       <TopBar title="My Progress" />
       <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-5 lg:space-y-7 pb-24 lg:pb-8">
-        {!user?.coach_email && (
-          <JoinTeamCTA onSuccess={refetchUser} />
-        )}
+         {!user?.coach_email && !user?.team_id && (
+           <JoinTeamCTA onSuccess={refetchUser} />
+         )}
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
           <StatCard title="Workouts" value={totalWorkouts} icon={Activity} color="primary" />

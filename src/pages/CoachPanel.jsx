@@ -145,9 +145,9 @@ export default function CoachPanel() {
               </Button>
             </div>
           ) : (
-            <Tabs defaultValue="workouts">
+            <>
+              {/* Team header + Invite card */}
               <div className="flex items-center justify-between mb-4">
-                {/* Team header */}
                 <div className="flex items-center gap-3">
                   {selectedTeam?.logo_url && (
                     <img src={selectedTeam.logo_url} alt="logo" className="w-8 h-8 rounded-lg object-cover" />
@@ -161,15 +161,23 @@ export default function CoachPanel() {
                   <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowCreateTeam(true)}>
                     <Plus className="w-3 h-3" /> New Team
                   </Button>
-                  <TabsList className="h-8">
-                    <TabsTrigger value="workouts" className="text-xs px-3">Workouts</TabsTrigger>
-                    <TabsTrigger value="athletes" className="text-xs px-3">
-                      Athletes {members.length > 0 && <Badge className="ml-1 h-4 px-1 text-[10px]">{members.length}</Badge>}
-                    </TabsTrigger>
-                    <TabsTrigger value="invite" className="text-xs px-3">Invite</TabsTrigger>
-                  </TabsList>
                 </div>
               </div>
+
+              {/* Prominent invite card */}
+              {selectedTeam && (
+                <div className="mb-5">
+                  <TeamInviteCard team={selectedTeam} onTeamUpdated={refetchTeams} />
+                </div>
+              )}
+
+              <Tabs defaultValue="workouts">
+                <TabsList className="h-8">
+                  <TabsTrigger value="workouts" className="text-xs px-3">Workouts</TabsTrigger>
+                  <TabsTrigger value="athletes" className="text-xs px-3">
+                    Athletes {members.length > 0 && <Badge className="ml-1 h-4 px-1 text-[10px]">{members.length}</Badge>}
+                  </TabsTrigger>
+                </TabsList>
 
               {/* WORKOUTS TAB */}
               <TabsContent value="workouts" className="space-y-4 mt-0">
@@ -243,17 +251,9 @@ export default function CoachPanel() {
               <TabsContent value="athletes" className="mt-0">
                 <TeamMembershipList teamId={effectiveTeamId} coachEmail={user?.email} />
               </TabsContent>
-
-              {/* INVITE TAB */}
-              <TabsContent value="invite" className="mt-0">
-                {selectedTeam && (
-                  <div className="max-w-sm mx-auto">
-                    <TeamInviteCard team={selectedTeam} onTeamUpdated={refetchTeams} />
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          )}
+              </Tabs>
+              </>
+              )}
         </div>
 
         {/* Assign workout form */}
