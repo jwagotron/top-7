@@ -118,7 +118,7 @@ export default function Sidebar({ collapsed, onToggle }) {
 
       {/* Menu Sections — Rendered Explicitly */}
       <nav className="flex-1 overflow-y-auto p-4 space-y-0">
-        {/* PRIMARY Section */}
+        {/* NAVIGATION Section */}
         <MenuSection
           section={sidebarMenu[0]}
           collapsed={collapsed}
@@ -127,18 +127,9 @@ export default function Sidebar({ collapsed, onToggle }) {
           isLast={false}
         />
 
-        {/* TOOLS Section */}
-        <MenuSection
-          section={sidebarMenu[1]}
-          collapsed={collapsed}
-          isActive={isActive}
-          onAction={handleAction}
-          isLast={false}
-        />
-
         {/* ACCOUNT Section */}
         <MenuSection
-          section={sidebarMenu[2]}
+          section={sidebarMenu[1]}
           collapsed={collapsed}
           isActive={isActive}
           onAction={handleAction}
