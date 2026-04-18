@@ -123,7 +123,7 @@ export const DEFAULT_ROUTE = {
 export const ALLOWED_ROUTES = {
   athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/shoes', '/garmin', '/settings', '/athlete-profile'],
   coach:   ['/coach', '/workout-builder', '/plans', '/settings'],
-  admin:   ['/admin', '/coach', '/workout-builder', '/plans', '/settings', '/athlete-profile', '/activities'],
+  admin:   ['/', '/admin', '/coach', '/workout-builder', '/plans', '/settings', '/athlete-profile', '/activities', '/workouts', '/analytics', '/goals', '/shoes', '/garmin', '/my-plan'],
 };
 
 export function isRouteAllowed(role, pathname) {
