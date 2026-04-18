@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Dumbbell, Users } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import AthleteOnboarding from './AthleteOnboarding';
+import AthleteSetup from './AthleteSetup';
 import CoachOnboarding from './CoachOnboarding';
 
 const roles = [
@@ -43,7 +43,7 @@ export default function OnboardingWizard() {
     else setStep('athlete');
   };
 
-  if (step === 'athlete') return <AthleteOnboarding />;
+  if (step === 'athlete') return <AthleteSetup />;
   if (step === 'coach') return <CoachOnboarding />;
 
   return (
