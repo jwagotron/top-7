@@ -110,30 +110,36 @@ export default function TeamsSection() {
 
           {isAthlete && !hasCoach && (
             <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                You're not connected to a coach yet. Enter your coach's team code to join their team and receive personalized training plans.
-              </p>
+              <div>
+                <p className="font-medium text-foreground">No team connected</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Join a team to receive workouts from your coach
+                </p>
+              </div>
               <Button onClick={() => setShowJoinModal(true)} className="w-full">
-                Enter Team Code
+                Join Team
               </Button>
             </div>
           )}
 
           {isAthlete && hasCoach && (
             <div className="space-y-4">
-              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-2">
-                  Connected Coach
-                </p>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
+                    Coach
+                  </p>
+                  <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Connected</Badge>
+                </div>
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border">
+                  <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold text-primary shrink-0">
                     {(coachInfo?.full_name || user.coach_email)[0].toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground text-sm">
+                    <p className="font-medium text-foreground">
                       {coachInfo?.full_name || 'Coach'}
                     </p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                    <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
                       <Mail className="w-3 h-3 shrink-0" />
                       {user.coach_email}
                     </p>
