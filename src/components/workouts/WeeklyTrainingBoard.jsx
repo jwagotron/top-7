@@ -40,27 +40,7 @@ export default function WeeklyTrainingBoard({
     });
   };
 
-  const getDayStats = (day) => {
-    const dayWorkouts = getWorkoutsForDay(day);
-    const dayLogged = getLoggedForDay(day);
-    
-    // Unlinked logged workouts (same filter as rendered)
-    const unlinkedLogged = dayLogged.filter(w => !dayWorkouts.some(p => p.id === w.planned_workout_id));
-    
-    // Total visible workouts = planned + unlinked logged
-    const total = dayWorkouts.length + unlinkedLogged.length;
-    
-    // Completed count from WorkoutCompletion records (same as rendered cards)
-    const completed = dayWorkouts.filter(w => {
-      const c = getCompletion(w.id);
-      return c?.status === 'completed';
-    }).length;
-    
-    // Debug log
-    console.debug(`[getDayStats] ${format(day, 'EEEE yyyy-MM-dd')}: planned=${dayWorkouts.length} unlinked=${unlinkedLogged.length} total=${total} completed=${completed}`);
-    
-    return { total, completed };
-  };
+
 
   return (
     <div className="space-y-4">
@@ -100,9 +80,16 @@ export default function WeeklyTrainingBoard({
       {/* Days */}
       <div className="space-y-5">
         {days.map(day => {
+          // Single source of truth for this day
           const dayWorkouts = getWorkoutsForDay(day);
           const loggedWorkouts = getLoggedForDay(day);
-          const stats = getDayStats(day);
+          const unlinkedLogged = loggedWorkouts.filter(w => !dayWorkouts.some(p => p.id === w.planned_workout_id));
+          const allVisibleWorkouts = dayWorkouts.length + unlinkedLogged.length;
+          const completedCount = dayWorkouts.filter(w => getCompletion(w.id)?.status === 'completed').length;
+          
+          // Debug: ensure header and list use same data
+          console.debug(`[Day ${format(day, 'EEE')}] visible=${allVisibleWorkouts} completed=${completedCount}`);
+          
           const isToday = isSameDay(day, today);
 
           return (
@@ -137,11 +124,11 @@ export default function WeeklyTrainingBoard({
                     </p>
                   </div>
                   <div className="text-right">
-                    {dayWorkouts.length === 0 ? (
+                    {allVisibleWorkouts === 0 ? (
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">No workouts</p>
                     ) : (
                       <p className="text-sm font-semibold text-foreground">
-                        {stats.completed} <span className="text-muted-foreground font-normal">/ {stats.total}</span>
+                        {completedCount} <span className="text-muted-foreground font-normal">/ {allVisibleWorkouts}</span>
                         <span className="text-[10px] text-muted-foreground font-normal ml-1">completed</span>
                       </p>
                     )}
@@ -151,7 +138,7 @@ export default function WeeklyTrainingBoard({
 
               {/* Day content */}
               <div className="px-4 py-3">
-                {dayWorkouts.length === 0 && loggedWorkouts.length === 0 ? (
+                {allVisibleWorkouts === 0 ? (
                   <p className="text-sm text-muted-foreground/60 italic py-6 text-center">Rest day</p>
                 ) : (
                   <div className="space-y-3">
@@ -170,9 +157,7 @@ export default function WeeklyTrainingBoard({
                     ))}
 
                     {/* Logged workouts (unlinked) */}
-                    {loggedWorkouts
-                      .filter(w => !dayWorkouts.some(p => p.id === w.planned_workout_id))
-                      .map(w => (
+                    {unlinkedLogged.map(w => (
                         <div key={w.id} className="bg-secondary/5 border border-secondary/20 rounded-lg p-3">
                           <div className="flex items-start gap-2">
                             <div className="w-2 h-2 rounded-full bg-secondary mt-1.5 shrink-0" />
