@@ -1,0 +1,47 @@
+{
+  "name": "TeamMembership",
+  "type": "object",
+  "properties": {
+    "team_id": {
+      "type": "string",
+      "description": "Reference to Team"
+    },
+    "athlete_email": {
+      "type": "string",
+      "description": "Email of the athlete"
+    },
+    "athlete_name": {
+      "type": "string",
+      "description": "Display name of the athlete"
+    },
+    "coach_email": {
+      "type": "string",
+      "description": "Email of the coach (denormalized for easy querying)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "removed"
+      ],
+      "default": "pending",
+      "description": "Membership status"
+    },
+    "joined_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the athlete was approved/joined"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the athlete requested to join"
+    }
+  },
+  "required": [
+    "team_id",
+    "athlete_email",
+    "coach_email"
+  ]
+}

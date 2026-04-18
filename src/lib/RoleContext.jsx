@@ -1,30 +1,24 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-const ROLE_KEY = 'top7_user_role';
-const VALID_ROLES = ['athlete', 'coach', 'admin'];
+import React, { createContext, useContext, useMemo } from 'react';
+import { useAuth } from '@/lib/AuthContext';
 
 const RoleContext = createContext();
 
+/**
+ * RoleProvider — derives the user's role from their permanent DB user_type.
+ * Admins (user.role === 'admin') always get 'admin'.
+ * No localStorage, no manual switching.
+ */
 export function RoleProvider({ children }) {
-  const [role, setRoleState] = useState(() => {
-    const saved = localStorage.getItem(ROLE_KEY);
-    return VALID_ROLES.includes(saved) ? saved : null;
-  });
+  const { user } = useAuth();
 
-  const setRole = (newRole) => {
-    if (!VALID_ROLES.includes(newRole)) return;
-    localStorage.setItem(ROLE_KEY, newRole);
-    setRoleState(newRole);
-    console.log(`[RoleContext] role changed → ${newRole}`);
-  };
-
-  const clearRole = () => {
-    localStorage.removeItem(ROLE_KEY);
-    setRoleState(null);
-  };
+  const role = useMemo(() => {
+    if (!user) return null;
+    if (user.role === 'admin') return 'admin';
+    return user.user_type || null; // 'athlete' | 'coach' | null (not set yet)
+  }, [user]);
 
   return (
-    <RoleContext.Provider value={{ role, setRole, clearRole }}>
+    <RoleContext.Provider value={{ role }}>
       {children}
     </RoleContext.Provider>
   );

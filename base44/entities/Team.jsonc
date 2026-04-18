@@ -1,0 +1,67 @@
+{
+  "name": "Team",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Team name (required)"
+    },
+    "coach_email": {
+      "type": "string",
+      "description": "Email of the coach who owns this team"
+    },
+    "description": {
+      "type": "string",
+      "description": "Team description"
+    },
+    "school_club": {
+      "type": "string",
+      "description": "School or club name"
+    },
+    "location": {
+      "type": "string",
+      "description": "City / location"
+    },
+    "season_year": {
+      "type": "string",
+      "description": "Season or year (e.g. Fall 2025)"
+    },
+    "motto": {
+      "type": "string",
+      "description": "Team motto"
+    },
+    "website": {
+      "type": "string",
+      "description": "Team or school website URL"
+    },
+    "contact_info": {
+      "type": "string",
+      "description": "Coach contact info"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL of the team logo image"
+    },
+    "invite_code": {
+      "type": "string",
+      "description": "Unique 8-char invite code for this team"
+    },
+    "auto_join": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, athletes auto-join without approval. If false, requires coach approval."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "name",
+    "coach_email"
+  ]
+}

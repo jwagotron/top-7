@@ -2,13 +2,29 @@
   "name": "User",
   "type": "object",
   "properties": {
+    "user_type": {
+      "type": "string",
+      "enum": [
+        "athlete",
+        "coach"
+      ],
+      "description": "Permanent user type selected on first login"
+    },
+    "bio": {
+      "type": "string",
+      "description": "User bio"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
     "team_code": {
       "type": "string",
-      "description": "Unique team code for coaches to invite athletes"
+      "description": "Legacy field - kept for compatibility"
     },
     "coach_email": {
       "type": "string",
-      "description": "Email of the coach for this athlete"
+      "description": "Legacy field - kept for compatibility"
     }
   }
 }
