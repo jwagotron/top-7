@@ -19,37 +19,38 @@ const RUN_TYPE_COLORS = {
 };
 
 const STATUS_STYLES = {
-  upcoming: 'bg-primary/5 border-primary/20',
-  completed: 'bg-secondary/5 border-secondary/20',
-  skipped: 'bg-muted/50 border-dashed opacity-60',
+  completed: 'bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-200/40 dark:border-emerald-800/40',
+  missed: 'bg-red-50/30 dark:bg-red-950/20 border-red-200/40 dark:border-red-800/40',
+  skipped: 'bg-slate-100/30 dark:bg-slate-800/30 border-slate-300/30 dark:border-slate-600/30 opacity-70',
+  pending: 'bg-card border-border',
 };
 
 function CompletionStatusBadge({ completion, scheduled_date }) {
   const isMissed = !completion && scheduled_date && new Date(scheduled_date) < new Date(new Date().toDateString());
   
   if (completion?.status === 'completed') return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded border bg-emerald-500/10 border-emerald-500/25 text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-      <CheckCircle2 className="w-2.5 h-2.5" />
+    <div className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border-2 border-emerald-500/60 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 whitespace-nowrap shadow-sm">
+      <CheckCircle2 className="w-4 h-4 shrink-0" strokeWidth={2.5} />
       Completed
-    </span>
+    </div>
   );
   if (completion?.status === 'skipped') return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded border bg-muted border-border text-muted-foreground whitespace-nowrap">
-      <Clock className="w-2.5 h-2.5" />
+    <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border-2 border-slate-400/40 bg-slate-500/10 text-slate-600 dark:text-slate-400 whitespace-nowrap">
+      <Clock className="w-4 h-4 shrink-0" />
       Skipped
-    </span>
+    </div>
   );
   if (isMissed) return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded border bg-amber-500/10 border-amber-500/25 text-amber-600 dark:text-amber-400 whitespace-nowrap">
-      <AlertTriangle className="w-2.5 h-2.5" />
+    <div className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border-2 border-red-500/60 bg-red-500/15 text-red-700 dark:text-red-300 whitespace-nowrap shadow-sm">
+      <AlertTriangle className="w-4 h-4 shrink-0" strokeWidth={2.5} />
       Missed
-    </span>
+    </div>
   );
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded border bg-muted/50 border-border text-muted-foreground whitespace-nowrap">
-      <Clock className="w-2.5 h-2.5" />
+    <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border-2 border-slate-300/50 bg-slate-100/50 dark:bg-slate-800/40 dark:border-slate-600/50 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+      <div className="w-4 h-4 rounded-full border-2 border-current shrink-0" />
       Pending
-    </span>
+    </div>
   );
 }
 
@@ -67,25 +68,30 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
         </div>
       ) : (
         <div className="space-y-2.5">
-          {workouts.map(w => (
-            <div key={w.id} className={cn('rounded-xl border p-3 transition-all group', STATUS_STYLES[w.status] || STATUS_STYLES.upcoming)}>
-              <div className="flex items-start gap-2.5">
-                <div className={cn(
-                  'w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center',
-                  w.status === 'completed' ? 'border-secondary bg-secondary' : w.status === 'skipped' ? 'border-muted-foreground' : 'border-primary'
-                )}>
-                  {w.status === 'completed' && <CheckCircle2 className="w-3 h-3 text-white" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                   <div className="flex items-start gap-1.5 flex-wrap mb-0.5">
-                     <span className={cn('text-sm font-semibold break-words flex-1', w.status === 'skipped' && 'line-through text-muted-foreground')}>{w.title}</span>
-                    {w.run_type && (
-                      <Badge variant="outline" className={cn('text-[10px]', RUN_TYPE_COLORS[w.run_type])}>
-                        {w.run_type.replace('_', ' ')}
-                      </Badge>
-                    )}
-                    <CompletionStatusBadge completion={getCompletion(w.id)} scheduled_date={w.scheduled_date} />
-                  </div>
+           {workouts.map(w => {
+             const completion = getCompletion(w.id);
+             const isMissed = !completion && w.scheduled_date && new Date(w.scheduled_date) < new Date(new Date().toDateString());
+             const statusKey = completion?.status === 'completed' ? 'completed' : completion?.status === 'skipped' ? 'skipped' : isMissed ? 'missed' : 'pending';
+
+             return (
+             <div key={w.id} className={cn('rounded-xl border p-3 transition-all group', STATUS_STYLES[statusKey])}>
+               <div className="flex items-start justify-between gap-3">
+                 <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                   <div className={cn(
+                     'w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center',
+                     completion?.status === 'completed' ? 'border-emerald-500 bg-emerald-500' : isMissed ? 'border-red-500' : completion?.status === 'skipped' ? 'border-slate-400' : 'border-slate-300'
+                   )}>
+                     {completion?.status === 'completed' && <CheckCircle2 className="w-3 h-3 text-white" />}
+                   </div>
+                   <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-1.5 flex-wrap mb-0.5">
+                        <span className={cn('text-sm font-semibold break-words flex-1', w.status === 'skipped' && 'line-through text-muted-foreground')}>{w.title}</span>
+                       {w.run_type && (
+                         <Badge variant="outline" className={cn('text-[9px] font-medium', RUN_TYPE_COLORS[w.run_type])}>
+                           {w.run_type.replace('_', ' ')}
+                         </Badge>
+                       )}
+                     </div>
 
                   {w.assigned_to && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -109,19 +115,24 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
                       <p className="text-xs mt-0.5">{w.athlete_feedback}</p>
                     </div>
                   )}
-                </div>
+                  </div>
+                  </div>
 
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                  <CompletionStatusBadge completion={completion} scheduled_date={w.scheduled_date} />
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(w)}>
-                    <Pencil className="w-3 h-3" />
+                   <Pencil className="w-3 h-3" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => onDelete(w.id)}>
-                    <Trash2 className="w-3 h-3" />
+                   <Trash2 className="w-3 h-3" />
                   </Button>
-                </div>
-              </div>
-            </div>
-          ))}
+                  </div>
+                  </div>
+                  </div>
+                  </div>
+                  );
+                  })}
         </div>
       )}
     </div>
