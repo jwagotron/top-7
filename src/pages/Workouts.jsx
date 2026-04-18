@@ -30,7 +30,9 @@ export default function Workouts() {
   const { completions, completeMut, getCompletion, isCompleted: isWorkoutCompleted } = useCompletions(isAthlete ? athleteEmail : null);
   const { toDisplay, label } = useUnits();
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date(); d.setHours(0, 0, 0, 0); return d;
+  });
   const [showLogForm, setShowLogForm] = useState(false);
   const [editingWorkout, setEditingWorkout] = useState(null);
   const [viewingWorkout, setViewingWorkout] = useState(null);
@@ -85,8 +87,13 @@ export default function Workouts() {
   });
 
   const handleMonthChange = (dir) => {
-    if (dir === 0) { setCurrentMonth(new Date()); setSelectedDate(new Date()); }
-    else setCurrentMonth(p => dir === 1 ? addMonths(p, 1) : subMonths(p, 1));
+    if (dir === 0) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      setCurrentMonth(today);
+      setSelectedDate(today);
+    } else {
+      setCurrentMonth(p => dir === 1 ? addMonths(p, 1) : subMonths(p, 1));
+    }
   };
 
   const handleLogFromPlanned = (planned) => {
@@ -116,14 +123,23 @@ export default function Workouts() {
     }
   }, [isAthlete, myPlanned]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Selected day data — use parseDateOnly to avoid UTC shift
-  const dayWorkouts = workouts.filter(w => isSameDay(parseDateOnly(w.date), selectedDate));
-  const dayPlanned = myPlanned.filter(p => isSameDay(parseDateOnly(p.scheduled_date), selectedDate));
+  // Selected day data — compare as YYYY-MM-DD strings to avoid all timezone edge cases
+  const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+  const dayWorkouts = workouts.filter(w => {
+    const s = w.date ? String(w.date).split('T')[0] : null;
+    return s === selectedDateStr;
+  });
+  const dayPlanned = myPlanned.filter(p => {
+    const s = p.scheduled_date ? String(p.scheduled_date).split('T')[0] : null;
+    const match = s === selectedDateStr;
+    console.debug('[Workouts] dayPlanned filter:', p.scheduled_date, '->', s, '=== selectedDate:', selectedDateStr, '| match:', match, '| title:', p.title, '| assigned_to:', p.assigned_to);
+    return match;
+  });
 
   // DEBUG: athlete workout visibility
-  console.debug('[Workouts] role:', role, '| athlete:', athleteEmail, '| today:', format(new Date(), 'yyyy-MM-dd'), '| selectedDate:', format(selectedDate, 'yyyy-MM-dd'));
-  console.debug('[Workouts] assignedWorkouts total:', assignedWorkouts.length, '| myPlanned:', myPlanned.length, '| dayPlanned:', dayPlanned.length, '| dayLogged:', dayWorkouts.length);
-  dayPlanned.forEach(p => console.debug('[Workouts] planned for day:', p.scheduled_date, p.title, '| assigned_to:', p.assigned_to));
+  console.debug('[Workouts] role:', role, '| athlete:', athleteEmail, '| today:', format(new Date(), 'yyyy-MM-dd'), '| selectedDate:', selectedDateStr);
+  console.debug('[Workouts] assignedWorkouts total:', assignedWorkouts.length, '| myPlanned total:', myPlanned.length, '| dayPlanned:', dayPlanned.length, '| dayLogged:', dayWorkouts.length);
+  console.debug('[Workouts] all myPlanned dates:', myPlanned.map(p => p.scheduled_date + '(' + p.title + ')').join(', '));
 
   // Weekly stats
   const now = new Date();

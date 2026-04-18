@@ -34,6 +34,8 @@ export function useAssignedPlan() {
     queryKey: ['assigned-plan-workouts', activePlan?.id],
     queryFn: () => base44.entities.PlannedWorkout.filter({ plan_id: activePlan.id }, 'scheduled_date', 500),
     enabled: !!activePlan?.id,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   // ── 3. Directly assigned workouts (assigned_to = email, any plan or none) ─
@@ -41,6 +43,8 @@ export function useAssignedPlan() {
     queryKey: ['direct-assigned-workouts', athleteEmail],
     queryFn: () => base44.entities.PlannedWorkout.filter({ assigned_to: athleteEmail }, 'scheduled_date', 500),
     enabled: !!athleteEmail,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   // ── 4. Merge & deduplicate ───────────────────────────────────────────────
