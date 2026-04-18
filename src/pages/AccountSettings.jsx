@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
+import TeamsSection from '@/components/TeamsSection';
 
 const ROLE_LABELS = { athlete: 'Athlete', coach: 'Coach', admin: 'Admin' };
 
@@ -129,6 +130,9 @@ export default function AccountSettings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Team */}
+        <TeamsSection />
 
         {/* Appearance */}
         <AppearanceCard />

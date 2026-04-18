@@ -11,6 +11,14 @@
         "athlete",
         "coach"
       ]
+    },
+    "team_code": {
+      "type": "string",
+      "description": "Unique team code for coaches (6 alphanumeric characters)"
+    },
+    "coach_email": {
+      "type": "string",
+      "description": "Email of the coach assigned to this athlete"
     }
   },
   "required": [
