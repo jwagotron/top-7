@@ -1,15 +1,13 @@
 import {
-  LayoutDashboard, Dumbbell, Calendar, BarChart3,
-  Target, ShieldCheck, History,
-  Wifi, Hammer, Settings, Shield, Activity, Users,
+  LayoutDashboard, BarChart3,
+  Target, ShieldCheck,
+  Wifi, Hammer, Settings, Shield, Activity,
   HelpCircle, LogOut
 } from 'lucide-react';
 
 export const NAV_ITEMS = {
   athlete: [
     { path: '/',           label: 'Dashboard',      icon: LayoutDashboard },
-    { path: '/my-plan',    label: 'My Plan',         icon: Calendar },
-    { path: '/workouts',   label: 'My Runs',         icon: Dumbbell },
     { path: '/analytics',  label: 'Analytics',       icon: BarChart3 },
     { path: '/goals',      label: 'Goals',           icon: Target },
     { path: '/shoes',      label: 'Shoe Tracker',    icon: Activity },
@@ -19,35 +17,31 @@ export const NAV_ITEMS = {
   coach: [
     { path: '/coach',           label: 'Coach Panel',     icon: ShieldCheck },
     { path: '/workout-builder', label: 'Workout Builder', icon: Hammer },
-    { path: '/plans',           label: 'Training Plans',  icon: Calendar },
     { path: '/settings',        label: 'Settings',        icon: Settings },
   ],
   admin: [
     { path: '/admin',           label: 'Admin Panel',     icon: Shield },
     { path: '/coach',           label: 'Coach Panel',     icon: ShieldCheck },
     { path: '/workout-builder', label: 'Workout Builder', icon: Hammer },
-    { path: '/plans',           label: 'Training Plans',  icon: Calendar },
     { path: '/settings',        label: 'Settings',        icon: Settings },
   ],
 };
 
 export const MOBILE_NAV_TABS = {
   athlete: [
-    { path: '/',         label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/my-plan',  label: 'My Plan',   icon: Calendar },
-    { path: '/workouts', label: 'Runs',      icon: Dumbbell },
-    { path: '/settings', label: 'Settings',  icon: Settings },
+    { path: '/',           label: 'Dashboard',  icon: LayoutDashboard },
+    { path: '/analytics',  label: 'Analytics',  icon: BarChart3 },
+    { path: '/goals',      label: 'Goals',      icon: Target },
+    { path: '/settings',   label: 'Settings',   icon: Settings },
   ],
   coach: [
     { path: '/coach',           label: 'Coach',    icon: ShieldCheck },
     { path: '/workout-builder', label: 'Builder',  icon: Hammer },
-    { path: '/plans',           label: 'Plans',    icon: Calendar },
     { path: '/settings',        label: 'Settings', icon: Settings },
   ],
   admin: [
     { path: '/admin',           label: 'Admin',    icon: Shield },
     { path: '/coach',           label: 'Coach',    icon: ShieldCheck },
-    { path: '/plans',           label: 'Plans',    icon: Calendar },
     { path: '/settings',        label: 'Settings', icon: Settings },
   ],
 };
@@ -58,8 +52,6 @@ export const SIDEBAR_MENU = {
       section: 'NAVIGATION',
       items: [
         { path: '/',           label: 'Dashboard',      icon: LayoutDashboard },
-        { path: '/my-plan',    label: 'My Plan',        icon: Calendar },
-        { path: '/workouts',   label: 'My Runs',        icon: Dumbbell },
         { path: '/analytics',  label: 'Analytics',      icon: BarChart3 },
         { path: '/goals',      label: 'Goals',          icon: Target },
         { path: '/shoes',      label: 'Shoe Tracker',   icon: Activity },
@@ -81,7 +73,6 @@ export const SIDEBAR_MENU = {
       items: [
         { path: '/coach',           label: 'Coach Panel',     icon: ShieldCheck },
         { path: '/workout-builder', label: 'Workout Builder', icon: Hammer },
-        { path: '/plans',           label: 'Training Plans',  icon: Calendar },
         { path: '/settings',        label: 'Settings',        icon: Settings },
       ],
     },
@@ -100,7 +91,6 @@ export const SIDEBAR_MENU = {
         { path: '/admin',           label: 'Admin Panel',     icon: Shield },
         { path: '/coach',           label: 'Coach Panel',     icon: ShieldCheck },
         { path: '/workout-builder', label: 'Workout Builder', icon: Hammer },
-        { path: '/plans',           label: 'Training Plans',  icon: Calendar },
         { path: '/settings',        label: 'Settings',        icon: Settings },
       ],
     },

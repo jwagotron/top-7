@@ -245,7 +245,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
     setActiveTab('details');
   };
 
-  const isRequiredComplete = form.title && form.run_type && form.scheduled_date && form.warmup_description && form.main_set_description && form.cooldown_description;
+  const isRequiredComplete = form.title && form.run_type && form.scheduled_date;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -426,15 +426,15 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
           {activeTab === 'structure' && (
             <div className="space-y-4">
               <div>
-                <Label>Warm-Up <RequiredMark /></Label>
+                <Label>Warm-Up <OptionalMark /></Label>
                 <Textarea value={form.warmup_description} onChange={e => set('warmup_description', e.target.value)} placeholder="e.g. 10 min easy jog, dynamic stretches..." rows={3} />
               </div>
               <div>
-                <Label>Main Set <RequiredMark /></Label>
+                <Label>Main Set <OptionalMark /></Label>
                 <Textarea value={form.main_set_description} onChange={e => set('main_set_description', e.target.value)} placeholder="e.g. 4 × 1km at threshold pace (4:30/km) with 90s recovery..." rows={4} />
               </div>
               <div>
-                <Label>Cool-Down <RequiredMark /></Label>
+                <Label>Cool-Down <OptionalMark /></Label>
                 <Textarea value={form.cooldown_description} onChange={e => set('cooldown_description', e.target.value)} placeholder="e.g. 10 min easy jog, static stretches..." rows={3} />
               </div>
               <div>
@@ -444,7 +444,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
 
               {!isRequiredComplete && (
                 <p className="text-xs text-destructive bg-destructive/5 border border-destructive/20 rounded-lg px-3 py-2">
-                  Please fill in all required fields (<span className="font-medium">*</span>) before assigning.
+                  Please fill in the required fields: <span className="font-medium">Title</span>, <span className="font-medium">Run Type</span>, and <span className="font-medium">Date</span>.
                 </p>
               )}
 

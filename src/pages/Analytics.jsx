@@ -4,177 +4,399 @@ import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
-import { format, subDays, startOfWeek, endOfWeek, eachWeekOfInterval } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  LineChart, Line, BarChart, Bar, AreaChart, Area,
+  XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  ComposedChart, ReferenceLine
+} from 'recharts';
+import { format, subDays, startOfWeek, endOfWeek, eachWeekOfInterval, parseISO } from 'date-fns';
 import { useUnits } from '@/hooks/useUnits';
+import { useAuth } from '@/lib/AuthContext';
+import { Heart, Wind, Moon, Brain, Zap, TrendingUp, Activity, Flame } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+const tooltipStyle = {
+  background: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: '12px',
+  fontSize: '12px',
+};
+
+function MetricCard({ icon: Icon, label, value, unit, trend, color = 'text-primary', bg = 'bg-primary/10', sub }) {
+  return (
+    <Card className="rounded-2xl bg-muted/40 border border-border/30">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-2">
+          <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0', bg)}>
+            <Icon className={cn('w-4 h-4', color)} />
+          </div>
+          {trend != null && (
+            <span className={cn('text-xs font-semibold', trend > 0 ? 'text-secondary' : trend < 0 ? 'text-destructive' : 'text-muted-foreground')}>
+              {trend > 0 ? '↑' : trend < 0 ? '↓' : '→'} {Math.abs(trend)}%
+            </span>
+          )}
+        </div>
+        <p className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wide">{label}</p>
+        <p className="text-2xl font-bold mt-1 leading-none">{value ?? '—'}
+          {unit && <span className="text-xs font-normal text-muted-foreground ml-1">{unit}</span>}
+        </p>
+        {sub && <p className="text-xs text-muted-foreground/60 mt-1">{sub}</p>}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Analytics() {
   const [period, setPeriod] = useState('30');
-  const { toDisplay, label } = useUnits();
+  const { toDisplay, label, formatPace } = useUnits();
+  const { user } = useAuth();
 
   const { data: workouts = [] } = useQuery({
-    queryKey: ['workouts'],
-    queryFn: () => base44.entities.Workout.list('-date', 500),
+    queryKey: ['workouts-analytics', user?.email],
+    queryFn: () => base44.entities.Workout.filter({ created_by: user?.email }, '-date', 500),
+    enabled: !!user?.email,
+  });
+
+  const { data: activities = [] } = useQuery({
+    queryKey: ['activities-analytics', user?.email],
+    queryFn: () => base44.entities.Activity.filter({ user_email: user?.email }, '-started_at', 500),
+    enabled: !!user?.email,
   });
 
   const cutoff = subDays(new Date(), Number(period));
-  const filtered = workouts.filter(w => new Date(w.date) >= cutoff);
+  const filtered = workouts.filter(w => w.date && new Date(w.date) >= cutoff);
+  const filteredActivities = activities.filter(a => a.started_at && new Date(a.started_at) >= cutoff);
 
-  // Weekly volume data
+  // Weekly volume
   const weeks = eachWeekOfInterval({ start: cutoff, end: new Date() }, { weekStartsOn: 1 });
   const weeklyData = weeks.map(weekStart => {
     const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-    const weekWorkouts = filtered.filter(w => {
+    const ww = filtered.filter(w => {
       const d = new Date(w.date);
       return d >= weekStart && d <= weekEnd;
     });
     return {
       week: format(weekStart, 'MMM d'),
-      distance: Number(toDisplay(weekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)),
-      duration: weekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0),
-      count: weekWorkouts.length,
+      distance: Number(toDisplay(ww.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)),
+      duration: Math.round(ww.reduce((s, w) => s + (w.duration_minutes || 0), 0)),
+      count: ww.length,
+      avgHR: ww.filter(w => w.avg_heart_rate).length > 0
+        ? Math.round(ww.filter(w => w.avg_heart_rate).reduce((s, w) => s + w.avg_heart_rate, 0) / ww.filter(w => w.avg_heart_rate).length)
+        : null,
     };
   });
 
-  // Sport distribution
-  const sportDist = {};
-  filtered.forEach(w => { sportDist[w.sport] = (sportDist[w.sport] || 0) + 1; });
-  const pieData = Object.entries(sportDist).map(([name, value]) => ({ name, value }));
-
-  // Heart rate trend
-  const hrData = filtered
+  // HR trend
+  const hrTrend = filtered
     .filter(w => w.avg_heart_rate)
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .map(w => ({
       date: format(new Date(w.date), 'MMM d'),
       avg: w.avg_heart_rate,
       max: w.max_heart_rate,
+      resting: null,
     }));
 
-  // Effort distribution
-  const effortDist = Array.from({ length: 10 }, (_, i) => ({
-    rpe: i + 1,
-    count: filtered.filter(w => w.perceived_effort === i + 1).length,
-  }));
+  // Pace trend
+  const paceTrend = filteredActivities
+    .filter(a => a.avg_pace_sec_per_km)
+    .sort((a, b) => new Date(a.started_at) - new Date(b.started_at))
+    .map(a => ({
+      date: format(new Date(a.started_at), 'MMM d'),
+      pace: a.avg_pace_sec_per_km,
+      distance: a.distance_m ? toDisplay(a.distance_m / 1000).toFixed(1) : null,
+    }));
 
-  const tooltipStyle = {
-    background: 'hsl(var(--card))',
-    border: '1px solid hsl(var(--border))',
-    borderRadius: '12px',
-    fontSize: '12px',
-  };
+  // Cadence trend
+  const cadenceTrend = filteredActivities
+    .filter(a => a.avg_cadence)
+    .sort((a, b) => new Date(a.started_at) - new Date(b.started_at))
+    .map(a => ({
+      date: format(new Date(a.started_at), 'MMM d'),
+      cadence: a.avg_cadence,
+    }));
+
+  // Summary stats
+  const totalDist = toDisplay(filtered.reduce((s, w) => s + (w.distance_km || 0), 0));
+  const totalHrs = Math.round(filtered.reduce((s, w) => s + (w.duration_minutes || 0), 0) / 60 * 10) / 10;
+  const avgHR = filtered.filter(w => w.avg_heart_rate).length > 0
+    ? Math.round(filtered.filter(w => w.avg_heart_rate).reduce((s, w) => s + w.avg_heart_rate, 0) / filtered.filter(w => w.avg_heart_rate).length)
+    : null;
+  const avgCadence = filteredActivities.filter(a => a.avg_cadence).length > 0
+    ? Math.round(filteredActivities.filter(a => a.avg_cadence).reduce((s, a) => s + a.avg_cadence, 0) / filteredActivities.filter(a => a.avg_cadence).length)
+    : null;
+  const totalCalories = Math.round(filtered.reduce((s, w) => s + (w.calories || 0), 0));
+  const avgElevation = filteredActivities.filter(a => a.elevation_gain_m).length > 0
+    ? Math.round(filteredActivities.filter(a => a.elevation_gain_m).reduce((s, a) => s + a.elevation_gain_m, 0) / filteredActivities.filter(a => a.elevation_gain_m).length)
+    : null;
+
+  // Best efforts
+  const bestPace = filteredActivities.filter(a => a.avg_pace_sec_per_km).reduce((best, a) => {
+    return (!best || a.avg_pace_sec_per_km < best) ? a.avg_pace_sec_per_km : best;
+  }, null);
+  const maxElevation = filteredActivities.filter(a => a.elevation_gain_m).reduce((max, a) =>
+    a.elevation_gain_m > (max || 0) ? a.elevation_gain_m : max, null);
+  const longestRun = filtered.filter(w => w.distance_km).reduce((max, w) =>
+    w.distance_km > (max || 0) ? w.distance_km : max, null);
 
   return (
     <div>
-      <TopBar title="Performance">
+      <TopBar title="Analytics">
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[7rem] sm:w-28 lg:w-36 h-8 text-xs sm:text-sm"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[7rem] h-8 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="30">Last 30 days</SelectItem>
-            <SelectItem value="90">Last 90 days</SelectItem>
-            <SelectItem value="365">Last year</SelectItem>
+            <SelectItem value="7">7 days</SelectItem>
+            <SelectItem value="30">30 days</SelectItem>
+            <SelectItem value="90">90 days</SelectItem>
+            <SelectItem value="365">1 year</SelectItem>
           </SelectContent>
         </Select>
       </TopBar>
+
       <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-6 pb-24 lg:pb-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: 'Workouts', value: filtered.length, unit: '' },
-            { label: 'Distance', value: toDisplay(filtered.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1), unit: label },
-            { label: 'Total Time', value: Math.round(filtered.reduce((s, w) => s + (w.duration_minutes || 0), 0) / 60), unit: 'hrs' },
-            { label: 'Avg HR', value: filtered.filter(w => w.avg_heart_rate).length > 0 ? Math.round(filtered.filter(w => w.avg_heart_rate).reduce((s, w) => s + w.avg_heart_rate, 0) / filtered.filter(w => w.avg_heart_rate).length) : '—', unit: 'bpm' },
-          ].map(s => (
-            <Card key={s.label} className="rounded-2xl border min-w-0 bg-muted/40 border-border/30">
-              <CardContent className="p-4">
-                <p className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wide truncate">{s.label}</p>
-                <p className="text-2xl font-bold mt-2 leading-none break-all text-foreground">{s.value} <span className="text-xs font-normal text-muted-foreground/70">{s.unit}</span></p>
+
+        <Tabs defaultValue="performance">
+          <TabsList className="h-9 mb-1">
+            <TabsTrigger value="performance" className="text-xs px-3">Performance</TabsTrigger>
+            <TabsTrigger value="health" className="text-xs px-3">Health & Fitness</TabsTrigger>
+            <TabsTrigger value="trends" className="text-xs px-3">Trends</TabsTrigger>
+          </TabsList>
+
+          {/* === PERFORMANCE TAB === */}
+          <TabsContent value="performance" className="space-y-5 mt-0">
+            {/* Summary metrics */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <MetricCard icon={Activity} label="Workouts" value={filtered.length} color="text-primary" bg="bg-primary/10" />
+              <MetricCard icon={TrendingUp} label="Distance" value={totalDist.toFixed(1)} unit={label} color="text-secondary" bg="bg-secondary/10" />
+              <MetricCard icon={Zap} label="Total Hours" value={totalHrs} unit="hrs" color="text-accent" bg="bg-accent/10" />
+              <MetricCard icon={Flame} label="Calories" value={totalCalories > 0 ? totalCalories.toLocaleString() : null} unit="kcal" color="text-destructive" bg="bg-destructive/10" />
+            </div>
+
+            {/* Best efforts */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <MetricCard icon={Zap} label="Best Pace" value={bestPace ? formatPace(bestPace) : null} color="text-accent" bg="bg-accent/10" sub="Fastest avg pace" />
+              <MetricCard icon={TrendingUp} label="Longest Run" value={longestRun ? toDisplay(longestRun).toFixed(2) : null} unit={label} color="text-primary" bg="bg-primary/10" sub="Single run distance" />
+              <MetricCard icon={Activity} label="Max Elevation" value={maxElevation} unit="m" color="text-secondary" bg="bg-secondary/10" sub="Single run gain" />
+            </div>
+
+            {/* Weekly volume chart */}
+            <Card className="rounded-2xl bg-muted/40 border border-border/30">
+              <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">Weekly Volume</CardTitle></CardHeader>
+              <CardContent>
+                <div className="h-[220px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={weeklyData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                      <YAxis yAxisId="dist" orientation="left" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} width={30} />
+                      <YAxis yAxisId="count" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} width={22} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar yAxisId="dist" dataKey="distance" name={`Distance (${label})`} fill="hsl(var(--primary))" fillOpacity={0.5} radius={[4, 4, 0, 0]} />
+                      <Line yAxisId="count" type="monotone" dataKey="count" name="Workouts" stroke="hsl(var(--secondary))" strokeWidth={2} dot={false} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
 
-        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
-          <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
-            <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-lg font-bold tracking-tight">Weekly Volume</CardTitle></CardHeader>
-            <CardContent>
-              <div className="h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={weeklyData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11 }} width={35} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Area type="monotone" dataKey="distance" name={`Distance (${label})`} stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} strokeWidth={2} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Pace trend */}
+            {paceTrend.length > 1 && (
+              <Card className="rounded-2xl bg-muted/40 border border-border/30">
+                <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">Pace Trend</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={paceTrend}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} width={40} reversed
+                          tickFormatter={v => `${Math.floor(v/60)}:${String(v%60).padStart(2,'0')}`} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={v => [`${Math.floor(v/60)}:${String(v%60).padStart(2,'0')} /km`, 'Avg Pace']} />
+                        <Line type="monotone" dataKey="pace" name="Avg Pace" stroke="hsl(var(--accent))" strokeWidth={2.5} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/50 text-center mt-1">Lower = faster pace</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
-          <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
-            <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-lg font-bold tracking-tight">Sport Distribution</CardTitle></CardHeader>
-            <CardContent>
-              <div className="h-[250px] flex items-center justify-center">
-                {pieData.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No data yet</p>
-                ) : (
+          {/* === HEALTH & FITNESS TAB === */}
+          <TabsContent value="health" className="space-y-5 mt-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <MetricCard icon={Heart} label="Avg Heart Rate" value={avgHR} unit="bpm" color="text-destructive" bg="bg-destructive/10" sub="All activities" />
+              <MetricCard icon={Activity} label="Avg Cadence" value={avgCadence} unit="spm" color="text-chart-4" bg="bg-chart-4/10" sub="Steps per min" />
+              <MetricCard icon={TrendingUp} label="Avg Elevation" value={avgElevation} unit="m" color="text-secondary" bg="bg-secondary/10" sub="Per run gain" />
+              <MetricCard icon={Flame} label="Total Calories" value={totalCalories > 0 ? totalCalories.toLocaleString() : null} unit="kcal" color="text-accent" bg="bg-accent/10" />
+            </div>
+
+            {/* Garmin wellness note */}
+            <Card className="rounded-2xl bg-muted/40 border border-border/30">
+              <CardContent className="p-5">
+                <div className="flex gap-3 items-start">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Brain className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm mb-1">Garmin Health Metrics</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Advanced health metrics including <strong>HRV (Heart Rate Variability)</strong>, 
+                      <strong> sleep score</strong>, <strong>VO₂ Max</strong>, <strong>training load</strong>, 
+                      <strong> body battery</strong>, and <strong>stress score</strong> are sourced directly from 
+                      Garmin Connect. These appear here automatically as your device syncs data after each activity and overnight.
+                    </p>
+                    <p className="text-xs text-muted-foreground/60 mt-2">
+                      Ensure your Garmin device is connected in Settings → Garmin Connect to unlock all metrics.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* HR zone chart */}
+            {hrTrend.length > 1 && (
+              <Card className="rounded-2xl bg-muted/40 border border-border/30">
+                <CardHeader className="pb-2 px-5 pt-5">
+                  <CardTitle className="text-base font-bold">Heart Rate Trend</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={hrTrend}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} width={38} domain={['auto', 'auto']} />
+                        <Tooltip contentStyle={tooltipStyle} />
+                        <Line type="monotone" dataKey="avg" name="Avg HR" stroke="hsl(var(--destructive))" strokeWidth={2.5} dot={false} />
+                        {hrTrend.some(d => d.max) && (
+                          <Line type="monotone" dataKey="max" name="Max HR" stroke="hsl(var(--chart-5))" strokeWidth={1.5} dot={false} strokeDasharray="5 5" />
+                        )}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex gap-4 justify-center mt-2">
+                    <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-3 h-0.5 bg-destructive inline-block rounded-full" /> Avg HR</span>
+                    <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="w-3 h-0.5 bg-chart-5 inline-block rounded-full" /> Max HR</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Cadence chart */}
+            {cadenceTrend.length > 1 && (
+              <Card className="rounded-2xl bg-muted/40 border border-border/30">
+                <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">Running Cadence</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="h-[180px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={cadenceTrend}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} width={38} domain={[150, 200]} />
+                        <Tooltip contentStyle={tooltipStyle} />
+                        <ReferenceLine y={180} stroke="hsl(var(--secondary))" strokeDasharray="4 4" label={{ value: 'Optimal 180', fontSize: 9, fill: 'hsl(var(--secondary))' }} />
+                        <Line type="monotone" dataKey="cadence" name="Cadence (spm)" stroke="hsl(var(--chart-4))" strokeWidth={2.5} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/50 text-center mt-1">180 spm is the widely recommended target for distance runners</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Health metrics coming from Garmin - placeholders for future data */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              {[
+                { icon: Brain, label: 'HRV Score', key: 'hrv', color: 'text-chart-4', bg: 'bg-chart-4/10', desc: 'Heart rate variability — synced from Garmin' },
+                { icon: Moon, label: 'Sleep Score', key: 'sleep', color: 'text-chart-4', bg: 'bg-chart-4/10', desc: 'Nightly sleep quality' },
+                { icon: Wind, label: 'VO₂ Max', key: 'vo2', color: 'text-primary', bg: 'bg-primary/10', desc: 'Aerobic fitness estimate' },
+                { icon: Zap, label: 'Training Load', key: 'load', color: 'text-accent', bg: 'bg-accent/10', desc: 'Weekly training stress score' },
+                { icon: Activity, label: 'Body Battery', key: 'battery', color: 'text-secondary', bg: 'bg-secondary/10', desc: 'Energy reserves 0–100' },
+                { icon: Heart, label: 'Stress Score', key: 'stress', color: 'text-destructive', bg: 'bg-destructive/10', desc: 'Daily stress level' },
+              ].map(({ icon: Icon, label: lbl, color, bg, desc }) => (
+                <Card key={lbl} className="rounded-2xl bg-muted/40 border border-border/30">
+                  <CardContent className="p-4">
+                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center mb-2', bg)}>
+                      <Icon className={cn('w-4 h-4', color)} />
+                    </div>
+                    <p className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wide">{lbl}</p>
+                    <p className="text-xl font-bold mt-1 text-muted-foreground/30">—</p>
+                    <p className="text-[10px] text-muted-foreground/50 mt-1">{desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* === TRENDS TAB === */}
+          <TabsContent value="trends" className="space-y-5 mt-0">
+            {/* Weekly HR avg trend */}
+            <Card className="rounded-2xl bg-muted/40 border border-border/30">
+              <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">Weekly Avg Heart Rate</CardTitle></CardHeader>
+              <CardContent>
+                <div className="h-[200px]">
+                  {weeklyData.some(d => d.avgHR) ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={weeklyData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} width={38} domain={['auto', 'auto']} />
+                        <Tooltip contentStyle={tooltipStyle} />
+                        <Area type="monotone" dataKey="avgHR" name="Avg HR" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.1} strokeWidth={2} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-sm text-muted-foreground">No heart rate data available</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Effort distribution */}
+            <Card className="rounded-2xl bg-muted/40 border border-border/30">
+              <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">Effort Distribution (RPE)</CardTitle></CardHeader>
+              <CardContent>
+                <div className="h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={85} dataKey="value" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
-                        {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                      </Pie>
-                      <Tooltip contentStyle={tooltipStyle} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
-          <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
-            <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-lg font-bold tracking-tight">Heart Rate Trend</CardTitle></CardHeader>
-            <CardContent>
-              <div className="h-[250px]">
-                {hrData.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-20">No heart rate data</p>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={hrData}>
+                    <BarChart data={Array.from({ length: 10 }, (_, i) => ({
+                      rpe: i + 1,
+                      count: filtered.filter(w => w.perceived_effort === i + 1).length,
+                    }))}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11 }} width={38} domain={['auto', 'auto']} />
+                      <XAxis dataKey="rpe" axisLine={false} tickLine={false} tick={{ fontSize: 11 }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11 }} width={28} />
                       <Tooltip contentStyle={tooltipStyle} />
-                      <Line type="monotone" dataKey="avg" name="Avg HR" stroke="hsl(var(--destructive))" strokeWidth={2} dot={false} />
-                      <Line type="monotone" dataKey="max" name="Max HR" stroke="hsl(var(--accent))" strokeWidth={2} dot={false} strokeDasharray="5 5" />
-                    </LineChart>
+                      <Bar dataKey="count" name="Workouts" fill="hsl(var(--secondary))" radius={[6, 6, 0, 0]} />
+                    </BarChart>
                   </ResponsiveContainer>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+                <p className="text-[10px] text-muted-foreground/50 text-center mt-1">RPE 1 (very easy) → 10 (maximum effort)</p>
+              </CardContent>
+            </Card>
 
-          <Card className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
-            <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-lg font-bold tracking-tight">Effort Distribution</CardTitle></CardHeader>
-            <CardContent>
-              <div className="h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={effortDist}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis dataKey="rpe" axisLine={false} tickLine={false} tick={{ fontSize: 11 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11 }} width={28} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Bar dataKey="count" name="Workouts" fill="hsl(var(--secondary))" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            {/* Weekly duration */}
+            <Card className="rounded-2xl bg-muted/40 border border-border/30">
+              <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">Weekly Training Time</CardTitle></CardHeader>
+              <CardContent>
+                <div className="h-[200px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={weeklyData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} width={35} tickFormatter={v => `${v}m`} />
+                      <Tooltip contentStyle={tooltipStyle} formatter={v => [`${v} min`, 'Duration']} />
+                      <Bar dataKey="duration" name="Duration (min)" fill="hsl(var(--chart-4))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
