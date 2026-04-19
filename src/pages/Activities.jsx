@@ -10,9 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
-import { MapPin, Clock, Heart, Zap, TrendingUp, Activity, Search, Filter } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { MapPin, Clock, Activity, Search, Upload } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
+import FitImportDialog from '@/components/workouts/FitImportDialog';
+import { useMutation } from '@tanstack/react-query';
 
 const sportColors = {
   run: 'bg-primary/10 text-primary',
@@ -42,6 +43,20 @@ export default function Activities() {
   const { units, toDisplay, label, paceLabel } = useUnits();
   const [search, setSearch] = useState('');
   const [sportFilter, setSportFilter] = useState('all');
+  const [showImport, setShowImport] = useState(false);
+
+  const importMut = useMutation({
+    mutationFn: (data) => base44.entities.Workout.create({
+      ...data,
+      source: 'gpx_import',
+    }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['my-activities', user?.email] }),
+  });
+
+  const handleImport = (data) => {
+    importMut.mutate(data);
+    setShowImport(false);
+  };
 
   const handleRefresh = useCallback(async () => {
     await qc.invalidateQueries({ queryKey: ['my-activities', user?.email] });
@@ -67,7 +82,12 @@ export default function Activities() {
   return (
     <div className="min-h-screen bg-background">
       <PullToRefreshIndicator {...ptr} />
-      <TopBar title="My Activities" />
+      <FitImportDialog open={showImport} onClose={() => setShowImport(false)} onImport={handleImport} />
+      <TopBar title="My Activities">
+        <Button size="sm" onClick={() => setShowImport(true)} className="gap-1.5">
+          <Upload className="w-4 h-4" /> Import File
+        </Button>
+      </TopBar>
       <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-4 pb-24 lg:pb-6">
 
         {/* Summary */}

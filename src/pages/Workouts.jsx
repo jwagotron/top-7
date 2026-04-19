@@ -10,7 +10,7 @@ import RunDetailDrawer from '@/components/workouts/RunDetailDrawer';
 import PlannedWorkoutCard from '@/components/workouts/PlannedWorkoutCard';
 import { Button } from '@/components/ui/button';
 import { Plus, CalendarDays, Footprints, Clock, MapPin, Upload } from 'lucide-react';
-import GpxImportDialog from '@/components/workouts/GpxImportDialog';
+import FitImportDialog from '@/components/workouts/FitImportDialog';
 import { format, isSameDay, addMonths, subMonths, startOfWeek, addDays } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useAuth } from '@/lib/AuthContext';
@@ -40,7 +40,7 @@ export default function Workouts() {
   const [viewingWorkout, setViewingWorkout] = useState(null);
   const [expandedPlanned, setExpandedPlanned] = useState(null);
   const [preFillPlanned, setPreFillPlanned] = useState(null);
-  const [showGpxImport, setShowGpxImport] = useState(false);
+  const [showFitImport, setShowFitImport] = useState(false);
   const qc = useQueryClient();
 
   const invalidateAll = useCallback(() => {
@@ -142,8 +142,8 @@ export default function Workouts() {
       <PullToRefreshIndicator {...ptr} />
       <TopBar title="My Runs">
         {canCreate && (
-          <Button variant="outline" onClick={() => setShowGpxImport(true)} className="gap-1 lg:gap-2 px-2 lg:px-4">
-            <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import </span>GPX
+          <Button variant="outline" onClick={() => setShowFitImport(true)} className="gap-1 lg:gap-2 px-2 lg:px-4">
+            <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import </span>File
           </Button>
         )}
         {canCreate && (
@@ -186,10 +186,10 @@ export default function Workouts() {
         />
       </div>
 
-      <GpxImportDialog
-        open={showGpxImport}
-        onClose={() => setShowGpxImport(false)}
-        onImport={(data) => { createMut.mutate(data); setShowGpxImport(false); }}
+      <FitImportDialog
+        open={showFitImport}
+        onClose={() => setShowFitImport(false)}
+        onImport={(data) => { createMut.mutate(data); setShowFitImport(false); }}
       />
 
       {/* Forms & drawers — coach/admin only */}

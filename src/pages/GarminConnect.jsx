@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { Wifi, WifiOff, RefreshCw, CheckCircle2, AlertCircle, Clock, Activity, Zap } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, CheckCircle2, AlertCircle, Clock, Activity, Zap, Upload } from 'lucide-react';
+import FitImportDialog from '@/components/workouts/FitImportDialog';
+import { useMutation } from '@tanstack/react-query';
 
 // TODO: Replace with real Garmin OAuth URL once credentials are approved
 // GARMIN_CLIENT_ID, GARMIN_CLIENT_SECRET, GARMIN_REDIRECT_URI must be set as env vars on the backend
@@ -23,6 +25,17 @@ export default function GarminConnect() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [syncing, setSyncing] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+
+  const importMut = useMutation({
+    mutationFn: (data) => base44.entities.Workout.create({ ...data }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['sync-events'] }),
+  });
+
+  const handleImport = (data) => {
+    importMut.mutate(data);
+    setShowImport(false);
+  };
 
   const { data: connections = [] } = useQuery({
     queryKey: ['device-connections', user?.email],
@@ -87,7 +100,12 @@ export default function GarminConnect() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopBar title="Device Sync" />
+      <FitImportDialog open={showImport} onClose={() => setShowImport(false)} onImport={handleImport} />
+      <TopBar title="Device Sync">
+        <Button size="sm" variant="outline" onClick={() => setShowImport(true)} className="gap-1.5">
+          <Upload className="w-4 h-4" /> Import File
+        </Button>
+      </TopBar>
       <div className="p-4 lg:p-6 max-w-3xl mx-auto space-y-6">
 
         {/* Status card */}
@@ -145,7 +163,7 @@ export default function GarminConnect() {
                 </div>
               ))}
               <div className="mt-4 p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground border border-border">
-                <strong>Note:</strong> Full Garmin sync requires backend credentials (GARMIN_CLIENT_ID, GARMIN_CLIENT_SECRET). GPX file import is available now via the My Runs page.
+                <strong>Note:</strong> Direct device sync is coming soon. In the meantime, you can manually import <strong>.fit</strong> or <strong>.gpx</strong> files exported from Garmin Connect or Apple Health using the <em>Import File</em> button above.
               </div>
             </CardContent>
           </Card>
