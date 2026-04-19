@@ -1,6 +1,6 @@
 import React from 'react';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
-import { ChevronLeft, ChevronRight, MapPin, Clock, Zap } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Clock, Zap, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { parseDateOnly } from '@/lib/dateUtils';
@@ -16,6 +16,8 @@ export default function WeeklyTrainingBoard({
   onToggleExpanded,
   showCompleteButton = false,
   onMarkComplete,
+  onViewWorkout,
+  onDeleteWorkout,
   role = 'athlete',
 }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -133,12 +135,12 @@ export default function WeeklyTrainingBoard({
               </div>
 
               {/* Day content */}
-              <div className="px-4 py-3">
-                {visibleAssigned.length === 0 ? (
+              <div className="px-4 py-3 space-y-3">
+                {visibleAssigned.length === 0 && unlinkedLogged.length === 0 && (
                   <p className="text-sm text-muted-foreground/60 italic py-6 text-center">Rest day</p>
-                ) : (
+                )}
+                {visibleAssigned.length > 0 && (
                   <div className="space-y-3">
-                    {/* Only assigned pending workouts */}
                     {visibleAssigned.map(pw => (
                       <PlannedWorkoutCard
                         key={pw.id}
@@ -153,6 +155,32 @@ export default function WeeklyTrainingBoard({
                     ))}
                   </div>
                 )}
+                {/* Logged / imported workouts */}
+                {unlinkedLogged.map(w => (
+                  <div
+                    key={w.id}
+                    className="flex items-center justify-between gap-2 p-3 rounded-xl bg-secondary/5 border border-secondary/20 cursor-pointer hover:bg-secondary/10 transition-colors"
+                    onClick={() => onViewWorkout?.(w)}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold truncate">{w.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {[
+                          w.distance_km && `${w.distance_km} km`,
+                          w.duration_minutes && `${w.duration_minutes} min`,
+                        ].filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive shrink-0 opacity-60 hover:opacity-100"
+                      onClick={(e) => { e.stopPropagation(); onDeleteWorkout?.(w.id); }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           );

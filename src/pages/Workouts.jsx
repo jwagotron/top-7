@@ -182,6 +182,8 @@ export default function Workouts() {
           onToggleExpanded={(id) => setExpandedPlanned(expandedPlanned === id ? null : id)}
           showCompleteButton={isAthlete}
           onMarkComplete={isAthlete ? ({ workout, notes }) => completeMut.mutateAsync({ workout, notes }) : undefined}
+          onViewWorkout={(w) => setViewingWorkout(w)}
+          onDeleteWorkout={(id) => deleteWorkoutMut.mutate(id)}
           role={role}
         />
       </div>
