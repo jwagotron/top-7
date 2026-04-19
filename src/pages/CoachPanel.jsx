@@ -55,6 +55,7 @@ export default function CoachPanel() {
   });
 
   const athleteEmails = members.map(m => m.athlete_email);
+  const normalizedAthletes = members.map(m => ({ email: m.athlete_email, full_name: m.athlete_name }));
   const selectedAthleteEmail = athleteFilter !== 'all' ? athleteFilter : null;
   const { completions } = useCompletions(selectedAthleteEmail);
 
@@ -263,7 +264,7 @@ export default function CoachPanel() {
           onClose={() => setShowForm(false)}
           onSubmit={(d) => createMut.mutate(d)}
           defaultDate={format(selectedDate, 'yyyy-MM-dd')}
-          athletes={members}
+          athletes={normalizedAthletes}
           athleteFilter={athleteFilter}
         />
         {editingWorkout && (
@@ -272,7 +273,7 @@ export default function CoachPanel() {
             onClose={() => setEditingWorkout(null)}
             onSubmit={(d) => updateMut.mutate({ id: editingWorkout.id, data: d })}
             workout={editingWorkout}
-            athletes={members}
+            athletes={normalizedAthletes}
             athleteFilter={athleteFilter}
           />
         )}
