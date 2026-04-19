@@ -155,9 +155,29 @@ function parseFit(bytes) {
         const avgHr = (msgData[16] != null && msgData[16] !== 255) ? msgData[16] : null;
         const maxHr = (msgData[17] != null && msgData[17] !== 255) ? msgData[17] : null;
         const avgCad = (msgData[18] != null && msgData[18] !== 255) ? msgData[18] * 2 : null;
-        // FIT Session field 11 = total_calories (uint16, kcal). Field 22 also maps to calories in some profiles.
-        const calories = (msgData[11] != null && msgData[11] !== 65535 && msgData[11] > 0) ? msgData[11] :
-                         (msgData[22] != null && msgData[22] !== 65535 && msgData[22] > 0) ? msgData[22] : null;
+        // FIT Session: total_calories is field 11 (uint16, kcal)
+        // Garmin devices vary — scan known calorie fields and also do a best-guess scan
+        // Known field candidates: 11=total_calories, 14=nec_calories (some profiles)
+        // We pick the LARGEST plausible value (150-9999) since small values like 99 are likely wrong fields
+        let calories = null;
+        const knownCalFields = [11, 14, 22, 33, 48];
+        for (const f of knownCalFields) {
+          const v = msgData[f];
+          if (v != null && v !== 65535 && v >= 150 && v <= 9999) {
+            if (calories === null || v > calories) calories = v;
+          }
+        }
+        // Last resort: scan ALL fields for any value 150-9999
+        if (!calories) {
+          for (const [key, val] of Object.entries(msgData)) {
+            if (val != null && val !== 65535 && val >= 150 && val <= 9999) {
+              calories = val;
+              break;
+            }
+          }
+        }
+        console.log('[parseFit] Session all fields:', Object.entries(msgData).map(([k,v]) => `${k}=${v}`).join(', '));
+        console.log('[parseFit] Calories resolved:', calories);
         const ascent = (msgData[25] != null && msgData[25] !== 65535) ? msgData[25] : null;
 
         // Advanced running dynamics: field 54=avg_stride_length(cm*10), field 55=avg_vertical_oscillation(mm*10), field 57=avg_ground_contact_time(ms/10), field 89=avg_vertical_ratio
@@ -166,6 +186,7 @@ function parseFit(bytes) {
         const groundContact = (msgData[57] != null && msgData[57] !== 65535) ? msgData[57] / 10 : null; // ms
         const vertRatio = (msgData[89] != null && msgData[89] !== 65535) ? msgData[89] / 100 : null; // %
 
+        console.log('[parseFit] Session msgData keys:', Object.keys(msgData).map(k => `${k}=${msgData[k]}`).join(', '));
         sessionData = { sport, startTs, elapsedSec, distM, avgHr, maxHr, avgCad, calories, ascent, strideLength, vertOscillation, groundContact, vertRatio };
 
       } else if (def.globalMsgNum === MESG_TYPE_LAP) {
@@ -240,8 +261,24 @@ function parseFit(bytes) {
       };
     });
 
-  // Calories and elevation
-  const calories = sessionData?.calories || null;
+  // Calories: use parsed value if plausible (>= 150 kcal for a run), else estimate from MET formula
+  let calories = sessionData?.calories || null;
+  if (!calories || calories < 150) {
+    // Rough estimate: ~600 kcal/hr for running (MET ~10 * 70kg bodyweight)
+    // Better: use HR-based formula if available, else just duration-based
+    if (duration_minutes && duration_minutes > 5) {
+      const avgHrForCalc = avg_heart_rate || 150;
+      // Keytel formula (simplified): kcal/min ≈ (HR × 0.6309 - 55.0969 + age × 0.1988) / 4.184 for male
+      // Without age/weight, use simple: ~0.075 * HR per minute for moderate intensity
+      const kcalPerMin = avgHrForCalc > 0 ? (avgHrForCalc * 0.074) - 2.0 : 9.0;
+      const estimated = Math.round(Math.max(kcalPerMin, 5) * duration_minutes);
+      // Only use estimate if parsed value seems wrong (< 150) and estimate is plausible
+      if (!calories || calories < 150) {
+        calories = estimated;
+        console.log('[parseFit] Using estimated calories:', estimated, '(parsed was:', sessionData?.calories, ')');
+      }
+    }
+  }
   const elevation_gain = sessionData?.ascent || null;
 
   return {

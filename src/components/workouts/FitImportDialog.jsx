@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Upload, CheckCircle2, AlertCircle, Loader2, Watch, Navigation } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { base44 } from '@/api/base44Client';
+import { useUnits } from '@/hooks/useUnits';
 
 // Parse GPX inline (no backend needed)
 function parseGpx(text) {
@@ -76,6 +77,7 @@ const SOURCE_OPTIONS = [
 ];
 
 export default function FitImportDialog({ open, onClose, onImport }) {
+  const { units, toDisplay, label: distLabel, paceLabel, toDisplayElevation, elevationLabel, convertPaceLabel } = useUnits();
   const [source, setSource] = useState(null);
   const [parsed, setParsed] = useState(null);
   const [error, setError] = useState('');
@@ -236,14 +238,18 @@ export default function FitImportDialog({ open, onClose, onImport }) {
 
             <div className="bg-muted/40 rounded-xl p-4 grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
               <div><span className="text-muted-foreground text-xs block">Date</span><span className="font-medium">{parsed.date}</span></div>
-              {parsed.distance_km && <div><span className="text-muted-foreground text-xs block">Distance</span><span className="font-medium">{parsed.distance_km} km</span></div>}
+              {parsed.distance_km && <div><span className="text-muted-foreground text-xs block">Distance</span><span className="font-medium">{toDisplay(parsed.distance_km).toFixed(2)} {distLabel}</span></div>}
               {parsed.duration_minutes && <div><span className="text-muted-foreground text-xs block">Duration</span><span className="font-medium">{parsed.duration_minutes} min</span></div>}
-              {parsed.avg_pace && <div><span className="text-muted-foreground text-xs block">Avg Pace</span><span className="font-medium">{parsed.avg_pace} /km</span></div>}
+              {parsed.avg_pace && <div><span className="text-muted-foreground text-xs block">Avg Pace</span><span className="font-medium">{convertPaceLabel(parsed.avg_pace)} {paceLabel}</span></div>}
               {parsed.avg_heart_rate && <div><span className="text-muted-foreground text-xs block">Avg HR</span><span className="font-medium">{parsed.avg_heart_rate} bpm</span></div>}
               {parsed.max_heart_rate && <div><span className="text-muted-foreground text-xs block">Max HR</span><span className="font-medium">{parsed.max_heart_rate} bpm</span></div>}
               {parsed.cadence && <div><span className="text-muted-foreground text-xs block">Cadence</span><span className="font-medium">{parsed.cadence} spm</span></div>}
-              {parsed.elevation_gain && <div><span className="text-muted-foreground text-xs block">Elevation</span><span className="font-medium">+{parsed.elevation_gain} m</span></div>}
+              {parsed.elevation_gain && <div><span className="text-muted-foreground text-xs block">Elevation</span><span className="font-medium">+{toDisplayElevation(parsed.elevation_gain)} {elevationLabel}</span></div>}
               {parsed.calories && <div><span className="text-muted-foreground text-xs block">Calories</span><span className="font-medium">{parsed.calories} kcal</span></div>}
+              {parsed.stride_length_cm && <div><span className="text-muted-foreground text-xs block">Stride Length</span><span className="font-medium">{parsed.stride_length_cm.toFixed(1)} cm</span></div>}
+              {parsed.vertical_oscillation_mm && <div><span className="text-muted-foreground text-xs block">Vert. Oscillation</span><span className="font-medium">{parsed.vertical_oscillation_mm.toFixed(1)} mm</span></div>}
+              {parsed.ground_contact_ms && <div><span className="text-muted-foreground text-xs block">Ground Contact</span><span className="font-medium">{Math.round(parsed.ground_contact_ms)} ms</span></div>}
+              {parsed.vertical_ratio && <div><span className="text-muted-foreground text-xs block">Vertical Ratio</span><span className="font-medium">{parsed.vertical_ratio.toFixed(1)}%</span></div>}
               {parsed.splits?.length > 0 && <div><span className="text-muted-foreground text-xs block">Splits</span><span className="font-medium">{parsed.splits.length} laps</span></div>}
             </div>
 

@@ -26,10 +26,11 @@ function MetricTile({ icon: Icon, label, value, unit, color = 'text-primary', bg
 }
 
 export default function WorkoutDetailDrawer({ workout, onClose }) {
-  const { toDisplay, label: distLabel, convertPaceLabel, paceLabel, toDisplayElevation, elevationLabel } = useUnits();
+  const { units, toDisplay, label: distLabel, convertPaceLabel, paceLabel, toDisplayElevation, elevationLabel } = useUnits();
   const { role } = useRole();
 
   const splitData = workout?.splits || [];
+  const KM_TO_MI = 0.621371;
   const tooltipStyle = {
     background: 'hsl(var(--card))',
     border: '1px solid hsl(var(--border))',
@@ -44,7 +45,10 @@ export default function WorkoutDetailDrawer({ workout, onClose }) {
     hr: s.heart_rate || null,
     pace: s.pace ? (() => {
       const m = s.pace.match(/(\d+):(\d+)/);
-      return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : null;
+      if (!m) return null;
+      const secPerKm = parseInt(m[1]) * 60 + parseInt(m[2]);
+      // Convert to sec/mi if using miles
+      return units === 'mi' ? Math.round(secPerKm / KM_TO_MI) : secPerKm;
     })() : null,
     elevation: s.elevation_change != null ? s.elevation_change : null,
     cadence: s.cadence || null,
@@ -99,16 +103,16 @@ export default function WorkoutDetailDrawer({ workout, onClose }) {
             )}
             {/* Advanced running dynamics */}
             {workout.stride_length_cm && (
-              <MetricTile icon={Footprints} label="Stride Length" value={(workout.stride_length_cm / 100).toFixed(2)} unit="m" color="text-chart-3" bg="bg-chart-3/10" />
+              <MetricTile icon={Footprints} label="Stride Length" value={workout.stride_length_cm.toFixed(1)} unit="cm" color="text-chart-3" bg="bg-chart-3/10" />
             )}
             {workout.vertical_oscillation_mm && (
-              <MetricTile icon={ArrowUpDown} label="Vert. Oscillation" value={(workout.vertical_oscillation_mm / 10).toFixed(1)} unit="cm" color="text-chart-4" bg="bg-chart-4/10" />
+              <MetricTile icon={ArrowUpDown} label="Vert. Oscillation" value={workout.vertical_oscillation_mm.toFixed(1)} unit="mm" color="text-chart-4" bg="bg-chart-4/10" />
             )}
             {workout.ground_contact_ms && (
-              <MetricTile icon={Target} label="Ground Contact" value={workout.ground_contact_ms} unit="ms" color="text-chart-2" bg="bg-chart-2/10" />
+              <MetricTile icon={Target} label="Ground Contact" value={Math.round(workout.ground_contact_ms)} unit="ms" color="text-chart-2" bg="bg-chart-2/10" />
             )}
             {workout.vertical_ratio && (
-              <MetricTile icon={Wind} label="Vertical Ratio" value={workout.vertical_ratio?.toFixed(1)} unit="%" color="text-primary" bg="bg-primary/10" />
+              <MetricTile icon={Wind} label="Vertical Ratio" value={workout.vertical_ratio.toFixed(1)} unit="%" color="text-primary" bg="bg-primary/10" />
             )}
           </div>
 
