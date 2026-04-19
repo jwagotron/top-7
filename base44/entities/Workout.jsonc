@@ -49,6 +49,14 @@
       "type": "string",
       "description": "Target pace (e.g. 5:30 /km)"
     },
+    "target_distance_km": {
+      "type": "number",
+      "description": "Planned target distance in km (from matched planned workout)"
+    },
+    "target_duration_minutes": {
+      "type": "number",
+      "description": "Planned target duration in minutes (from matched planned workout)"
+    },
     "intensity": {
       "type": "string",
       "enum": [
@@ -88,6 +96,22 @@
       "type": "number",
       "description": "Elevation gain in meters"
     },
+    "stride_length_cm": {
+      "type": "number",
+      "description": "Average stride length in centimeters"
+    },
+    "vertical_oscillation_mm": {
+      "type": "number",
+      "description": "Average vertical oscillation in millimeters"
+    },
+    "ground_contact_ms": {
+      "type": "number",
+      "description": "Average ground contact time in milliseconds"
+    },
+    "vertical_ratio": {
+      "type": "number",
+      "description": "Vertical ratio (vertical oscillation / stride length) as percentage"
+    },
     "perceived_effort": {
       "type": "number",
       "description": "RPE scale 1-10"
@@ -109,6 +133,12 @@
             "type": "string"
           },
           "heart_rate": {
+            "type": "number"
+          },
+          "cadence": {
+            "type": "number"
+          },
+          "elevation_change": {
             "type": "number"
           }
         }

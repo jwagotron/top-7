@@ -155,17 +155,30 @@ function parseFit(bytes) {
         const avgHr = (msgData[16] != null && msgData[16] !== 255) ? msgData[16] : null;
         const maxHr = (msgData[17] != null && msgData[17] !== 255) ? msgData[17] : null;
         const avgCad = (msgData[18] != null && msgData[18] !== 255) ? msgData[18] * 2 : null;
-        const calories = (msgData[22] != null && msgData[22] !== 65535) ? msgData[22] : null;
+        // FIT Session field 11 = total_calories (uint16, kcal). Field 22 also maps to calories in some profiles.
+        const calories = (msgData[11] != null && msgData[11] !== 65535 && msgData[11] > 0) ? msgData[11] :
+                         (msgData[22] != null && msgData[22] !== 65535 && msgData[22] > 0) ? msgData[22] : null;
         const ascent = (msgData[25] != null && msgData[25] !== 65535) ? msgData[25] : null;
 
-        sessionData = { sport, startTs, elapsedSec, distM, avgHr, maxHr, avgCad, calories, ascent };
+        // Advanced running dynamics: field 54=avg_stride_length(cm*10), field 55=avg_vertical_oscillation(mm*10), field 57=avg_ground_contact_time(ms/10), field 89=avg_vertical_ratio
+        const strideLength = (msgData[54] != null && msgData[54] !== 65535) ? msgData[54] / 10 : null; // cm
+        const vertOscillation = (msgData[55] != null && msgData[55] !== 65535) ? msgData[55] / 10 : null; // mm
+        const groundContact = (msgData[57] != null && msgData[57] !== 65535) ? msgData[57] / 10 : null; // ms
+        const vertRatio = (msgData[89] != null && msgData[89] !== 65535) ? msgData[89] / 100 : null; // %
+
+        sessionData = { sport, startTs, elapsedSec, distM, avgHr, maxHr, avgCad, calories, ascent, strideLength, vertOscillation, groundContact, vertRatio };
 
       } else if (def.globalMsgNum === MESG_TYPE_LAP) {
         const startTs = msgData[2] != null ? fitTimestampToMs(msgData[2]) : null;
         const elapsedSec = msgData[7] != null ? msgData[7] / 1000 : null;
         const distM = msgData[9] != null ? msgData[9] / 100 : null;
         const avgHr = (msgData[16] != null && msgData[16] !== 255) ? msgData[16] : null;
-        laps.push({ startTs, elapsedSec, distM, avgHr });
+        const avgCad = (msgData[18] != null && msgData[18] !== 255) ? msgData[18] * 2 : null;
+        // total_ascent field 25, total_descent field 26
+        const lapAscent = (msgData[25] != null && msgData[25] !== 65535) ? msgData[25] : null;
+        const lapDescent = (msgData[26] != null && msgData[26] !== 65535) ? msgData[26] : null;
+        const elevationChange = (lapAscent != null || lapDescent != null) ? (lapAscent || 0) - (lapDescent || 0) : null;
+        laps.push({ startTs, elapsedSec, distM, avgHr, avgCad, elevationChange });
       }
     }
   }
@@ -222,6 +235,8 @@ function parseFit(bytes) {
         km: i + 1,
         pace: `${paceMin}:${String(paceSec).padStart(2, '0')}`,
         heart_rate: l.avgHr || undefined,
+        cadence: l.avgCad || undefined,
+        elevation_change: l.elevationChange != null ? Math.round(l.elevationChange) : undefined,
       };
     });
 
@@ -241,6 +256,10 @@ function parseFit(bytes) {
     cadence,
     elevation_gain: elevation_gain || null,
     calories: calories || null,
+    stride_length_cm: sessionData?.strideLength || null,
+    vertical_oscillation_mm: sessionData?.vertOscillation || null,
+    ground_contact_ms: sessionData?.groundContact || null,
+    vertical_ratio: sessionData?.vertRatio || null,
     splits: splits.length ? splits : undefined,
   };
 }

@@ -189,7 +189,14 @@ export default function Workouts() {
       <FitImportDialog
         open={showFitImport}
         onClose={() => setShowFitImport(false)}
-        onImport={(data) => { createMut.mutate(data); setShowFitImport(false); }}
+        plannedWorkouts={myPlanned}
+        onImport={(data, matchedPlanned) => {
+          createMut.mutate(data);
+          if (matchedPlanned) {
+            updatePlannedMut.mutate({ id: matchedPlanned.id, data: { status: 'completed' } });
+          }
+          setShowFitImport(false);
+        }}
       />
 
       {/* Forms & drawers — coach/admin only */}
