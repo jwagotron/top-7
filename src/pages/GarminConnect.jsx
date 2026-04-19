@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Wifi, WifiOff, RefreshCw, CheckCircle2, AlertCircle, Clock, Activity, Zap, Upload } from 'lucide-react';
 import FitImportDialog from '@/components/workouts/FitImportDialog';
-import { useMutation } from '@tanstack/react-query';
 
 // TODO: Replace with real Garmin OAuth URL once credentials are approved
 // GARMIN_CLIENT_ID, GARMIN_CLIENT_SECRET, GARMIN_REDIRECT_URI must be set as env vars on the backend
