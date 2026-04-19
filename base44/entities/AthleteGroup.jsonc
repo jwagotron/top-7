@@ -1,0 +1,35 @@
+{
+  "name": "AthleteGroup",
+  "type": "object",
+  "properties": {
+    "team_id": {
+      "type": "string",
+      "description": "Reference to Team"
+    },
+    "coach_email": {
+      "type": "string",
+      "description": "Email of the coach"
+    },
+    "name": {
+      "type": "string",
+      "description": "Group name (e.g. Sprinters, Distance, Beginners)"
+    },
+    "athlete_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of athlete emails in this group"
+    },
+    "color": {
+      "type": "string",
+      "description": "Display color for the group badge",
+      "default": "blue"
+    }
+  },
+  "required": [
+    "team_id",
+    "coach_email",
+    "name"
+  ]
+}

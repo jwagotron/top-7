@@ -16,7 +16,11 @@ import { Save, Plus, Pencil, Trash2, Copy, ChevronRight, Dumbbell } from 'lucide
 import { format } from 'date-fns';
 import { useUnits } from '@/hooks/useUnits';
 
-const defaultForm = { title: '', sport: 'run', run_type: 'interval', description: '', estimated_duration_min: '', estimated_distance_km: '' };
+const defaultForm = {
+  title: '', sport: 'run', run_type: 'interval', description: '',
+  estimated_duration_min: '', estimated_distance_km: '',
+  warmup_description: '', main_set_description: '', cooldown_description: '',
+};
 
 export default function WorkoutBuilder() {
   const { user } = useAuth();
@@ -97,6 +101,9 @@ export default function WorkoutBuilder() {
       description: w.description || '',
       estimated_duration_min: w.duration_minutes || '',
       estimated_distance_km: w.distance_km ? toDisplay(w.distance_km) : '',
+      warmup_description: w.warmup_description || '',
+      main_set_description: w.main_set_description || '',
+      cooldown_description: w.cooldown_description || '',
     });
     setSteps(allSteps.filter(s => s.workout_id === w.id).map(s => ({ ...s, id: s.id })));
     setEditingId(w.id);
@@ -113,6 +120,9 @@ export default function WorkoutBuilder() {
         description: form.description,
         duration_minutes: form.estimated_duration_min ? Number(form.estimated_duration_min) : null,
         distance_km: form.estimated_distance_km ? toKm(Number(form.estimated_distance_km)) : null,
+        warmup_description: form.warmup_description,
+        main_set_description: form.main_set_description,
+        cooldown_description: form.cooldown_description,
         date: new Date().toISOString().slice(0, 10),
       },
       steps,
@@ -223,8 +233,25 @@ export default function WorkoutBuilder() {
                     </div>
                   </div>
 
+                  {/* Required structure fields */}
+                  <div className="space-y-3 border-t pt-4">
+                    <p className="text-sm font-semibold">Workout Structure <span className="text-xs text-muted-foreground font-normal">(required for assigning)</span></p>
+                    <div>
+                      <Label>Warm-Up <span className="text-destructive">*</span></Label>
+                      <Textarea value={form.warmup_description} onChange={e => set('warmup_description', e.target.value)} rows={2} placeholder="e.g. 10 min easy jog, dynamic stretches…" />
+                    </div>
+                    <div>
+                      <Label>Main Set <span className="text-destructive">*</span></Label>
+                      <Textarea value={form.main_set_description} onChange={e => set('main_set_description', e.target.value)} rows={3} placeholder="e.g. 4 × 1km at threshold pace with 90s recovery…" />
+                    </div>
+                    <div>
+                      <Label>Cool-Down <span className="text-destructive">*</span></Label>
+                      <Textarea value={form.cooldown_description} onChange={e => set('cooldown_description', e.target.value)} rows={2} placeholder="e.g. 10 min easy jog, static stretches…" />
+                    </div>
+                  </div>
+
                   <div>
-                    <Label className="mb-3 block">Workout Steps</Label>
+                    <Label className="mb-3 block">Workout Steps <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
                     <WorkoutStepEditor steps={steps} onChange={setSteps} />
                   </div>
 

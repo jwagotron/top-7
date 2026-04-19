@@ -1,0 +1,139 @@
+{
+  "name": "Workout",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Workout title"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "run",
+        "bike",
+        "swim",
+        "strength",
+        "other"
+      ],
+      "description": "Type of sport"
+    },
+    "run_type": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "long_run",
+        "tempo",
+        "interval",
+        "fartlek",
+        "hill_repeats",
+        "race",
+        "recovery",
+        "progression"
+      ],
+      "description": "Type of run"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the workout"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Duration in minutes"
+    },
+    "distance_km": {
+      "type": "number",
+      "description": "Distance in kilometers"
+    },
+    "avg_pace": {
+      "type": "string",
+      "description": "Average pace (min/km)"
+    },
+    "best_pace": {
+      "type": "string",
+      "description": "Best/fastest pace achieved (min/km)"
+    },
+    "avg_heart_rate": {
+      "type": "number",
+      "description": "Average heart rate in BPM"
+    },
+    "max_heart_rate": {
+      "type": "number",
+      "description": "Max heart rate in BPM"
+    },
+    "cadence": {
+      "type": "number",
+      "description": "Average steps per minute"
+    },
+    "calories": {
+      "type": "number",
+      "description": "Calories burned"
+    },
+    "elevation_gain": {
+      "type": "number",
+      "description": "Elevation gain in meters"
+    },
+    "perceived_effort": {
+      "type": "number",
+      "description": "RPE scale 1-10"
+    },
+    "shoes": {
+      "type": "string",
+      "description": "Shoe model used"
+    },
+    "splits": {
+      "type": "array",
+      "description": "Per-km or per-mile splits",
+      "items": {
+        "type": "object",
+        "properties": {
+          "km": {
+            "type": "number"
+          },
+          "pace": {
+            "type": "string"
+          },
+          "heart_rate": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Workout notes"
+    },
+    "feeling": {
+      "type": "string",
+      "enum": [
+        "great",
+        "good",
+        "okay",
+        "tired",
+        "exhausted"
+      ],
+      "description": "How the athlete felt"
+    },
+    "planned_workout_id": {
+      "type": "string",
+      "description": "Reference to the PlannedWorkout this fulfills"
+    },
+    "warmup_description": {
+      "type": "string",
+      "description": "Warm-up instructions"
+    },
+    "main_set_description": {
+      "type": "string",
+      "description": "Main set / intervals description"
+    },
+    "cooldown_description": {
+      "type": "string",
+      "description": "Cool-down instructions"
+    }
+  },
+  "required": [
+    "title",
+    "sport",
+    "date"
+  ]
+}

@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AthleteGroupManager from '@/components/coach/AthleteGroupManager';
 import { Plus, Users, Calendar, CheckCircle2, TrendingUp, ChevronDown, Settings } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { useCompletions } from '@/hooks/useCompletions';
@@ -250,8 +251,11 @@ export default function CoachPanel() {
               </TabsContent>
 
               {/* ATHLETES TAB */}
-              <TabsContent value="athletes" className="mt-0">
+              <TabsContent value="athletes" className="mt-0 space-y-6">
                 <TeamMembershipList teamId={effectiveTeamId} coachEmail={user?.email} />
+                <div className="border-t border-border pt-5">
+                  <AthleteGroupManager teamId={effectiveTeamId} coachEmail={user?.email} members={members} />
+                </div>
               </TabsContent>
               </Tabs>
               </>
@@ -266,6 +270,7 @@ export default function CoachPanel() {
           defaultDate={format(selectedDate, 'yyyy-MM-dd')}
           athletes={normalizedAthletes}
           athleteFilter={athleteFilter}
+          teamId={effectiveTeamId}
         />
         {editingWorkout && (
           <AssignWorkoutForm
@@ -275,6 +280,7 @@ export default function CoachPanel() {
             workout={editingWorkout}
             athletes={normalizedAthletes}
             athleteFilter={athleteFilter}
+            teamId={effectiveTeamId}
           />
         )}
 
