@@ -6,7 +6,7 @@ import TopBar from '@/components/layout/TopBar';
 import StatCard from '@/components/dashboard/StatCard';
 import WeeklyChart from '@/components/dashboard/WeeklyChart';
 import JoinTeamCTA from '@/components/dashboard/JoinTeamCTA';
-import WorkoutDetailDrawer from '@/components/dashboard/WorkoutDetailDrawer';
+import WorkoutDetailDrawer from '@/components/dashboard/WorkoutDetailDrawer.jsx';
 import { Activity, MapPin, Clock, Flame, CheckCircle2, ChevronRight, Footprints, Bike, Waves, Dumbbell, CircleDot, Calendar } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
