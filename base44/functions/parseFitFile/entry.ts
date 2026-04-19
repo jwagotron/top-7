@@ -251,13 +251,13 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const formData = await req.formData();
-    const file = formData.get('file');
-    if (!file) return Response.json({ error: 'No file provided' }, { status: 400 });
+    const body = await req.json();
+    if (!body.fileData || !Array.isArray(body.fileData)) {
+      return Response.json({ error: 'No file data provided' }, { status: 400 });
+    }
 
-    const fileName = file.name || '';
-    const arrayBuffer = await file.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
+    const fileName = body.fileName || '';
+    const bytes = new Uint8Array(body.fileData);
 
     let result;
     if (fileName.toLowerCase().endsWith('.fit')) {

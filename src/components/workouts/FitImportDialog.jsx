@@ -99,9 +99,11 @@ export default function FitImportDialog({ open, onClose, onImport }) {
         setParsed({ ...result, _filename: file.name });
 
       } else if (file.name.toLowerCase().endsWith('.fit')) {
-        const formData = new FormData();
-        formData.append('file', file);
-        const res = await base44.functions.invoke('parseFitFile', formData);
+        const arrayBuffer = await file.arrayBuffer();
+        const res = await base44.functions.invoke('parseFitFile', {
+          fileData: Array.from(new Uint8Array(arrayBuffer)),
+          fileName: file.name,
+        });
         if (res.data?.error) throw new Error(res.data.error);
         setParsed({ ...res.data.data, _filename: file.name });
 
