@@ -45,6 +45,21 @@
       "type": "number",
       "description": "Distance in kilometers"
     },
+    "target_pace": {
+      "type": "string",
+      "description": "Target pace (e.g. 5:30 /km)"
+    },
+    "intensity": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "moderate",
+        "hard",
+        "race_pace",
+        "recovery"
+      ],
+      "description": "Workout intensity"
+    },
     "avg_pace": {
       "type": "string",
       "description": "Average pace (min/km)"

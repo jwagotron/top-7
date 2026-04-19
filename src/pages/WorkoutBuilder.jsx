@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -12,20 +12,33 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import WorkoutStepEditor from '@/components/workouts/WorkoutStepEditor';
-import { Save, Plus, Pencil, Trash2, Copy, ChevronRight, Dumbbell } from 'lucide-react';
-import { format } from 'date-fns';
+import { Save, Plus, Pencil, Trash2, Dumbbell } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
 
+const RUN_TYPES = [
+  { value: 'easy', label: 'Easy Run', color: 'bg-secondary/10 text-secondary' },
+  { value: 'long_run', label: 'Long Run', color: 'bg-primary/10 text-primary' },
+  { value: 'tempo', label: 'Tempo', color: 'bg-accent/10 text-accent' },
+  { value: 'interval', label: 'Intervals', color: 'bg-destructive/10 text-destructive' },
+  { value: 'fartlek', label: 'Fartlek', color: 'bg-chart-4/10 text-chart-4' },
+  { value: 'hill_repeats', label: 'Hill Repeats', color: 'bg-chart-5/10 text-chart-5' },
+  { value: 'race', label: 'Race', color: 'bg-accent/10 text-accent' },
+  { value: 'recovery', label: 'Recovery', color: 'bg-muted text-muted-foreground' },
+  { value: 'progression', label: 'Progression', color: 'bg-secondary/10 text-secondary' },
+];
+
 const defaultForm = {
-  title: '', sport: 'run', run_type: 'interval', description: '',
-  estimated_duration_min: '', estimated_distance_km: '',
+  title: '', sport: 'run', run_type: 'easy', description: '',
+  estimated_duration_min: '', estimated_distance_km: '', target_pace: '',
+  intensity: 'moderate',
   warmup_description: '', main_set_description: '', cooldown_description: '',
 };
 
 export default function WorkoutBuilder() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const { toDisplay, toKm, label } = useUnits();
+  const { toDisplay, toKm, label, paceLabel } = useUnits();
   const [form, setForm] = useState(defaultForm);
   const [steps, setSteps] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -97,10 +110,12 @@ export default function WorkoutBuilder() {
     setForm({
       title: w.title,
       sport: w.sport || 'run',
-      run_type: w.run_type || 'interval',
+      run_type: w.run_type || 'easy',
       description: w.description || '',
       estimated_duration_min: w.duration_minutes || '',
       estimated_distance_km: w.distance_km ? toDisplay(w.distance_km) : '',
+      target_pace: w.target_pace || '',
+      intensity: w.intensity || 'moderate',
       warmup_description: w.warmup_description || '',
       main_set_description: w.main_set_description || '',
       cooldown_description: w.cooldown_description || '',
@@ -120,6 +135,8 @@ export default function WorkoutBuilder() {
         description: form.description,
         duration_minutes: form.estimated_duration_min ? Number(form.estimated_duration_min) : null,
         distance_km: form.estimated_distance_km ? toKm(Number(form.estimated_distance_km)) : null,
+        target_pace: form.target_pace || null,
+        intensity: form.intensity || null,
         warmup_description: form.warmup_description,
         main_set_description: form.main_set_description,
         cooldown_description: form.cooldown_description,
@@ -191,49 +208,63 @@ export default function WorkoutBuilder() {
                   <CardTitle className="text-base">{editingId ? 'Edit Workout' : 'New Workout'}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
-                      <Label>Workout Title</Label>
-                      <Input value={form.title} onChange={e => set('title', e.target.value)} placeholder="Threshold Intervals 5×1km" />
-                    </div>
-                    <div>
-                      <Label>Sport</Label>
-                      <Select value={form.sport} onValueChange={v => set('sport', v)}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="run">Run</SelectItem>
-                          <SelectItem value="bike">Bike</SelectItem>
-                          <SelectItem value="swim">Swim</SelectItem>
-                          <SelectItem value="strength">Strength</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Run Type</Label>
-                      <Select value={form.run_type} onValueChange={v => set('run_type', v)}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {['easy','long_run','tempo','interval','fartlek','hill_repeats','race','recovery','progression'].map(t => (
-                            <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Est. Distance ({label})</Label>
-                      <Input type="number" step="0.01" value={form.estimated_distance_km} onChange={e => set('estimated_distance_km', e.target.value)} placeholder={label === 'mi' ? '7.5' : '12'} />
-                    </div>
-                    <div>
-                      <Label>Est. Duration (min)</Label>
-                      <Input type="number" value={form.estimated_duration_min} onChange={e => set('estimated_duration_min', e.target.value)} placeholder="65" />
-                    </div>
-                    <div className="col-span-2">
-                      <Label>Description</Label>
-                      <Textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2} placeholder="Overview for athlete…" />
+
+                  {/* Title */}
+                  <div>
+                    <Label>Workout Title <span className="text-destructive">*</span></Label>
+                    <Input value={form.title} onChange={e => set('title', e.target.value)} placeholder="Tempo Run – 8km" />
+                  </div>
+
+                  {/* Run Type pills — exactly matching AssignWorkoutForm */}
+                  <div>
+                    <Label>Run Type <span className="text-destructive">*</span></Label>
+                    <div className="flex flex-wrap gap-2 mt-1.5">
+                      {RUN_TYPES.map(rt => (
+                        <button key={rt.value} type="button" onClick={() => set('run_type', rt.value)}
+                          className={cn('px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                            form.run_type === rt.value ? `${rt.color} border-current shadow-sm` : 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80')}>
+                          {rt.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Required structure fields */}
+                  {/* Metrics row */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Intensity <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                      <Select value={form.intensity} onValueChange={v => set('intensity', v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="recovery">Recovery</SelectItem>
+                          <SelectItem value="easy">Easy</SelectItem>
+                          <SelectItem value="moderate">Moderate</SelectItem>
+                          <SelectItem value="hard">Hard</SelectItem>
+                          <SelectItem value="race_pace">Race Pace</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Target Distance ({label}) <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                      <Input type="number" step="0.01" value={form.estimated_distance_km} onChange={e => set('estimated_distance_km', e.target.value)} placeholder={label === 'mi' ? '6.2' : '10'} />
+                    </div>
+                    <div>
+                      <Label>Target Duration (min) <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                      <Input type="number" value={form.estimated_duration_min} onChange={e => set('estimated_duration_min', e.target.value)} placeholder="55" />
+                    </div>
+                    <div>
+                      <Label>Target Pace ({paceLabel}) <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                      <Input value={form.target_pace} onChange={e => set('target_pace', e.target.value)} placeholder={label === 'mi' ? '8:27' : '5:15'} />
+                    </div>
+                  </div>
+
+                  {/* General description */}
+                  <div>
+                    <Label>General Description <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                    <Textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2} placeholder="Overview of what this workout is about…" />
+                  </div>
+
+                  {/* Structure — required for assigning */}
                   <div className="space-y-3 border-t pt-4">
                     <p className="text-sm font-semibold">Workout Structure <span className="text-xs text-muted-foreground font-normal">(required for assigning)</span></p>
                     <div>
@@ -250,6 +281,7 @@ export default function WorkoutBuilder() {
                     </div>
                   </div>
 
+                  {/* Workout steps */}
                   <div>
                     <Label className="mb-3 block">Workout Steps <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
                     <WorkoutStepEditor steps={steps} onChange={setSteps} />

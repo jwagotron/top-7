@@ -235,11 +235,14 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
       description: w.description || '',
       target_duration_minutes: w.duration_minutes || '',
       target_distance_km: w.distance_km ? toDisplay(w.distance_km) : '',
+      target_pace: w.target_pace || '',
+      intensity: w.intensity || 'moderate',
       warmup_description: w.warmup_description || '',
       main_set_description: w.main_set_description || '',
       cooldown_description: w.cooldown_description || '',
     }));
     setShowSavedWorkouts(false);
+    setActiveTab('details');
   };
 
   const isRequiredComplete = form.title && form.run_type && form.scheduled_date && form.warmup_description && form.main_set_description && form.cooldown_description;
@@ -339,9 +342,11 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                         <button key={w.id} type="button" onClick={() => loadSavedWorkout(w)}
                           className="w-full text-left px-4 py-2.5 hover:bg-muted/50 transition-colors">
                           <p className="text-sm font-medium">{w.title}</p>
-                          <div className="flex gap-1.5 mt-0.5">
-                            {w.run_type && <span className="text-[10px] text-muted-foreground">{w.run_type.replace(/_/g, ' ')}</span>}
+                          <div className="flex gap-1.5 mt-0.5 flex-wrap">
+                            {w.run_type && <span className="text-[10px] text-muted-foreground capitalize">{w.run_type.replace(/_/g, ' ')}</span>}
                             {w.duration_minutes && <span className="text-[10px] text-muted-foreground">· {w.duration_minutes}min</span>}
+                            {w.distance_km && <span className="text-[10px] text-muted-foreground">· {toDisplay(w.distance_km)}{label}</span>}
+                            {w.intensity && <span className="text-[10px] text-muted-foreground capitalize">· {w.intensity.replace('_', ' ')}</span>}
                           </div>
                         </button>
                       ))}

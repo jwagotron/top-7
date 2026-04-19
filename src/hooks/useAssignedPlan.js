@@ -5,40 +5,46 @@ import { base44 } from '@/api/base44Client';
 
 /**
  * Single source of truth for the current athlete's assigned workouts.
- *
- * Merges two sources:
- *   1. Plan-based: PlannedWorkouts where plan_id is in a plan assigned to this athlete
- *   2. Direct:     PlannedWorkouts where assigned_to === athlete email (no plan required)
- *
- * De-duplicates by id so workouts that appear in both are only shown once.
+ * Only returns workouts assigned directly to this athlete's email,
+ * preventing cross-team / cross-coach data leakage.
  */
 export function useAssignedPlan() {
   const { user } = useAuth();
   const athleteEmail = user?.email;
   const qc = useQueryClient();
 
-  // ── 1. Fetch plans assigned to this athlete ──────────────────────────────
+  // ── 1. Find which teams this athlete belongs to ─────────────────────────
+  const { data: memberships = [] } = useQuery({
+    queryKey: ['athlete-memberships', athleteEmail],
+    queryFn: () => base44.entities.TeamMembership.filter({ athlete_email: athleteEmail, status: 'active' }),
+    enabled: !!athleteEmail,
+  });
+
+  const coachEmails = [...new Set(memberships.map(m => m.coach_email).filter(Boolean))];
+
+  // ── 2. Fetch plans — only those assigned to this athlete AND owned by their coach ──
   const { data: plans = [], isLoading: plansLoading } = useQuery({
     queryKey: ['assigned-plans', athleteEmail],
     queryFn: async () => {
-      const all = await base44.entities.TrainingPlan.list('-created_date', 100);
+      // Filter directly by assigned_to containing this athlete
+      const all = await base44.entities.TrainingPlan.filter({ coach_email: coachEmails }, '-created_date', 100);
       return all.filter(p => Array.isArray(p.assigned_to) && p.assigned_to.includes(athleteEmail));
     },
-    enabled: !!athleteEmail,
+    enabled: !!athleteEmail && coachEmails.length > 0,
   });
 
   const activePlan = plans.find(p => p.status === 'active') || plans[0] || null;
 
-  // ── 2. Plan-based workouts ───────────────────────────────────────────────
+  // ── 3. Plan-based workouts ───────────────────────────────────────────────
   const { data: planWorkouts = [], isLoading: planWorkoutsLoading } = useQuery({
     queryKey: ['assigned-plan-workouts', activePlan?.id],
-    queryFn: () => base44.entities.PlannedWorkout.filter({ plan_id: activePlan.id }, 'scheduled_date', 500),
+    queryFn: () => base44.entities.PlannedWorkout.filter({ plan_id: activePlan.id, assigned_to: athleteEmail }, 'scheduled_date', 500),
     enabled: !!activePlan?.id,
     staleTime: 0,
     refetchOnMount: 'always',
   });
 
-  // ── 3. Directly assigned workouts (assigned_to = email, any plan or none) ─
+  // ── 4. Directly assigned workouts (assigned_to = this athlete's email only) ─
   const { data: directWorkouts = [], isLoading: directLoading } = useQuery({
     queryKey: ['direct-assigned-workouts', athleteEmail],
     queryFn: () => base44.entities.PlannedWorkout.filter({ assigned_to: athleteEmail }, 'scheduled_date', 500),
@@ -47,7 +53,7 @@ export function useAssignedPlan() {
     refetchOnMount: 'always',
   });
 
-  // ── 4. Merge & deduplicate ───────────────────────────────────────────────
+  // ── 5. Merge & deduplicate ───────────────────────────────────────────────
   const seen = new Set();
   const plannedWorkouts = [];
   for (const w of [...planWorkouts, ...directWorkouts]) {
@@ -58,11 +64,10 @@ export function useAssignedPlan() {
   }
   plannedWorkouts.sort((a, b) => (a.scheduled_date > b.scheduled_date ? 1 : -1));
 
-  // ── 5. Real-time subscription — invalidate on any PlannedWorkout change ──
+  // ── 6. Real-time subscription ────────────────────────────────────────────
   useEffect(() => {
     if (!athleteEmail) return;
     const unsubscribe = base44.entities.PlannedWorkout.subscribe(() => {
-      // Use partial key match so ALL plan-based workout queries are invalidated
       qc.invalidateQueries({ queryKey: ['assigned-plan-workouts'], exact: false });
       qc.invalidateQueries({ queryKey: ['direct-assigned-workouts', athleteEmail] });
       qc.invalidateQueries({ queryKey: ['assigned-plans', athleteEmail] });

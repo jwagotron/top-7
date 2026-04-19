@@ -60,9 +60,25 @@ export default function CoachPanel() {
   const selectedAthleteEmail = athleteFilter !== 'all' ? athleteFilter : null;
   const { completions } = useCompletions(selectedAthleteEmail);
 
+  // Only fetch planned workouts for athletes on THIS team — prevents cross-team data leakage
   const { data: plannedWorkouts = [], isLoading } = useQuery({
-    queryKey: ['planned-workouts', effectiveTeamId],
-    queryFn: () => base44.entities.PlannedWorkout.list('scheduled_date', 1000),
+    queryKey: ['planned-workouts', effectiveTeamId, athleteEmails],
+    queryFn: async () => {
+      if (athleteEmails.length === 0) return [];
+      // Fetch in parallel per athlete then merge
+      const results = await Promise.all(
+        athleteEmails.map(email => base44.entities.PlannedWorkout.filter({ assigned_to: email }, 'scheduled_date', 500))
+      );
+      const seen = new Set();
+      const merged = [];
+      for (const arr of results) {
+        for (const w of arr) {
+          if (!seen.has(w.id)) { seen.add(w.id); merged.push(w); }
+        }
+      }
+      return merged.sort((a, b) => a.scheduled_date > b.scheduled_date ? 1 : -1);
+    },
+    enabled: !!effectiveTeamId,
   });
 
   const invalidatePlanned = () => {
