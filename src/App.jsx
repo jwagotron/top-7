@@ -41,12 +41,31 @@ const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts',
 
 function PersistentTab({ path, element, currentPath }) {
   const isActive = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
-  // Mount once active, then keep mounted but hidden
   const [mounted, setMounted] = React.useState(isActive);
+  const ref = React.useRef(null);
+
   React.useEffect(() => { if (isActive) setMounted(true); }, [isActive]);
+
+  // Scroll to top whenever this tab becomes active
+  React.useEffect(() => {
+    if (isActive && ref.current) {
+      ref.current.scrollTop = 0;
+    }
+  }, [isActive]);
+
   if (!mounted) return null;
   return (
-    <div style={{ display: isActive ? undefined : 'none' }}>
+    <div
+      ref={ref}
+      style={{
+        display: isActive ? undefined : 'none',
+        position: 'absolute',
+        inset: 0,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+      }}
+    >
       {element}
     </div>
   );
@@ -61,7 +80,7 @@ function AnimatedRoutes() {
   return (
     <>
       {/* Persistent tabs — stay mounted once visited */}
-      <AppLayout>
+      <AppLayout persistent>
         <Suspense fallback={
           <div className="fixed inset-0 flex items-center justify-center">
             <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
