@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
+import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
@@ -35,48 +36,82 @@ const pageVariants = {
   exit:    { opacity: 0, x: -12 },
 };
 
+// Routes that should stay mounted for native-like tab switching
+const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts', '/my-plan'];
+
+function PersistentTab({ path, element, currentPath }) {
+  const isActive = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
+  // Mount once active, then keep mounted but hidden
+  const [mounted, setMounted] = React.useState(isActive);
+  React.useEffect(() => { if (isActive) setMounted(true); }, [isActive]);
+  if (!mounted) return null;
+  return (
+    <div style={{ display: isActive ? undefined : 'none' }}>
+      {element}
+    </div>
+  );
+}
+
 function AnimatedRoutes() {
   const location = useLocation();
+  const isPersistent = PERSISTENT_PATHS.some(p =>
+    p === '/' ? location.pathname === '/' : location.pathname.startsWith(p)
+  );
+
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        variants={pageVariants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        transition={{ duration: 0.18, ease: 'easeInOut' }}
-        className="min-h-screen"
-      >
+    <>
+      {/* Persistent tabs — stay mounted once visited */}
+      <AppLayout>
         <Suspense fallback={
           <div className="fixed inset-0 flex items-center justify-center">
             <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
           </div>
         }>
-          <Routes location={location}>
-            {/* Public route — no layout needed */}
-            <Route path="/join" element={<JoinTeam />} />
-            <Route element={<AppLayout />}>
-              <Route path="/"                element={<Dashboard />} />
-              <Route path="/workouts"        element={<Workouts />} />
-              <Route path="/plans"           element={<TrainingPlans />} />
-              <Route path="/analytics"       element={<Analytics />} />
-              <Route path="/goals"           element={<Goals />} />
-              <Route path="/coach"           element={<CoachPanel />} />
-              <Route path="/activities"      element={<Activities />} />
-              <Route path="/garmin"          element={<GarminConnect />} />
-              <Route path="/workout-builder" element={<WorkoutBuilder />} />
-              <Route path="/athlete-profile" element={<AthleteProfile />} />
-              <Route path="/settings"        element={<AccountSettings />} />
-              <Route path="/admin"           element={<AdminPanel />} />
-              <Route path="/shoes"           element={<ShoeTracker />} />
-              <Route path="/my-plan"         element={<MyPlan />} />
-            </Route>
-            <Route path="*" element={<PageNotFound />} />
-          </Routes>
+          <PersistentTab path="/"           element={<Dashboard />}      currentPath={location.pathname} />
+          <PersistentTab path="/workouts"   element={<Workouts />}        currentPath={location.pathname} />
+          <PersistentTab path="/my-plan"    element={<MyPlan />}          currentPath={location.pathname} />
+          <PersistentTab path="/analytics"  element={<Analytics />}       currentPath={location.pathname} />
+          <PersistentTab path="/coach"      element={<CoachPanel />}      currentPath={location.pathname} />
+          <PersistentTab path="/settings"   element={<AccountSettings />} currentPath={location.pathname} />
         </Suspense>
-      </motion.div>
-    </AnimatePresence>
+      </AppLayout>
+
+      {/* Non-persistent routes rendered normally */}
+      {!isPersistent && (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.18, ease: 'easeInOut' }}
+            className="min-h-screen"
+          >
+            <Suspense fallback={
+              <div className="fixed inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+              </div>
+            }>
+              <Routes location={location}>
+                <Route path="/join" element={<JoinTeam />} />
+                <Route element={<AppLayout />}>
+                  <Route path="/plans"           element={<TrainingPlans />} />
+                  <Route path="/goals"           element={<Goals />} />
+                  <Route path="/activities"      element={<Activities />} />
+                  <Route path="/garmin"          element={<GarminConnect />} />
+                  <Route path="/workout-builder" element={<WorkoutBuilder />} />
+                  <Route path="/athlete-profile" element={<AthleteProfile />} />
+                  <Route path="/admin"           element={<AdminPanel />} />
+                  <Route path="/shoes"           element={<ShoeTracker />} />
+                </Route>
+                <Route path="*" element={<PageNotFound />} />
+              </Routes>
+            </Suspense>
+          </motion.div>
+        </AnimatePresence>
+      )}
+    </>
   );
 }
 

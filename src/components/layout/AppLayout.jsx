@@ -6,7 +6,7 @@ import MobileDrawer from './MobileDrawer';
 import { DrawerProvider } from '@/lib/DrawerContext';
 import { cn } from '@/lib/utils';
 
-export default function AppLayout() {
+export default function AppLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -26,13 +26,11 @@ export default function AppLayout() {
             collapsed ? "lg:ml-[72px]" : "lg:ml-[240px]"
           )}
         >
-          <Outlet />
+          {children ?? <Outlet />}
         </main>
 
         {/* Bottom tab bar — mobile only */}
         <MobileNav />
-
-
       </div>
     </DrawerProvider>
   );

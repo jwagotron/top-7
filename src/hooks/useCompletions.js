@@ -52,7 +52,35 @@ export function useCompletions(athleteEmail) {
         notes: notes || undefined,
       });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['completions', athleteEmail] }),
+    onMutate: async ({ workout, notes }) => {
+      await qc.cancelQueries({ queryKey: ['completions', athleteEmail] });
+      const previous = qc.getQueryData(['completions', athleteEmail]);
+      qc.setQueryData(['completions', athleteEmail], (old = []) => {
+        const existing = old.find(c => c.planned_workout_id === workout.id);
+        const now = new Date().toISOString();
+        if (existing) {
+          return old.map(c => c.planned_workout_id === workout.id
+            ? { ...c, status: 'completed', completed_at: now, notes: notes || c.notes }
+            : c
+          );
+        }
+        return [...old, {
+          id: `optimistic-${workout.id}`,
+          athlete_email: athleteEmail,
+          planned_workout_id: workout.id,
+          plan_id: workout.plan_id || undefined,
+          scheduled_date: workout.scheduled_date,
+          status: 'completed',
+          completed_at: now,
+          notes: notes || undefined,
+        }];
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) qc.setQueryData(['completions', athleteEmail], ctx.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['completions', athleteEmail] }),
   });
 
   /** Returns the completion record for a given workout id, or null */

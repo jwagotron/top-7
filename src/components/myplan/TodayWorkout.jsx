@@ -47,13 +47,40 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
         notes: notes || undefined,
       });
     },
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ['completions', athleteEmail] });
+      const previous = qc.getQueryData(['completions', athleteEmail]);
+      const now = new Date().toISOString();
+      qc.setQueryData(['completions', athleteEmail], (old = []) => {
+        if (completion?.id) {
+          return old.map(c => c.id === completion.id
+            ? { ...c, status: 'completed', completed_at: now, notes: notes || c.notes }
+            : c
+          );
+        }
+        return [...old, {
+          id: `optimistic-${workout.id}`,
+          athlete_email: athleteEmail,
+          planned_workout_id: workout.id,
+          status: 'completed',
+          completed_at: now,
+          notes: notes || undefined,
+        }];
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) qc.setQueryData(['completions', athleteEmail], ctx.previous);
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
       setShowNotes(false);
       toast.success('Workout completed! 🎉', {
         description: 'Great work — keep the momentum going.',
         duration: 3000,
       });
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
     },
   });
 
