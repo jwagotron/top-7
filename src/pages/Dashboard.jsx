@@ -43,7 +43,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, refetchUser } = useAuth();
   const { athleteEmail, plannedWorkouts, activePlan, isLoading } = useAssignedPlan();
-  const { completions } = useCompletions(athleteEmail);
+  const { completions, completeMut } = useCompletions(athleteEmail);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -145,39 +145,58 @@ export default function Dashboard() {
 
         {/* Today's Workout — prominent CTA */}
         {todayWorkout && (
-          <button
-            type="button"
-            onClick={() => setShowTodayWorkout(v => !v)}
+          <div
             className={cn(
               'w-full text-left rounded-2xl border-2 shadow-lg transition-all duration-200 overflow-hidden',
               todayDone
                 ? 'bg-secondary/5 border-secondary/30'
-                : 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 hover:border-primary/50 hover:shadow-xl'
+                : 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30'
             )}
           >
             <div className="px-5 py-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center shrink-0', todayDone ? 'bg-secondary/15' : 'bg-primary/15')}>
-                  {todayDone
-                    ? <CheckCircle2 className="w-6 h-6 text-secondary" />
-                    : <Calendar className="w-6 h-6 text-primary" />
-                  }
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-0.5">
-                    {todayDone ? "Today's Workout — Done ✓" : "Today's Workout"}
-                  </p>
-                  <p className={cn('font-bold text-base leading-tight truncate', todayDone ? 'text-secondary' : 'text-foreground')}>
-                    {todayWorkout.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {todayWorkout.run_type ? todayWorkout.run_type.replace(/_/g, ' ') : ''}
-                    {todayWorkout.target_distance_km ? ` · ${toDisplay(todayWorkout.target_distance_km).toFixed(1)} ${label}` : ''}
-                    {todayWorkout.target_duration_minutes ? ` · ${todayWorkout.target_duration_minutes} min` : ''}
-                  </p>
-                </div>
+                {/* Completion dot — athlete only */}
+                <button
+                  type="button"
+                  disabled={todayDone || completeMut.isPending || role !== 'athlete'}
+                  onClick={e => { e.stopPropagation(); completeMut.mutate({ workout: todayWorkout }); }}
+                  className={cn(
+                    'w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200',
+                    todayDone
+                      ? 'bg-secondary border-secondary text-white'
+                      : role === 'athlete'
+                        ? 'border-primary/40 bg-transparent hover:border-primary hover:bg-primary/10 cursor-pointer'
+                        : 'border-muted-foreground/30 bg-transparent cursor-default'
+                  )}
+                  title={todayDone ? 'Completed' : 'Mark as complete'}
+                >
+                  {todayDone && <CheckCircle2 className="w-4 h-4" />}
+                  {!todayDone && completeMut.isPending && (
+                    <span className="w-2.5 h-2.5 rounded-full border-2 border-primary border-t-transparent animate-spin block" />
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowTodayWorkout(v => !v)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-0.5">
+                      {todayDone ? "Today's Workout — Done ✓" : "Today's Workout"}
+                    </p>
+                    <p className={cn('font-bold text-base leading-tight truncate', todayDone ? 'text-secondary' : 'text-foreground')}>
+                      {todayWorkout.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {todayWorkout.run_type ? todayWorkout.run_type.replace(/_/g, ' ') : ''}
+                      {todayWorkout.target_distance_km ? ` · ${toDisplay(todayWorkout.target_distance_km).toFixed(1)} ${label}` : ''}
+                      {todayWorkout.target_duration_minutes ? ` · ${todayWorkout.target_duration_minutes} min` : ''}
+                    </p>
+                  </div>
+                  <ChevronRight className={cn('w-5 h-5 text-muted-foreground/50 shrink-0 transition-transform', showTodayWorkout && 'rotate-90')} />
+                </button>
               </div>
-              <ChevronRight className={cn('w-5 h-5 text-muted-foreground/50 shrink-0 transition-transform', showTodayWorkout && 'rotate-90')} />
             </div>
             {showTodayWorkout && (
               <div className="px-5 pb-5 space-y-3 border-t border-border/20 pt-3">
@@ -209,7 +228,7 @@ export default function Dashboard() {
                 )}
               </div>
             )}
-          </button>
+          </div>
         )}
 
         {/* JoinTeam CTA — only if not on a team */}
