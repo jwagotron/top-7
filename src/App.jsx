@@ -37,7 +37,7 @@ const pageVariants = {
 };
 
 // Routes that should stay mounted for native-like tab switching
-const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts', '/my-plan'];
+const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts', '/my-plan', '/goals', '/shoes', '/garmin'];
 
 function PersistentTab({ path, element, currentPath }) {
   const isActive = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
@@ -73,6 +73,9 @@ function AnimatedRoutes() {
           <PersistentTab path="/analytics"  element={<Analytics />}       currentPath={location.pathname} />
           <PersistentTab path="/coach"      element={<CoachPanel />}      currentPath={location.pathname} />
           <PersistentTab path="/settings"   element={<AccountSettings />} currentPath={location.pathname} />
+          <PersistentTab path="/goals"      element={<Goals />}           currentPath={location.pathname} />
+          <PersistentTab path="/shoes"      element={<ShoeTracker />}     currentPath={location.pathname} />
+          <PersistentTab path="/garmin"     element={<GarminConnect />}   currentPath={location.pathname} />
         </Suspense>
       </AppLayout>
 
@@ -97,13 +100,10 @@ function AnimatedRoutes() {
                 <Route path="/join" element={<JoinTeam />} />
                 <Route element={<AppLayout />}>
                   <Route path="/plans"           element={<TrainingPlans />} />
-                  <Route path="/goals"           element={<Goals />} />
                   <Route path="/activities"      element={<Activities />} />
-                  <Route path="/garmin"          element={<GarminConnect />} />
                   <Route path="/workout-builder" element={<WorkoutBuilder />} />
                   <Route path="/athlete-profile" element={<AthleteProfile />} />
                   <Route path="/admin"           element={<AdminPanel />} />
-                  <Route path="/shoes"           element={<ShoeTracker />} />
                 </Route>
                 <Route path="*" element={<PageNotFound />} />
               </Routes>
