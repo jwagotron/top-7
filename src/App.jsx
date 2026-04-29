@@ -149,7 +149,20 @@ const AuthenticatedApp = () => {
 
   if (authError) {
     if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
-    if (authError.type === 'auth_required') { navigateToLogin(); return null; }
+    if (authError.type === 'auth_required') {
+      // Guard against redirect loop — only redirect once
+      const alreadyRedirecting = sessionStorage.getItem('auth_redirect');
+      if (!alreadyRedirecting) {
+        sessionStorage.setItem('auth_redirect', '1');
+        navigateToLogin();
+      }
+      return null;
+    }
+  }
+
+  // Clear redirect guard once authenticated
+  if (isAuthenticated) {
+    sessionStorage.removeItem('auth_redirect');
   }
 
   // Show onboarding wizard if authenticated but user_type not set (and not admin)
