@@ -23,6 +23,7 @@ export default function AdminPanel() {
   const [editingTeamName, setEditingTeamName] = useState('');
   const [addUserToTeamId, setAddUserToTeamId] = useState(null);
   const [testUserEmail, setTestUserEmail] = useState('');
+  const [userRole, setUserRole] = useState('athlete');
 
   const { data: syncEvents = [], isLoading: loadingEvents } = useQuery({
     queryKey: ['all-sync-events'],
@@ -63,6 +64,8 @@ export default function AdminPanel() {
     mutationFn: (data) => base44.entities.Team.update(data.id, { name: data.name }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['all-teams'] });
+      qc.invalidateQueries({ queryKey: ['teams'] });
+      qc.invalidateQueries({ queryKey: ['team-'] });
       setEditingTeamId(null);
     },
   });
@@ -70,18 +73,25 @@ export default function AdminPanel() {
   const addUserToTeamMut = useMutation({
     mutationFn: async (data) => {
       const team = allTeams.find(t => t.id === data.teamId);
-      await base44.entities.TeamMembership.create({
-        team_id: data.teamId,
-        athlete_email: data.email,
-        athlete_name: data.email,
-        coach_email: team.coach_email,
-        status: 'active',
-      });
+      if (data.role === 'athlete') {
+        await base44.entities.TeamMembership.create({
+          team_id: data.teamId,
+          athlete_email: data.email,
+          athlete_name: data.email,
+          coach_email: team.coach_email,
+          status: 'active',
+        });
+      } else if (data.role === 'coach') {
+        // Update team coach if adding a coach
+        await base44.entities.Team.update(data.teamId, { coach_email: data.email });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['all-memberships-admin'] });
+      qc.invalidateQueries({ queryKey: ['all-teams'] });
       setAddUserToTeamId(null);
       setTestUserEmail('');
+      setUserRole('athlete');
     },
   });
 
@@ -350,21 +360,32 @@ export default function AdminPanel() {
           </TabsContent>
         </Tabs>
 
-        {/* Add test user to team dialog */}
+        {/* Add user to team dialog */}
         {addUserToTeamId && (
           <Dialog open onOpenChange={() => setAddUserToTeamId(null)}>
             <DialogContent className="max-w-sm">
               <DialogHeader>
-                <DialogTitle>Add Test User to Team</DialogTitle>
+                <DialogTitle>Add User to Team</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label className="text-xs">Test User Email</Label>
+                  <Label className="text-xs">Role</Label>
+                  <select
+                    value={userRole}
+                    onChange={e => setUserRole(e.target.value)}
+                    className="w-full text-xs border border-border rounded-md px-2 py-2 bg-background text-foreground mt-1"
+                  >
+                    <option value="athlete">Athlete</option>
+                    <option value="coach">Coach</option>
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs">Email</Label>
                   <Input
                     autoFocus
                     value={testUserEmail}
                     onChange={e => setTestUserEmail(e.target.value)}
-                    placeholder="test@example.com"
+                    placeholder="user@example.com"
                     className="mt-1"
                   />
                 </div>
@@ -374,12 +395,13 @@ export default function AdminPanel() {
                     onClick={() => {
                       setAddUserToTeamId(null);
                       setTestUserEmail('');
+                      setUserRole('athlete');
                     }}
                   >
                     Cancel
                   </Button>
                   <Button
-                    onClick={() => addUserToTeamMut.mutate({ teamId: addUserToTeamId, email: testUserEmail })}
+                    onClick={() => addUserToTeamMut.mutate({ teamId: addUserToTeamId, email: testUserEmail, role: userRole })}
                     disabled={!testUserEmail || addUserToTeamMut.isPending}
                   >
                     {addUserToTeamMut.isPending ? 'Adding...' : 'Add User'}
