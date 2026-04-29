@@ -14,6 +14,7 @@ import { RoleProvider, useRole } from '@/lib/RoleContext';
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
 import JoinTeam from '@/pages/JoinTeam';
 import ErrorBoundary from '@/lib/ErrorBoundary';
+import { base44 } from '@/api/base44Client';
 
 import Dashboard from '@/pages/Dashboard';
 const Workouts        = lazy(() => import('@/pages/Workouts'));
@@ -150,19 +151,9 @@ const AuthenticatedApp = () => {
   if (authError) {
     if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
     if (authError.type === 'auth_required') {
-      // Guard against redirect loop — only redirect once
-      const alreadyRedirecting = sessionStorage.getItem('auth_redirect');
-      if (!alreadyRedirecting) {
-        sessionStorage.setItem('auth_redirect', '1');
-        navigateToLogin();
-      }
+      base44.auth.redirectToLogin();
       return null;
     }
-  }
-
-  // Clear redirect guard once authenticated
-  if (isAuthenticated) {
-    sessionStorage.removeItem('auth_redirect');
   }
 
   // Show onboarding wizard if authenticated but user_type not set (and not admin)
