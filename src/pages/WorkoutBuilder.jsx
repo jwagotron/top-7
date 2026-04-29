@@ -149,17 +149,18 @@ export default function WorkoutBuilder() {
   const getStepsForWorkout = (id) => allSteps.filter(s => s.workout_id === id).sort((a, b) => a.order - b.order);
 
   return (
-    <RoleGate allow={['coach', 'admin']}>
-    <div className="min-h-screen bg-background">
-      <TopBar title="Workout Builder">
-        <Button onClick={() => { resetForm(); setShowForm(true); }} size="sm" className="gap-1.5 h-8 px-2 sm:px-4">
-          <Plus className="w-4 h-4 shrink-0" />
-          <span className="hidden sm:inline">New Workout</span>
-        </Button>
-      </TopBar>
+    <RoleGate allow={['coach', 'admin', 'athlete']}>
+      <div className="flex flex-col h-full bg-background">
+        <TopBar title="Workout Builder">
+          <Button onClick={() => { resetForm(); setShowForm(true); }} size="sm" className="gap-1.5 h-8 px-2 sm:px-4">
+            <Plus className="w-4 h-4 shrink-0" />
+            <span className="hidden sm:inline">New Workout</span>
+          </Button>
+        </TopBar>
 
-      <div className="p-4 lg:p-6 max-w-6xl mx-auto">
-        <div className="grid lg:grid-cols-5 gap-6">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-5 gap-6 items-start">
           {/* Workout list */}
           <div className="lg:col-span-2 space-y-3">
             <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Saved Workouts</h2>
@@ -298,9 +299,10 @@ export default function WorkoutBuilder() {
               </Card>
             )}
           </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
     </RoleGate>
   );
 }
