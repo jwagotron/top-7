@@ -39,7 +39,7 @@ function dayLabel(dateObj) {
 }
 
 export default function Dashboard() {
-  const { role } = useRole();
+  const { role, canPreview } = useRole();
   const navigate = useNavigate();
   const { user, refetchUser } = useAuth();
   const { athleteEmail, plannedWorkouts, activePlan, isLoading } = useAssignedPlan();
@@ -50,11 +50,11 @@ export default function Dashboard() {
   const [showTodayWorkout, setShowTodayWorkout] = useState(false);
 
   useEffect(() => {
-    if (!role) return;
+    if (!role || canPreview) return;
     if (role !== 'athlete') {
       navigate(DEFAULT_ROUTE[role] || '/coach', { replace: true });
     }
-  }, [role, navigate]);
+  }, [role, canPreview, navigate]);
 
   const { data: workouts = [] } = useQuery({
     queryKey: ['workouts', athleteEmail],
