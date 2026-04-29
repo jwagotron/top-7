@@ -68,24 +68,43 @@ export default function Analytics() {
   const filtered = workouts.filter(w => w.date && new Date(w.date) >= cutoff);
   const filteredActivities = activities.filter(a => a.started_at && new Date(a.started_at) >= cutoff);
 
-  // Weekly volume
-  const weeks = eachWeekOfInterval({ start: cutoff, end: new Date() }, { weekStartsOn: 1 });
-  const weeklyData = weeks.map(weekStart => {
-    const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-    const ww = filtered.filter(w => {
-      const d = new Date(w.date);
-      return d >= weekStart && d <= weekEnd;
-    });
-    return {
-      week: format(weekStart, 'MMM d'),
-      distance: Number(toDisplay(ww.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)),
-      duration: Math.round(ww.reduce((s, w) => s + (w.duration_minutes || 0), 0)),
-      count: ww.length,
-      avgHR: ww.filter(w => w.avg_heart_rate).length > 0
-        ? Math.round(ww.filter(w => w.avg_heart_rate).reduce((s, w) => s + w.avg_heart_rate, 0) / ww.filter(w => w.avg_heart_rate).length)
-        : null,
-    };
-  });
+  // Volume chart data — daily for 7d, weekly otherwise
+  const isDaily = period === '7';
+
+  const volumeData = isDaily
+    ? Array.from({ length: 7 }, (_, i) => {
+        const day = subDays(new Date(), 6 - i);
+        const dayStr = format(day, 'yyyy-MM-dd');
+        const ww = filtered.filter(w => w.date && w.date.slice(0, 10) === dayStr);
+        return {
+          week: format(day, 'EEE'),
+          distance: Number(toDisplay(ww.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)),
+          duration: Math.round(ww.reduce((s, w) => s + (w.duration_minutes || 0), 0)),
+          count: ww.length,
+          avgHR: ww.filter(w => w.avg_heart_rate).length > 0
+            ? Math.round(ww.filter(w => w.avg_heart_rate).reduce((s, w) => s + w.avg_heart_rate, 0) / ww.filter(w => w.avg_heart_rate).length)
+            : null,
+          calories: ww.reduce((s, w) => s + (w.calories || 0), 0),
+        };
+      })
+    : eachWeekOfInterval({ start: cutoff, end: new Date() }, { weekStartsOn: 1 }).map(weekStart => {
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+        const ww = filtered.filter(w => {
+          const d = new Date(w.date);
+          return d >= weekStart && d <= weekEnd;
+        });
+        return {
+          week: format(weekStart, 'MMM d'),
+          distance: Number(toDisplay(ww.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)),
+          duration: Math.round(ww.reduce((s, w) => s + (w.duration_minutes || 0), 0)),
+          count: ww.length,
+          avgHR: ww.filter(w => w.avg_heart_rate).length > 0
+            ? Math.round(ww.filter(w => w.avg_heart_rate).reduce((s, w) => s + w.avg_heart_rate, 0) / ww.filter(w => w.avg_heart_rate).length)
+            : null,
+        };
+      });
+
+  const weeklyData = volumeData;
 
   // HR trend
   const hrTrend = filtered
@@ -196,7 +215,7 @@ export default function Analytics() {
 
             {/* Weekly volume chart */}
             <Card className="rounded-2xl bg-muted/40 border border-border/30">
-              <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">Weekly Volume</CardTitle></CardHeader>
+              <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">{isDaily ? 'Daily Volume (Last 7 Days)' : 'Weekly Volume'}</CardTitle></CardHeader>
               <CardContent>
                 <div className="h-[220px]">
                   <ResponsiveContainer width="100%" height="100%">
@@ -348,7 +367,7 @@ export default function Analytics() {
           <TabsContent value="trends" className="space-y-5 mt-0">
             {/* Weekly HR avg trend */}
             <Card className="rounded-2xl bg-muted/40 border border-border/30">
-              <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">Weekly Avg Heart Rate</CardTitle></CardHeader>
+              <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">{isDaily ? 'Daily Avg Heart Rate' : 'Weekly Avg Heart Rate'}</CardTitle></CardHeader>
               <CardContent>
                 <div className="h-[200px]">
                   {weeklyData.some(d => d.avgHR) ? (
@@ -394,7 +413,7 @@ export default function Analytics() {
 
             {/* Weekly duration */}
             <Card className="rounded-2xl bg-muted/40 border border-border/30">
-              <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">Weekly Training Time</CardTitle></CardHeader>
+              <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">{isDaily ? 'Daily Training Time' : 'Weekly Training Time'}</CardTitle></CardHeader>
               <CardContent>
                 <div className="h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
