@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Repeat2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Repeat2, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/lib/RoleContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -73,9 +73,22 @@ function MenuSection({ section, collapsed, isActive, onAction, isLast }) {
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
   const { role, canPreview, previewRole, togglePreviewRole } = useRole();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   
-  const sidebarMenu = SIDEBAR_MENU[role] || SIDEBAR_MENU.athlete;
+  const baseMenu = SIDEBAR_MENU[role] || SIDEBAR_MENU.athlete;
+  // Always show Admin Panel link for real admins, regardless of preview role
+  const sidebarMenu = user?.role === 'admin' && role !== 'admin'
+    ? [
+        {
+          ...baseMenu[0],
+          items: [
+            { path: '/admin', label: 'Admin Panel', icon: Shield },
+            ...baseMenu[0].items,
+          ],
+        },
+        baseMenu[1],
+      ]
+    : baseMenu;
 
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);

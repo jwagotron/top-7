@@ -2,7 +2,7 @@ import {
   LayoutDashboard, BarChart3,
   Target, ShieldCheck,
   Wifi, Hammer, Settings, Shield, Activity,
-  HelpCircle, LogOut
+  HelpCircle, LogOut, Users
 } from 'lucide-react';
 
 export const NAV_ITEMS = {
