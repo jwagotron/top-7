@@ -1,0 +1,58 @@
+{
+  "name": "PersonalRecord",
+  "type": "object",
+  "properties": {
+    "athlete_email": {
+      "type": "string",
+      "description": "Email of the athlete"
+    },
+    "distance_key": {
+      "type": "string",
+      "enum": [
+        "400m",
+        "800m",
+        "1600m",
+        "1mile",
+        "5k",
+        "8k",
+        "10k",
+        "10mile",
+        "half_marathon",
+        "marathon"
+      ],
+      "description": "Distance identifier"
+    },
+    "time_seconds": {
+      "type": "number",
+      "description": "PR time in total seconds"
+    },
+    "date_set": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the PR was set"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "garmin",
+        "manual"
+      ],
+      "default": "manual",
+      "description": "Whether this was auto-detected or manually entered"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes (race name, conditions, etc.)"
+    },
+    "is_override": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if this manually overrides an auto-detected Garmin PR"
+    }
+  },
+  "required": [
+    "athlete_email",
+    "distance_key",
+    "time_seconds"
+  ]
+}

@@ -14,6 +14,7 @@ import { format, subDays, startOfWeek, endOfWeek, eachWeekOfInterval, parseISO }
 import { useUnits } from '@/hooks/useUnits';
 import { useAuth } from '@/lib/AuthContext';
 import { Heart, Wind, Moon, Brain, Zap, TrendingUp, Activity, Flame } from 'lucide-react';
+import PersonalRecords from '@/components/analytics/PersonalRecords';
 import { cn } from '@/lib/utils';
 
 const tooltipStyle = {
@@ -194,6 +195,7 @@ export default function Analytics() {
             <TabsTrigger value="performance" className="text-xs px-3">Performance</TabsTrigger>
             <TabsTrigger value="health" className="text-xs px-3">Health & Fitness</TabsTrigger>
             <TabsTrigger value="trends" className="text-xs px-3">Trends</TabsTrigger>
+            <TabsTrigger value="records" className="text-xs px-3">🏆 Records</TabsTrigger>
           </TabsList>
 
           {/* === PERFORMANCE TAB === */}
@@ -466,6 +468,11 @@ export default function Analytics() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* === RECORDS TAB === */}
+          <TabsContent value="records" className="space-y-5 mt-0">
+            <PersonalRecords athleteEmail={user?.email} />
           </TabsContent>
         </Tabs>
       </div>
