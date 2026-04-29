@@ -37,7 +37,7 @@ const pageVariants = {
 };
 
 // Routes that should stay mounted for native-like tab switching
-const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts', '/my-plan', '/goals', '/shoes', '/garmin'];
+const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts', '/my-plan', '/goals', '/shoes', '/garmin', '/admin'];
 
 function PersistentTab({ path, element, currentPath }) {
   const isActive = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
@@ -95,6 +95,7 @@ function AnimatedRoutes() {
           <PersistentTab path="/goals"      element={<Goals />}           currentPath={location.pathname} />
           <PersistentTab path="/shoes"      element={<ShoeTracker />}     currentPath={location.pathname} />
           <PersistentTab path="/garmin"     element={<GarminConnect />}   currentPath={location.pathname} />
+          <PersistentTab path="/admin"      element={<AdminPanel />}       currentPath={location.pathname} />
         </Suspense>
       </AppLayout>
 
@@ -122,7 +123,7 @@ function AnimatedRoutes() {
                   <Route path="/activities"      element={<Activities />} />
                   <Route path="/workout-builder" element={<WorkoutBuilder />} />
                   <Route path="/athlete-profile" element={<AthleteProfile />} />
-                  <Route path="/admin"           element={<AdminPanel />} />
+                  {/* /admin is now a persistent tab */}
                 </Route>
                 <Route path="*" element={<PageNotFound />} />
               </Routes>
