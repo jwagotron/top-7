@@ -83,7 +83,9 @@ export default function Dashboard() {
   const totalDistanceKm = thisWeekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0);
   const totalDistance = toDisplay(totalDistanceKm);
   const totalDuration = thisWeekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0);
-  const totalCalories = thisWeekWorkouts.reduce((s, w) => s + (w.calories || 0), 0);
+  const totalCalories = thisWeekWorkouts.length > 0
+    ? Math.round(thisWeekWorkouts.reduce((s, w) => s + (w.calories || 0), 0) / thisWeekWorkouts.length)
+    : 0;
   const totalWorkouts = thisWeekWorkouts.length;
 
   // Avg cadence for run workouts this week
@@ -255,7 +257,7 @@ export default function Dashboard() {
             <StatCard title="Workouts" value={totalWorkouts} icon={Activity} color="primary" />
             <StatCard title="Distance" value={totalDistance.toFixed(1)} unit={label} icon={MapPin} color="secondary" />
             <StatCard title="Time" value={totalDuration} unit="min" icon={Clock} color="accent" />
-            <StatCard title="Calories" value={totalCalories} unit="kcal" icon={Flame} color="destructive" />
+            <StatCard title="Avg Calories" value={totalCalories} unit="kcal/day" icon={Flame} color="destructive" />
             <StatCard title="Avg Cadence" value={avgCadence ?? '—'} unit={avgCadence ? 'spm' : ''} icon={Zap} color="primary" />
             <StatCard title="Avg Sleep" value={avgSleep ?? '—'} unit={avgSleep ? 'hrs' : ''} icon={Moon} color="secondary" />
           </div>
