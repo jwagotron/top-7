@@ -88,6 +88,10 @@
       "type": "number",
       "description": "Average steps per minute"
     },
+    "sleep_hours": {
+      "type": "number",
+      "description": "Hours of sleep the night before this workout"
+    },
     "calories": {
       "type": "number",
       "description": "Calories burned"

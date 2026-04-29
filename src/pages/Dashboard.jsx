@@ -7,7 +7,7 @@ import StatCard from '@/components/dashboard/StatCard';
 import WeeklyChart from '@/components/dashboard/WeeklyChart';
 import JoinTeamCTA from '@/components/dashboard/JoinTeamCTA';
 import WorkoutDetailDrawer from '@/components/dashboard/WorkoutDetailDrawer.jsx';
-import { Activity, MapPin, Clock, Flame, CheckCircle2, ChevronRight, Footprints, Bike, Waves, Dumbbell, CircleDot, Calendar, ChevronLeft } from 'lucide-react';
+import { Activity, MapPin, Clock, Flame, CheckCircle2, ChevronRight, Footprints, Bike, Waves, Dumbbell, CircleDot, Calendar, ChevronLeft, Moon, Zap } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
 import { DEFAULT_ROUTE } from '@/lib/roleConfig';
@@ -85,6 +85,18 @@ export default function Dashboard() {
   const totalDuration = thisWeekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0);
   const totalCalories = thisWeekWorkouts.reduce((s, w) => s + (w.calories || 0), 0);
   const totalWorkouts = thisWeekWorkouts.length;
+
+  // Avg cadence for run workouts this week
+  const runWorkoutsWithCadence = thisWeekWorkouts.filter(w => w.sport === 'run' && w.cadence);
+  const avgCadence = runWorkoutsWithCadence.length > 0
+    ? Math.round(runWorkoutsWithCadence.reduce((s, w) => s + w.cadence, 0) / runWorkoutsWithCadence.length)
+    : null;
+
+  // Avg sleep this week from workout notes (stored as sleep_hours on workout)
+  const workoutsWithSleep = thisWeekWorkouts.filter(w => w.sleep_hours);
+  const avgSleep = workoutsWithSleep.length > 0
+    ? (workoutsWithSleep.reduce((s, w) => s + w.sleep_hours, 0) / workoutsWithSleep.length).toFixed(1)
+    : null;
 
   const isCompleted = (w) =>
     w.status === 'completed' ||
@@ -239,11 +251,13 @@ export default function Dashboard() {
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2">
             This Week · {format(weekStart, 'MMM d')} – {format(weekEnd, 'MMM d')}
           </p>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
             <StatCard title="Workouts" value={totalWorkouts} icon={Activity} color="primary" />
             <StatCard title="Distance" value={totalDistance.toFixed(1)} unit={label} icon={MapPin} color="secondary" />
             <StatCard title="Time" value={totalDuration} unit="min" icon={Clock} color="accent" />
             <StatCard title="Calories" value={totalCalories} unit="kcal" icon={Flame} color="destructive" />
+            <StatCard title="Avg Cadence" value={avgCadence ?? '—'} unit={avgCadence ? 'spm' : ''} icon={Zap} color="primary" />
+            <StatCard title="Avg Sleep" value={avgSleep ?? '—'} unit={avgSleep ? 'hrs' : ''} icon={Moon} color="secondary" />
           </div>
         </div>
 
