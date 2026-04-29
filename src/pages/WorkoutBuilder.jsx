@@ -299,8 +299,8 @@ export default function WorkoutBuilder() {
             )}
           </div>
         </div>
-        </div>
-        </div>
+      </div>
+    </div>
     </RoleGate>
-        );
-        }
+  );
+}
