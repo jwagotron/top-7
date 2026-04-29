@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, X, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Check, ChevronDown, ChevronUp, LogIn, LogOut } from 'lucide-react';
+import { useUserImpersonation } from '@/lib/UserImpersonationContext';
 
 const STORAGE_KEY = 'admin_review_test_accounts';
 
@@ -94,16 +95,28 @@ function AccountForm({ account, onSave, onCancel }) {
 
 function AccountCard({ account, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(false);
+  const { impersonatedUser, setImpersonate } = useUserImpersonation();
+  const isImpersonated = impersonatedUser?.email === account.username;
 
   return (
-    <Card className="border-accent/40 bg-accent/5">
+    <Card className={`border-accent/40 ${isImpersonated ? 'ring-2 ring-primary border-primary' : 'bg-accent/5'}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-accent">{account.name || account.username}</span>
             <Badge className="text-[10px] bg-accent/20 text-accent border-accent/30">{account.role}</Badge>
+            {isImpersonated && <Badge className="text-[10px] bg-primary/20 text-primary border-primary/30">Impersonating</Badge>}
           </div>
           <div className="flex items-center gap-1">
+            <Button 
+              size="icon" 
+              variant={isImpersonated ? 'default' : 'outline'}
+              className="h-7 w-7"
+              onClick={() => setImpersonate(isImpersonated ? null : { email: account.username, role: account.role, name: account.name })}
+              title={isImpersonated ? 'Stop impersonating' : 'Impersonate this user'}
+            >
+              {isImpersonated ? <LogOut className="w-3.5 h-3.5" /> : <LogIn className="w-3.5 h-3.5" />}
+            </Button>
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setExpanded(e => !e)}>
               {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </Button>

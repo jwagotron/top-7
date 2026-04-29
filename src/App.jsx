@@ -15,6 +15,7 @@ import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
 import JoinTeam from '@/pages/JoinTeam';
 import ErrorBoundary from '@/lib/ErrorBoundary';
 import { base44 } from '@/api/base44Client';
+import { UserImpersonationProvider } from '@/lib/UserImpersonationContext';
 
 import Dashboard from '@/pages/Dashboard';
 const Workouts        = lazy(() => import('@/pages/Workouts'));
@@ -169,16 +170,18 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <AuthProvider>
-          <RoleProvider>
-            <QueryClientProvider client={queryClientInstance}>
-              <Router>
-                <AuthenticatedApp />
-              </Router>
-              <Toaster />
-            </QueryClientProvider>
-          </RoleProvider>
-        </AuthProvider>
+        <UserImpersonationProvider>
+          <AuthProvider>
+            <RoleProvider>
+              <QueryClientProvider client={queryClientInstance}>
+                <Router>
+                  <AuthenticatedApp />
+                </Router>
+                <Toaster />
+              </QueryClientProvider>
+            </RoleProvider>
+          </AuthProvider>
+        </UserImpersonationProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
