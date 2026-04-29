@@ -411,23 +411,41 @@ export default function Analytics() {
 
             {/* Effort distribution */}
             <Card className="rounded-2xl bg-muted/40 border border-border/30">
-              <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">Effort Distribution (RPE)</CardTitle></CardHeader>
-              <CardContent>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={Array.from({ length: 10 }, (_, i) => ({
-                      rpe: i + 1,
-                      count: filtered.filter(w => w.perceived_effort === i + 1).length,
-                    }))}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis dataKey="rpe" axisLine={false} tickLine={false} tick={{ fontSize: 11 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11 }} width={28} />
-                      <Tooltip contentStyle={tooltipStyle} />
-                      <Bar dataKey="count" name="Workouts" fill="hsl(var(--secondary))" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <p className="text-[10px] text-muted-foreground/50 text-center mt-1">RPE 1 (very easy) → 10 (maximum effort)</p>
+              <CardHeader className="pb-2 px-5 pt-5">
+                <CardTitle className="text-base font-bold">How Hard Were Your Workouts?</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">Based on Perceived Effort (RPE) — how hard each workout felt on a scale of 1–10</p>
+              </CardHeader>
+              <CardContent className="space-y-2 pb-5">
+                {(() => {
+                  const zones = [
+                    { label: 'Very Easy', range: [1, 2], color: 'bg-secondary', textColor: 'text-secondary', emoji: '😴' },
+                    { label: 'Easy', range: [3, 4], color: 'bg-primary', textColor: 'text-primary', emoji: '🚶' },
+                    { label: 'Moderate', range: [5, 6], color: 'bg-accent', textColor: 'text-accent', emoji: '🏃' },
+                    { label: 'Hard', range: [7, 8], color: 'bg-orange-500', textColor: 'text-orange-500', emoji: '💪' },
+                    { label: 'Maximum', range: [9, 10], color: 'bg-destructive', textColor: 'text-destructive', emoji: '🔥' },
+                  ];
+                  const total = filtered.filter(w => w.perceived_effort).length;
+                  return zones.map(({ label, range, color, textColor, emoji }) => {
+                    const count = filtered.filter(w => w.perceived_effort >= range[0] && w.perceived_effort <= range[1]).length;
+                    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                    return (
+                      <div key={label} className="flex items-center gap-3">
+                        <span className="text-base w-6 text-center shrink-0">{emoji}</span>
+                        <span className="text-xs font-medium w-20 shrink-0">{label}</span>
+                        <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                          <div className={cn('h-2 rounded-full transition-all duration-500', color)} style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className={cn('text-xs font-bold w-10 text-right shrink-0', count > 0 ? textColor : 'text-muted-foreground/40')}>
+                          {count > 0 ? `${count}` : '—'}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground/50 w-8 text-right shrink-0">{count > 0 ? `${pct}%` : ''}</span>
+                      </div>
+                    );
+                  });
+                })()}
+                {filtered.filter(w => w.perceived_effort).length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">No effort data logged yet</p>
+                )}
               </CardContent>
             </Card>
 
