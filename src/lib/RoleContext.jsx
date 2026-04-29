@@ -1,24 +1,35 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 
 const RoleContext = createContext();
 
-/**
- * RoleProvider — derives the user's role from their permanent DB user_type.
- * Admins (user.role === 'admin') always get 'admin'.
- * No localStorage, no manual switching.
- */
+// Emails that can preview-switch between athlete and coach
+const PREVIEW_EMAILS = ['dan@stratagemims.com', 'jwagone987@gmail.com'];
+
 export function RoleProvider({ children }) {
   const { user } = useAuth();
+  const [previewRole, setPreviewRole] = useState(null); // 'athlete' | 'coach' | null
+
+  const canPreview = user && PREVIEW_EMAILS.includes(user.email);
 
   const role = useMemo(() => {
     if (!user) return null;
+    if (canPreview && previewRole) return previewRole;
     if (user.role === 'admin') return 'admin';
-    return user.user_type || null; // 'athlete' | 'coach' | null (not set yet)
-  }, [user]);
+    return user.user_type || null;
+  }, [user, canPreview, previewRole]);
+
+  const togglePreviewRole = () => {
+    setPreviewRole(r => (r === 'athlete' ? 'coach' : 'athlete'));
+  };
+
+  // Initialize preview role on first canPreview render
+  React.useEffect(() => {
+    if (canPreview && !previewRole) setPreviewRole('athlete');
+  }, [canPreview]);
 
   return (
-    <RoleContext.Provider value={{ role }}>
+    <RoleContext.Provider value={{ role, canPreview, previewRole, togglePreviewRole }}>
       {children}
     </RoleContext.Provider>
   );

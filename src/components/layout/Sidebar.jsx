@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Repeat2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/lib/RoleContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -72,7 +72,7 @@ function MenuSection({ section, collapsed, isActive, onAction, isLast }) {
 
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
-  const { role } = useRole();
+  const { role, canPreview, previewRole, togglePreviewRole } = useRole();
   const { logout } = useAuth();
   
   const sidebarMenu = SIDEBAR_MENU[role] || SIDEBAR_MENU.athlete;
@@ -107,14 +107,32 @@ export default function Sidebar({ collapsed, onToggle }) {
         )}
       </div>
 
-      {/* Role label */}
-      {!collapsed && (
-        <div className="px-4 py-2 border-b border-sidebar-border/50">
-          <span className="text-[10px] uppercase tracking-widest text-sidebar-foreground/40 font-semibold capitalize">
+      {/* Role label + preview toggle */}
+      <div className={cn("border-b border-sidebar-border/50", collapsed ? "px-2 py-2" : "px-4 py-2")}>
+        {!collapsed && (
+          <span className="text-[10px] uppercase tracking-widest text-sidebar-foreground/40 font-semibold capitalize block mb-1">
             {role} mode
           </span>
-        </div>
-      )}
+        )}
+        {canPreview && (
+          <button
+            onClick={togglePreviewRole}
+            title={`Switch to ${previewRole === 'athlete' ? 'coach' : 'athlete'} view`}
+            className={cn(
+              "flex items-center gap-2 rounded-lg transition-colors",
+              "bg-sidebar-primary/20 hover:bg-sidebar-primary/30 text-sidebar-primary",
+              collapsed ? "w-full justify-center p-2" : "px-2.5 py-1.5 w-full"
+            )}
+          >
+            <Repeat2 className="w-3.5 h-3.5 shrink-0" />
+            {!collapsed && (
+              <span className="text-[11px] font-semibold">
+                Switch to {previewRole === 'athlete' ? 'Coach' : 'Athlete'}
+              </span>
+            )}
+          </button>
+        )}
+      </div>
 
       {/* Menu Sections — Rendered Explicitly */}
       <nav className="flex-1 overflow-y-auto p-4 space-y-0">
