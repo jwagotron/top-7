@@ -1,4 +1,5 @@
 import { useRole } from '@/lib/RoleContext';
+import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { DEFAULT_ROUTE } from '@/lib/roleConfig';
@@ -14,8 +15,10 @@ import { ShieldCheck } from 'lucide-react';
  */
 export default function RoleGate({ allow, redirectTo, fallback, children }) {
   const { role } = useRole();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const allowed = !role || allow.includes(role);
+  // Admins always pass through, regardless of preview role
+  const allowed = !role || allow.includes(role) || user?.role === 'admin';
 
   useEffect(() => {
     if (!allowed && redirectTo) {
