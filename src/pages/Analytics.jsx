@@ -339,28 +339,48 @@ export default function Analytics() {
               </Card>
             )}
 
-            {/* Health metrics coming from Garmin - placeholders for future data */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-              {[
-                { icon: Brain, label: 'HRV Score', key: 'hrv', color: 'text-chart-4', bg: 'bg-chart-4/10', desc: 'Heart rate variability — synced from Garmin' },
-                { icon: Moon, label: 'Sleep Score', key: 'sleep', color: 'text-chart-4', bg: 'bg-chart-4/10', desc: 'Nightly sleep quality' },
-                { icon: Wind, label: 'VO₂ Max', key: 'vo2', color: 'text-primary', bg: 'bg-primary/10', desc: 'Aerobic fitness estimate' },
-                { icon: Zap, label: 'Training Load', key: 'load', color: 'text-accent', bg: 'bg-accent/10', desc: 'Weekly training stress score' },
-                { icon: Activity, label: 'Body Battery', key: 'battery', color: 'text-secondary', bg: 'bg-secondary/10', desc: 'Energy reserves 0–100' },
-                { icon: Heart, label: 'Stress Score', key: 'stress', color: 'text-destructive', bg: 'bg-destructive/10', desc: 'Daily stress level' },
-              ].map(({ icon: Icon, label: lbl, color, bg, desc }) => (
-                <Card key={lbl} className="rounded-2xl bg-muted/40 border border-border/30">
-                  <CardContent className="p-4">
-                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center mb-2', bg)}>
-                      <Icon className={cn('w-4 h-4', color)} />
-                    </div>
-                    <p className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wide">{lbl}</p>
-                    <p className="text-xl font-bold mt-1 text-muted-foreground/30">—</p>
-                    <p className="text-[10px] text-muted-foreground/50 mt-1">{desc}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {/* Garmin wellness metrics — computed from workout records */}
+            {(() => {
+              const latest = filtered.length > 0 ? [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date))[0] : null;
+              const withHRV = filtered.filter(w => w.hrv_score);
+              const withSleep = filtered.filter(w => w.sleep_score);
+              const withLoad = filtered.filter(w => w.training_load);
+              const withStress = filtered.filter(w => w.stress_score);
+              const avgHRV = withHRV.length > 0 ? Math.round(withHRV.reduce((s, w) => s + w.hrv_score, 0) / withHRV.length) : null;
+              const avgSleep = withSleep.length > 0 ? Math.round(withSleep.reduce((s, w) => s + w.sleep_score, 0) / withSleep.length) : null;
+              const latestVO2 = latest?.vo2_max ?? null;
+              const avgLoad = withLoad.length > 0 ? Math.round(withLoad.reduce((s, w) => s + w.training_load, 0) / withLoad.length) : null;
+              const latestBattery = latest?.body_battery ?? null;
+              const avgStress = withStress.length > 0 ? Math.round(withStress.reduce((s, w) => s + w.stress_score, 0) / withStress.length) : null;
+              const metrics = [
+                { icon: Brain, label: 'HRV Score', value: avgHRV, unit: 'ms', color: 'text-chart-4', bg: 'bg-chart-4/10', desc: 'Avg heart rate variability' },
+                { icon: Moon, label: 'Sleep Score', value: avgSleep, unit: '/100', color: 'text-chart-4', bg: 'bg-chart-4/10', desc: 'Avg nightly sleep quality' },
+                { icon: Wind, label: 'VO₂ Max', value: latestVO2, unit: 'mL/kg/min', color: 'text-primary', bg: 'bg-primary/10', desc: 'Aerobic fitness estimate' },
+                { icon: Zap, label: 'Training Load', value: avgLoad, unit: 'TSS', color: 'text-accent', bg: 'bg-accent/10', desc: 'Avg training stress score' },
+                { icon: Activity, label: 'Body Battery', value: latestBattery, unit: '/100', color: 'text-secondary', bg: 'bg-secondary/10', desc: 'Latest energy reserves' },
+                { icon: Heart, label: 'Stress Score', value: avgStress, unit: '/100', color: 'text-destructive', bg: 'bg-destructive/10', desc: 'Avg daily stress level' },
+              ];
+              return (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                  {metrics.map(({ icon: Icon, label: lbl, value, unit, color, bg, desc }) => (
+                    <Card key={lbl} className="rounded-2xl bg-muted/40 border border-border/30">
+                      <CardContent className="p-4">
+                        <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center mb-2', bg)}>
+                          <Icon className={cn('w-4 h-4', color)} />
+                        </div>
+                        <p className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wide">{lbl}</p>
+                        {value != null ? (
+                          <p className="text-xl font-bold mt-1">{value}<span className="text-xs font-normal text-muted-foreground ml-1">{unit}</span></p>
+                        ) : (
+                          <p className="text-xl font-bold mt-1 text-muted-foreground/30">—</p>
+                        )}
+                        <p className="text-[10px] text-muted-foreground/50 mt-1">{desc}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* === TRENDS TAB === */}

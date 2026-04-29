@@ -124,6 +124,30 @@
       "type": "string",
       "description": "Shoe model used"
     },
+    "hrv_score": {
+      "type": "number",
+      "description": "Heart rate variability score (Garmin HRV Status, ~20-100ms)"
+    },
+    "sleep_score": {
+      "type": "number",
+      "description": "Nightly sleep quality score 0-100 (Garmin)"
+    },
+    "vo2_max": {
+      "type": "number",
+      "description": "Estimated VO2 max (mL/kg/min)"
+    },
+    "training_load": {
+      "type": "number",
+      "description": "Weekly training load / stress score (Garmin Training Load)"
+    },
+    "body_battery": {
+      "type": "number",
+      "description": "Garmin Body Battery energy level 0-100"
+    },
+    "stress_score": {
+      "type": "number",
+      "description": "Daily stress level 0-100 (Garmin)"
+    },
     "splits": {
       "type": "array",
       "description": "Per-km or per-mile splits",
