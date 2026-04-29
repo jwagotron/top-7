@@ -8,7 +8,7 @@ const POLICIES = [
     id: 'privacy',
     title: 'Privacy Policy',
     lastUpdated: 'April 2025',
-    content: `This Privacy Policy describes how TrainSync ("we", "us", or "our") collects, uses, and shares information about you when you use our mobile and web application ("App").
+    content: `This Privacy Policy describes how Top7 ("we", "us", or "our") collects, uses, and shares information about you when you use our mobile and web application ("App").
 
 **Information We Collect**
 • Account information: name, email address, and role (athlete or coach).
@@ -30,16 +30,16 @@ We access Garmin Connect data solely to display and analyze your activity data w
 We retain your data for as long as your account is active. You may request deletion of your account and all associated data at any time from Account Settings.
 
 **Your Rights**
-You have the right to access, correct, or delete your personal data. Contact us at privacy@trainsync.app for any privacy-related requests.
+You have the right to access, correct, or delete your personal data. Contact us at privacy@top7.app for any privacy-related requests.
 
 **Contact**
-privacy@trainsync.app`,
+privacy@top7.app`,
   },
   {
     id: 'terms',
     title: 'Terms of Service',
     lastUpdated: 'April 2025',
-    content: `By using TrainSync, you agree to the following terms.
+    content: `By using Top7, you agree to the following terms.
 
 **Eligibility**
 You must be at least 13 years old to use the App. If you are under 18, you should have parental or guardian consent.
@@ -54,7 +54,7 @@ You agree not to misuse the App, including attempting to access other users' dat
 When you connect your Garmin account, you authorize us to receive activity data on your behalf via the Garmin Health API. You can revoke this authorization at any time. We comply with Garmin's API Terms of Service and use your data only as described in our Privacy Policy.
 
 **Intellectual Property**
-All App content, design, and code are owned by TrainSync. Your personal workout data remains yours.
+All App content, design, and code are owned by Top7. Your personal workout data remains yours.
 
 **Disclaimer**
 The App provides fitness tracking and coaching tools for informational purposes. It is not a substitute for professional medical advice. Consult a physician before starting any exercise program.
@@ -63,13 +63,13 @@ The App provides fitness tracking and coaching tools for informational purposes.
 We may update these terms from time to time. Continued use of the App constitutes acceptance of updated terms.
 
 **Contact**
-legal@trainsync.app`,
+legal@top7.app`,
   },
   {
     id: 'garmin',
     title: 'Garmin API Compliance Policy',
     lastUpdated: 'April 2025',
-    content: `TrainSync integrates with the Garmin Health API. This policy describes how we comply with Garmin's developer requirements.
+    content: `Top7 integrates with the Garmin Health API. This policy describes how we comply with Garmin's developer requirements.
 
 **Data Use**
 We access only the Garmin data scopes necessary to operate the App: activity summaries, heart rate, GPS/distance data, and workout delivery. We do not request scopes beyond what is required.
@@ -90,7 +90,7 @@ We do not attempt to reverse-engineer, scrape, or access Garmin systems outside 
 We monitor Garmin developer policy updates and update our practices accordingly. Last reviewed: April 2025.
 
 **Contact**
-For Garmin-related data requests: privacy@trainsync.app`,
+For Garmin-related data requests: privacy@top7.app`,
   },
   {
     id: 'data-deletion',
@@ -109,13 +109,13 @@ Upon account deletion, we remove:
 • All messages and comments
 
 **Garmin Data Deletion**
-We will also cease all data collection from your Garmin account. If you wish to revoke Garmin's authorization entirely, you should also disconnect TrainSync from your Garmin Connect account at connect.garmin.com.
+We will also cease all data collection from your Garmin account. If you wish to revoke Garmin's authorization entirely, you should also disconnect Top7 from your Garmin Connect account at connect.garmin.com.
 
 **Retention Period**
 Deletion requests are processed within 30 days. Some anonymized, aggregated data (not linked to you personally) may be retained for service improvement.
 
 **Contact**
-To submit a manual deletion request: privacy@trainsync.app`,
+To submit a manual deletion request: privacy@top7.app`,
   },
 ];
 
