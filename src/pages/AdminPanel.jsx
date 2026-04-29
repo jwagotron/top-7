@@ -130,6 +130,27 @@ export default function AdminPanel() {
 
           {/* USERS TAB */}
           <TabsContent value="users" className="mt-4 space-y-2">
+            {/* Garmin Review Test User */}
+            <Card className="border-accent/40 bg-accent/5 mb-4">
+              <CardContent className="p-4">
+                <p className="text-sm font-semibold text-accent mb-2">🧪 Garmin Review Test Account</p>
+                <p className="text-xs text-muted-foreground mb-3">Share these credentials with Garmin for app review. This account is pre-populated with realistic athlete data.</p>
+                <div className="grid grid-cols-1 gap-1.5 text-xs font-mono">
+                  {[
+                    { label: 'Email', value: 'testathlete@trainsync.app' },
+                    { label: 'Password', value: 'GarminReview2025!' },
+                    { label: 'Role', value: 'Athlete (user_type: athlete)' },
+                    { label: 'Name', value: 'Alex Rivera' },
+                    { label: 'Profile', value: 'Male, 16 y/o, HS cross country runner, ~5K PR 17:45' },
+                  ].map(r => (
+                    <div key={r.label} className="flex items-center gap-2 bg-background rounded px-3 py-1.5 border border-border">
+                      <span className="text-muted-foreground w-16 shrink-0">{r.label}</span>
+                      <span className="text-foreground font-semibold">{r.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
             <p className="text-xs text-muted-foreground mb-3">{allUsers.length} total users</p>
             {allUsers.map(u => (
               <Card key={u.id}>

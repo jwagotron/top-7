@@ -1,10 +1,13 @@
 import React from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDrawer } from '@/lib/DrawerContext';
+import { useTheme } from '@/lib/ThemeContext';
 
 export default function TopBar({ title, children }) {
   const drawer = useDrawer();
+  const { theme, setTheme } = useTheme();
+  const isDark = theme.mode === 'dark';
 
   return (
     <header
@@ -25,6 +28,17 @@ export default function TopBar({ title, children }) {
       <h1 className="flex-1 min-w-0 text-lg lg:text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
         {title}
       </h1>
+
+      {/* Dark mode toggle — always visible top right */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="shrink-0"
+        onClick={() => setTheme({ mode: isDark ? 'light' : 'dark' })}
+        title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      >
+        {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+      </Button>
 
       {/* Right-side actions — responsive gap and sizing */}
       {children && (

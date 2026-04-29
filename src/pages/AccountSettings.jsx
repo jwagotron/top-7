@@ -18,6 +18,7 @@ import {
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
 import TeamSettingsCard from '@/components/settings/TeamSettingsCard';
+import PoliciesCard from '@/components/settings/PoliciesCard';
 
 export default function AccountSettings() {
   const { user } = useAuth();
@@ -128,6 +129,9 @@ export default function AccountSettings() {
 
         {/* Appearance */}
         <AppearanceCard />
+
+        {/* Policies */}
+        <PoliciesCard />
 
         {/* Garmin quick status */}
         <Card>
