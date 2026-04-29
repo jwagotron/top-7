@@ -14,10 +14,6 @@ const DEFAULT_ACCOUNTS = [
     role: 'athlete',
     name: 'Alex Rivera',
     profile: 'Male, 16 y/o, HS cross country runner, ~5K PR 17:45',
-    coach_username: '',
-    coach_password: '',
-    coach_name: '',
-    coach_profile: '',
   },
 ];
 
@@ -28,10 +24,6 @@ const EMPTY_ACCOUNT = {
   role: 'athlete',
   name: '',
   profile: '',
-  coach_username: '',
-  coach_password: '',
-  coach_name: '',
-  coach_profile: '',
 };
 
 function FieldRow({ label, value }) {
@@ -49,7 +41,6 @@ function AccountForm({ account, onSave, onCancel }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Athlete Credentials</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {[
           { key: 'name', label: 'Name' },
@@ -89,35 +80,6 @@ function AccountForm({ account, onSave, onCancel }) {
         />
       </div>
 
-      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-3 mb-1">Coach Mode Credentials (same reviewer, coach view)</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {[
-          { key: 'coach_name', label: 'Coach Name' },
-          { key: 'coach_username', label: 'Coach Email / Username' },
-          { key: 'coach_password', label: 'Coach Password' },
-        ].map(f => (
-          <div key={f.key}>
-            <label className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5 block">{f.label}</label>
-            <input
-              value={form[f.key]}
-              onChange={e => set(f.key, e.target.value)}
-              className="w-full text-xs border border-border rounded-md px-2 py-1.5 bg-background text-foreground"
-              placeholder={f.label}
-            />
-          </div>
-        ))}
-      </div>
-      <div>
-        <label className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5 block">Coach Profile Description</label>
-        <textarea
-          value={form.coach_profile}
-          onChange={e => set('coach_profile', e.target.value)}
-          rows={2}
-          className="w-full text-xs border border-border rounded-md px-2 py-1.5 bg-background text-foreground resize-none"
-          placeholder="e.g. Head coach, Dorman HS XC, 10+ years coaching"
-        />
-      </div>
-
       <div className="flex gap-2 pt-1">
         <Button size="sm" onClick={() => onSave(form)}>
           <Check className="w-3 h-3 mr-1" /> Save
@@ -132,7 +94,6 @@ function AccountForm({ account, onSave, onCancel }) {
 
 function AccountCard({ account, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(false);
-  const hasCoach = account.coach_username || account.coach_name;
 
   return (
     <Card className="border-accent/40 bg-accent/5">
@@ -155,26 +116,13 @@ function AccountCard({ account, onEdit, onDelete }) {
           </div>
         </div>
 
-        {/* Athlete section — always visible */}
         <div className="space-y-1.5">
-          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1">Athlete Mode</p>
           <FieldRow label="Email" value={account.username} />
           <FieldRow label="Password" value={account.password} />
           <FieldRow label="Name" value={account.name} />
           {expanded && <FieldRow label="Role" value={account.role} />}
           {expanded && <FieldRow label="Profile" value={account.profile} />}
         </div>
-
-        {/* Coach section */}
-        {hasCoach && (
-          <div className="space-y-1.5 mt-3 pt-3 border-t border-accent/20">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1">Coach Mode</p>
-            <FieldRow label="Email" value={account.coach_username} />
-            <FieldRow label="Password" value={account.coach_password} />
-            <FieldRow label="Name" value={account.coach_name} />
-            {expanded && <FieldRow label="Profile" value={account.coach_profile} />}
-          </div>
-        )}
 
         {!expanded && (
           <button onClick={() => setExpanded(true)} className="text-[10px] text-muted-foreground hover:text-foreground mt-2 block">
@@ -236,7 +184,7 @@ export default function ReviewTestAccounts() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-accent">🧪 Review Test Accounts</p>
-          <p className="text-xs text-muted-foreground">Share credentials with reviewers. Each account includes athlete & coach mode access.</p>
+          <p className="text-xs text-muted-foreground">Create separate athlete and coach profiles for review testing.</p>
         </div>
         <Button size="sm" onClick={startNew} className="shrink-0">
           <Plus className="w-3.5 h-3.5 mr-1" /> Add Account
