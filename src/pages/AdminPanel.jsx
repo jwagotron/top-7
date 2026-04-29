@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -7,8 +7,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
-import { Activity, Wifi, AlertCircle, Clock, RefreshCw, Shield } from 'lucide-react';
+import { Activity, Wifi, AlertCircle, Clock, RefreshCw, Shield, Pencil, Plus, Check, X } from 'lucide-react';
 import ReviewTestAccounts from '@/components/admin/ReviewTestAccounts';
 
 const statusDot = { success: 'bg-secondary', failed: 'bg-destructive', pending: 'bg-accent', duplicate: 'bg-muted-foreground' };
@@ -16,6 +19,10 @@ const statusDot = { success: 'bg-secondary', failed: 'bg-destructive', pending: 
 export default function AdminPanel() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [editingTeamId, setEditingTeamId] = useState(null);
+  const [editingTeamName, setEditingTeamName] = useState('');
+  const [addUserToTeamId, setAddUserToTeamId] = useState(null);
+  const [testUserEmail, setTestUserEmail] = useState('');
 
   const { data: syncEvents = [], isLoading: loadingEvents } = useQuery({
     queryKey: ['all-sync-events'],
@@ -51,6 +58,32 @@ export default function AdminPanel() {
     await base44.entities.User.update(userId, { user_type: newType });
     qc.invalidateQueries({ queryKey: ['all-users'] });
   };
+
+  const editTeamMut = useMutation({
+    mutationFn: (data) => base44.entities.Team.update(data.id, { name: data.name }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['all-teams'] });
+      setEditingTeamId(null);
+    },
+  });
+
+  const addUserToTeamMut = useMutation({
+    mutationFn: async (data) => {
+      const team = allTeams.find(t => t.id === data.teamId);
+      await base44.entities.TeamMembership.create({
+        team_id: data.teamId,
+        athlete_email: data.email,
+        athlete_name: data.email,
+        coach_email: team.coach_email,
+        status: 'active',
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['all-memberships-admin'] });
+      setAddUserToTeamId(null);
+      setTestUserEmail('');
+    },
+  });
 
   const resyncMut = useMutation({
     mutationFn: (email) => base44.entities.GarminSyncEvent.create({
@@ -168,25 +201,75 @@ export default function AdminPanel() {
             {allTeams.map(t => {
               const mems = allMemberships.filter(m => m.team_id === t.id && m.status === 'active');
               const pending = allMemberships.filter(m => m.team_id === t.id && m.status === 'pending');
+              const isEditing = editingTeamId === t.id;
               return (
                 <Card key={t.id}>
                   <CardContent className="p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
                         {t.logo_url && <img src={t.logo_url} alt="logo" className="w-8 h-8 rounded-lg object-cover shrink-0" />}
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate">{t.name}</p>
+                        <div className="min-w-0 flex-1">
+                          {isEditing ? (
+                            <div className="flex items-center gap-1.5">
+                              <Input
+                                autoFocus
+                                value={editingTeamName}
+                                onChange={e => setEditingTeamName(e.target.value)}
+                                className="h-7 text-sm"
+                              />
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7 shrink-0"
+                                onClick={() => editTeamMut.mutate({ id: t.id, name: editingTeamName })}
+                                disabled={!editingTeamName || editTeamMut.isPending}
+                              >
+                                <Check className="w-3.5 h-3.5 text-secondary" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7 shrink-0"
+                                onClick={() => setEditingTeamId(null)}
+                              >
+                                <X className="w-3.5 h-3.5 text-muted-foreground" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setEditingTeamId(t.id);
+                                setEditingTeamName(t.name);
+                              }}
+                              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
+                            >
+                              <p className="text-sm font-semibold truncate">{t.name}</p>
+                              <Pencil className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
+                            </button>
+                          )}
                           <p className="text-xs text-muted-foreground truncate">{t.coach_email} · {t.school_club || t.location || ''}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                         <Badge variant="outline" className="text-[10px]">{mems.length} athletes</Badge>
                         {pending.length > 0 && <Badge className="text-[10px] bg-accent/10 text-accent border-accent/20">{pending.length} pending</Badge>}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 text-[10px] gap-1 px-2"
+                          onClick={() => setAddUserToTeamId(t.id)}
+                        >
+                          <Plus className="w-3 h-3" /> Test User
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-mono text-muted-foreground">Code: {t.invite_code}</p>
+                      <div className="flex gap-1">
                         <Badge variant="outline" className="text-[10px]">{t.auto_join ? 'Auto-Join' : 'Approval'}</Badge>
                         <Badge className={`text-[10px] ${t.status === 'active' ? 'bg-secondary/10 text-secondary' : 'bg-muted text-muted-foreground'}`} variant="outline">{t.status}</Badge>
                       </div>
                     </div>
-                    <p className="text-[10px] font-mono text-muted-foreground mt-1.5">Code: {t.invite_code}</p>
                   </CardContent>
                 </Card>
               );
@@ -266,6 +349,46 @@ export default function AdminPanel() {
             ))}
           </TabsContent>
         </Tabs>
+
+        {/* Add test user to team dialog */}
+        {addUserToTeamId && (
+          <Dialog open onOpenChange={() => setAddUserToTeamId(null)}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Add Test User to Team</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-xs">Test User Email</Label>
+                  <Input
+                    autoFocus
+                    value={testUserEmail}
+                    onChange={e => setTestUserEmail(e.target.value)}
+                    placeholder="test@example.com"
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setAddUserToTeamId(null);
+                      setTestUserEmail('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => addUserToTeamMut.mutate({ teamId: addUserToTeamId, email: testUserEmail })}
+                    disabled={!testUserEmail || addUserToTeamMut.isPending}
+                  >
+                    {addUserToTeamMut.isPending ? 'Adding...' : 'Add User'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   );
