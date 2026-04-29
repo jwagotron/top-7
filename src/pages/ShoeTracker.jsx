@@ -148,10 +148,7 @@ export default function ShoeTracker() {
   const handleReset = (shoe) => {
     updateMut.mutate({
       id: shoe.id,
-      data: {
-        mileage_km: 0,
-        start_date: new Date().toISOString().slice(0, 10),
-      },
+      data: { mileage_km: 0, start_date: new Date().toISOString().slice(0, 10) },
     });
     setConfirmReset(null);
   };
@@ -168,7 +165,7 @@ export default function ShoeTracker() {
     <div className="min-h-screen bg-background">
       <TopBar title="My Shoes">
         <Button variant="outline" size="sm" onClick={() => setShowRetired(v => !v)} className="text-xs h-8 px-2 lg:px-3">
-          {showRetired ? 'Hide' : `Retired`}
+          {showRetired ? 'Hide' : 'Retired'}
         </Button>
         <Button onClick={() => setShowForm(true)} size="sm" className="gap-1 h-8 px-2 lg:px-4">
           <Plus className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Add</span>
@@ -202,7 +199,6 @@ export default function ShoeTracker() {
           return (
             <Card key={shoe.id} className={`transition-all ${isRetired ? 'opacity-60' : 'hover:shadow-md'}`}>
               <CardContent className="p-4 lg:p-5">
-                {/* Top row: shoe info + action buttons */}
                 <div className="flex items-start gap-3 mb-4">
                   <span className="text-2xl shrink-0 mt-0.5">👟</span>
                   <div className="flex-1 min-w-0">
@@ -219,7 +215,6 @@ export default function ShoeTracker() {
                     )}
                   </div>
                 </div>
-                {/* Action buttons row */}
                 <div className="flex flex-wrap items-center gap-2 mb-4">
                   {!isRetired && (
                     <Button size="sm" variant="outline" onClick={() => setAddMileage(shoe)} className="text-xs h-7 px-2">+ {label}</Button>
@@ -263,13 +258,12 @@ export default function ShoeTracker() {
         })}
       </div>
 
-      {/* Confirm Reset Dialog */}
       {confirmReset && (
         <Dialog open onOpenChange={() => setConfirmReset(null)}>
           <DialogContent className="max-w-sm">
             <DialogHeader><DialogTitle>Reset Mileage?</DialogTitle></DialogHeader>
             <p className="text-sm text-muted-foreground">
-              This will reset <strong>{confirmReset.name}</strong>'s mileage to 0 and update the start date to today. Use this when you get a new pair of the same model.
+              This will reset <strong>{confirmReset.name}</strong>'s mileage to 0 and update the start date to today.
             </p>
             <div className="flex justify-end gap-3 mt-4">
               <Button variant="outline" onClick={() => setConfirmReset(null)}>Cancel</Button>
