@@ -142,19 +142,33 @@ export default function Analytics() {
 
   return (
     <div>
-      <TopBar title="Analytics">
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[7rem] h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7">7 days</SelectItem>
-            <SelectItem value="30">30 days</SelectItem>
-            <SelectItem value="90">90 days</SelectItem>
-            <SelectItem value="365">1 year</SelectItem>
-          </SelectContent>
-        </Select>
-      </TopBar>
+      <TopBar title="Analytics" />
 
       <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-6 pb-24 lg:pb-8">
+
+        {/* Period selector — prominent, full-width */}
+        <div className="flex items-center justify-between gap-3 bg-muted/40 border border-border/30 rounded-2xl px-4 py-3">
+          <div>
+            <p className="text-sm font-semibold">Time Period</p>
+            <p className="text-xs text-muted-foreground">All charts and stats below reflect this window</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {['7', '30', '90', '365'].map(v => (
+              <button
+                key={v}
+                onClick={() => setPeriod(v)}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
+                  period === v
+                    ? 'bg-primary text-primary-foreground shadow'
+                    : 'bg-background border border-border text-muted-foreground hover:text-foreground hover:border-primary/40'
+                )}
+              >
+                {v === '365' ? '1 yr' : `${v}d`}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <Tabs defaultValue="performance">
           <TabsList className="h-9 mb-1">
