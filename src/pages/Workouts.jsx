@@ -75,17 +75,46 @@ export default function Workouts() {
 
   const createMut = useMutation({
     mutationFn: (data) => base44.entities.Workout.create(data),
-    onSuccess: () => { invalidateAll(); setShowLogForm(false); setPreFillPlanned(null); },
+    onSuccess: (_, data) => {
+      invalidateAll();
+      setShowLogForm(false);
+      setPreFillPlanned(null);
+      base44.analytics.track({
+        eventName: 'workout_created',
+        properties: {
+          sport: data.sport || 'run',
+          run_type: data.run_type || null,
+          distance_km: data.distance_km || null,
+          duration_minutes: data.duration_minutes || null,
+          from_planned: !!preFillPlanned,
+        },
+      });
+    },
   });
 
   const updateWorkoutMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Workout.update(id, data),
-    onSuccess: () => { invalidateAll(); setEditingWorkout(null); },
+    onSuccess: (_, { data }) => {
+      invalidateAll();
+      setEditingWorkout(null);
+      base44.analytics.track({
+        eventName: 'workout_updated',
+        properties: {
+          sport: data.sport || 'run',
+          run_type: data.run_type || null,
+          distance_km: data.distance_km || null,
+          duration_minutes: data.duration_minutes || null,
+        },
+      });
+    },
   });
 
   const deleteWorkoutMut = useMutation({
     mutationFn: (id) => base44.entities.Workout.delete(id),
-    onSuccess: () => invalidateAll(),
+    onSuccess: () => {
+      invalidateAll();
+      base44.analytics.track({ eventName: 'workout_deleted' });
+    },
   });
 
   const updatePlannedMut = useMutation({
@@ -198,6 +227,14 @@ export default function Workouts() {
             updatePlannedMut.mutate({ id: matchedPlanned.id, data: { status: 'completed' } });
           }
           setShowFitImport(false);
+          base44.analytics.track({
+            eventName: 'workout_imported_fit',
+            properties: {
+              sport: data.sport || 'run',
+              distance_km: data.distance_km || null,
+              matched_planned: !!matchedPlanned,
+            },
+          });
         }}
       />
 
