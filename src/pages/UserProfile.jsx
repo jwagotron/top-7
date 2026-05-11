@@ -47,13 +47,15 @@ function EmptyState({ message }) {
 // ── ATHLETE PROFILE ────────────────────────────────────────────────
 function AthleteProfileContent({ user }) {
   const { data: workouts = [] } = useQuery({
-    queryKey: ['my-workouts-profile'],
+    queryKey: ['my-workouts-profile', user?.email],
     queryFn: () => base44.entities.Workout.filter({ created_by: user.email }),
+    enabled: !!user?.email,
   });
 
   const { data: memberships = [] } = useQuery({
-    queryKey: ['my-memberships-profile'],
+    queryKey: ['my-memberships-profile', user?.email],
     queryFn: () => base44.entities.TeamMembership.filter({ athlete_email: user.email }),
+    enabled: !!user?.email,
   });
 
   const { data: teams = [] } = useQuery({
@@ -62,8 +64,9 @@ function AthleteProfileContent({ user }) {
   });
 
   const { data: activities = [] } = useQuery({
-    queryKey: ['my-activities-profile'],
+    queryKey: ['my-activities-profile', user?.email],
     queryFn: () => base44.entities.Activity.filter({ user_email: user.email }),
+    enabled: !!user?.email,
   });
 
   const activeTeams = memberships.filter(m => m.status === 'active');
@@ -140,13 +143,15 @@ function AthleteProfileContent({ user }) {
 // ── COACH PROFILE ─────────────────────────────────────────────────
 function CoachProfileContent({ user }) {
   const { data: teams = [] } = useQuery({
-    queryKey: ['coach-teams-profile'],
+    queryKey: ['coach-teams-profile', user?.email],
     queryFn: () => base44.entities.Team.filter({ coach_email: user.email }),
+    enabled: !!user?.email,
   });
 
   const { data: memberships = [] } = useQuery({
-    queryKey: ['coach-memberships-profile'],
+    queryKey: ['coach-memberships-profile', user?.email],
     queryFn: () => base44.entities.TeamMembership.filter({ coach_email: user.email }),
+    enabled: !!user?.email,
   });
 
   const { data: plannedWorkouts = [] } = useQuery({
@@ -304,26 +309,43 @@ const ROLE_CONFIG = {
 };
 
 export default function UserProfile() {
-  const { user } = useAuth();
+  const { user, isLoadingAuth } = useAuth();
   const { role } = useRole();
 
-  const effectiveRole = user?.role === 'admin' ? 'admin' : (role || 'athlete');
+  // Derive effective role: admin first, then user_type, then role context, then fallback
+  const effectiveRole = user?.role === 'admin'
+    ? 'admin'
+    : (user?.user_type || role || 'athlete');
+
   const config = ROLE_CONFIG[effectiveRole] || ROLE_CONFIG.athlete;
+
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopBar title="Profile" />
+        <div className="p-6 space-y-4 max-w-3xl mx-auto">
+          {[1,2,3].map(i => (
+            <div key={i} className="h-24 rounded-xl bg-muted/40 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <TopBar title={config.title} />
       <div className="p-4 lg:p-6 max-w-3xl mx-auto space-y-6 pb-24 lg:pb-8">
 
-        {/* Profile header */}
+        {/* Profile header — always visible */}
         <Card>
           <CardContent className="p-6 flex items-center gap-5">
             <Avatar name={user?.full_name || user?.email} size="lg" />
             <div className="min-w-0 flex-1">
-              <h2 className="text-xl font-bold truncate">{user?.full_name || 'Unknown User'}</h2>
+              <h2 className="text-xl font-bold truncate">{user?.full_name || user?.email || 'Unknown User'}</h2>
               <div className="flex items-center gap-1.5 mt-1 text-muted-foreground text-sm">
                 <Mail className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">{user?.email}</span>
+                <span className="truncate">{user?.email || '—'}</span>
               </div>
               <div className="flex items-center gap-2 mt-3 flex-wrap">
                 <Badge className={`text-xs ${config.badgeClass}`}>{config.badge}</Badge>
@@ -338,10 +360,13 @@ export default function UserProfile() {
           </CardContent>
         </Card>
 
-        {/* Role-specific content */}
-        {effectiveRole === 'athlete' && <AthleteProfileContent user={user} />}
-        {effectiveRole === 'coach'   && <CoachProfileContent   user={user} />}
-        {effectiveRole === 'admin'   && <AdminProfileContent   user={user} />}
+        {/* Role-specific content — always renders one of the three */}
+        {effectiveRole === 'coach'
+          ? <CoachProfileContent user={user} />
+          : effectiveRole === 'admin'
+            ? <AdminProfileContent user={user} />
+            : <AthleteProfileContent user={user} />
+        }
       </div>
     </div>
   );
