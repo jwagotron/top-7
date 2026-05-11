@@ -2,7 +2,7 @@ import {
   LayoutDashboard, BarChart3,
   Target, ShieldCheck,
   Wifi, Hammer, Settings, Shield, Activity,
-  HelpCircle, LogOut, Users
+  HelpCircle, LogOut, Users, UserCircle
 } from 'lucide-react';
 
 export const NAV_ITEMS = {
@@ -62,8 +62,9 @@ export const SIDEBAR_MENU = {
     {
       section: 'ACCOUNT',
       items: [
-        { path: '#help',   label: 'Help & Support', icon: HelpCircle, action: 'help' },
-        { path: '#logout', label: 'Log Out',         icon: LogOut, action: 'logout' },
+        { path: '/profile', label: 'My Profile',     icon: UserCircle },
+        { path: '#help',    label: 'Help & Support', icon: HelpCircle, action: 'help' },
+        { path: '#logout',  label: 'Log Out',         icon: LogOut, action: 'logout' },
       ],
     },
   ],
@@ -79,8 +80,9 @@ export const SIDEBAR_MENU = {
     {
       section: 'ACCOUNT',
       items: [
-        { path: '#help',   label: 'Help & Support', icon: HelpCircle, action: 'help' },
-        { path: '#logout', label: 'Log Out',         icon: LogOut, action: 'logout' },
+        { path: '/profile', label: 'My Profile',     icon: UserCircle },
+        { path: '#help',    label: 'Help & Support', icon: HelpCircle, action: 'help' },
+        { path: '#logout',  label: 'Log Out',         icon: LogOut, action: 'logout' },
       ],
     },
   ],
@@ -97,8 +99,9 @@ export const SIDEBAR_MENU = {
     {
       section: 'ACCOUNT',
       items: [
-        { path: '#help',   label: 'Help & Support', icon: HelpCircle, action: 'help' },
-        { path: '#logout', label: 'Log Out',         icon: LogOut, action: 'logout' },
+        { path: '/profile', label: 'My Profile',     icon: UserCircle },
+        { path: '#help',    label: 'Help & Support', icon: HelpCircle, action: 'help' },
+        { path: '#logout',  label: 'Log Out',         icon: LogOut, action: 'logout' },
       ],
     },
   ],
@@ -111,9 +114,9 @@ export const DEFAULT_ROUTE = {
 };
 
 export const ALLOWED_ROUTES = {
-  athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/shoes', '/garmin', '/settings', '/athlete-profile'],
-  coach:   ['/coach', '/workout-builder', '/plans', '/settings'],
-  admin:   ['/', '/admin', '/coach', '/workout-builder', '/plans', '/settings', '/athlete-profile', '/activities', '/workouts', '/analytics', '/goals', '/shoes', '/garmin', '/my-plan'],
+  athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/shoes', '/garmin', '/settings', '/athlete-profile', '/profile'],
+  coach:   ['/coach', '/workout-builder', '/plans', '/settings', '/profile'],
+  admin:   ['/', '/admin', '/coach', '/workout-builder', '/plans', '/settings', '/athlete-profile', '/activities', '/workouts', '/analytics', '/goals', '/shoes', '/garmin', '/my-plan', '/profile'],
 };
 
 export function isRouteAllowed(role, pathname) {
