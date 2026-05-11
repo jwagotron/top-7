@@ -136,7 +136,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       </div>
 
       {/* Menu Sections — Rendered Explicitly */}
-      <nav className="flex-1 overflow-y-auto p-4 space-y-0">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {/* NAVIGATION Section */}
         <MenuSection
           section={sidebarMenu[0]}
