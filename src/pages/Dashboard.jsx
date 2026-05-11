@@ -317,7 +317,7 @@ export default function Dashboard() {
           </div>
 
           {/* Day rows */}
-          <div className="divide-y divide-border/15 max-h-[480px] overflow-y-auto">
+          <div className="divide-y divide-border/15 max-h-[480px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {horizonDayList.map(day => {
               const key = format(day, 'yyyy-MM-dd');
               const planned = plannedByDate[key] || [];

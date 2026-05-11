@@ -100,7 +100,7 @@ export default function MobileDrawer() {
         </div>
 
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-3">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
           {/* User card */}
           {user && (
