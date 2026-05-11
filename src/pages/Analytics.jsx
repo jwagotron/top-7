@@ -191,12 +191,14 @@ export default function Analytics() {
         </div>
 
         <Tabs defaultValue="performance">
-          <TabsList className="h-9 mb-1">
-            <TabsTrigger value="performance" className="text-xs px-3">Performance</TabsTrigger>
-            <TabsTrigger value="health" className="text-xs px-3">Health & Fitness</TabsTrigger>
-            <TabsTrigger value="trends" className="text-xs px-3">Trends</TabsTrigger>
-            <TabsTrigger value="records" className="text-xs px-3">🏆 Records</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-1 -mx-1 px-1">
+            <TabsList className="h-9 mb-1 flex w-max min-w-full">
+              <TabsTrigger value="performance" className="text-xs px-3 whitespace-nowrap">Performance</TabsTrigger>
+              <TabsTrigger value="health" className="text-xs px-3 whitespace-nowrap">Health & Fitness</TabsTrigger>
+              <TabsTrigger value="trends" className="text-xs px-3 whitespace-nowrap">Trends</TabsTrigger>
+              <TabsTrigger value="records" className="text-xs px-3 whitespace-nowrap">🏆 Records</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* === PERFORMANCE TAB === */}
           <TabsContent value="performance" className="space-y-5 mt-0">
