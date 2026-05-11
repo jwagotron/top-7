@@ -112,7 +112,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       <div className={cn("border-b border-sidebar-border/50", collapsed ? "px-2 py-2" : "px-4 py-2")}>
         {!collapsed && (
           <span className="text-[10px] uppercase tracking-widest text-sidebar-foreground/40 font-semibold capitalize block mb-1">
-            {role} mode
+            {user?.role === 'admin' ? 'admin' : (user?.user_type || role || 'athlete')} mode
           </span>
         )}
         {canPreview && (

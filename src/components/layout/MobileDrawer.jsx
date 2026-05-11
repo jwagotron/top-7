@@ -88,7 +88,7 @@ export default function MobileDrawer() {
             </div>
             <div>
               <span className="font-bold text-[15px] text-sidebar-foreground tracking-tight block leading-tight">Top 7</span>
-              <span className="text-[10px] text-sidebar-foreground/40 uppercase tracking-widest capitalize">{role} mode</span>
+              <span className="text-[10px] text-sidebar-foreground/40 uppercase tracking-widest capitalize">{user?.role === 'admin' ? 'admin' : (user?.user_type || role || 'athlete')} mode</span>
             </div>
           </div>
           <button
