@@ -105,7 +105,7 @@ export default function MobileDrawer() {
           {/* User card */}
           {user && (
             <Link
-              to="/athlete-profile"
+              to="/profile"
               onClick={close}
               className="group flex items-center gap-3.5 mx-0 mt-4 mb-1 px-3 py-3.5 rounded-2xl bg-sidebar-accent/40 hover:bg-sidebar-accent transition-all duration-200 active:scale-[0.98]"
             >
