@@ -321,7 +321,7 @@ export default function UserProfile() {
 
   if (isLoadingAuth) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="bg-background">
         <TopBar title="Profile" />
         <div className="p-6 space-y-4 max-w-3xl mx-auto">
           {[1,2,3].map(i => (
@@ -333,7 +333,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <TopBar title={config.title} />
       <div className="p-4 lg:p-6 max-w-3xl mx-auto space-y-6 pb-24 lg:pb-8">
 

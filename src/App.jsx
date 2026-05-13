@@ -64,6 +64,7 @@ function PersistentTab({ path, element, currentPath }) {
         display: isActive ? undefined : 'none',
         position: 'absolute',
         inset: 0,
+        zIndex: isActive ? 1 : 0,
         overflowY: 'auto',
         overflowX: 'hidden',
         WebkitOverflowScrolling: 'touch',
