@@ -52,7 +52,7 @@ export default function CreateTeamModal({ open, onClose, onCreated, coachEmail }
               {form.logo_url ? <img src={form.logo_url} alt="logo" className="w-full h-full object-cover" /> : <Upload className="w-5 h-5 text-muted-foreground" />}
             </div>
             <label className="cursor-pointer text-xs text-primary font-medium hover:underline">
-              {uploading ? 'Uploading…' : 'Upload Logo'}
+              {uploading ? 'Uploading…' : 'Upload Logo'} <span className="text-muted-foreground font-normal">(optional)</span>
               <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploading} />
             </label>
           </div>
@@ -74,8 +74,8 @@ export default function CreateTeamModal({ open, onClose, onCreated, coachEmail }
             <Textarea value={form.description} onChange={e => set('description', e.target.value)} className="h-16 resize-none" placeholder="About the team…" />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>Website</Label><Input value={form.website} onChange={e => set('website', e.target.value)} placeholder="https://…" /></div>
-            <div className="space-y-1.5"><Label>Contact</Label><Input value={form.contact_info} onChange={e => set('contact_info', e.target.value)} placeholder="email or phone" /></div>
+            <div className="space-y-1.5"><Label>Website <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label><Input value={form.website} onChange={e => set('website', e.target.value)} placeholder="https://…" /></div>
+            <div className="space-y-1.5"><Label>Contact <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label><Input value={form.contact_info} onChange={e => set('contact_info', e.target.value)} placeholder="email or phone" /></div>
           </div>
 
           {/* Join mode */}
