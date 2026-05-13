@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { X, LogOut, HelpCircle, ChevronRight } from 'lucide-react';
+import { X, LogOut, HelpCircle, ChevronRight, Repeat2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
 import { useDrawer } from '@/lib/DrawerContext';
@@ -43,7 +43,7 @@ function getInitials(name) {
 export default function MobileDrawer() {
   const { open, close } = useDrawer();
   const { user } = useAuth();
-  const { role } = useRole();
+  const { role, canPreview, previewRole, togglePreviewRole } = useRole();
   const items = NAV_ITEMS[role] || NAV_ITEMS.athlete;
 
   const handleLogout = () => {
@@ -120,6 +120,19 @@ export default function MobileDrawer() {
               </div>
               <ChevronRight className="w-4 h-4 text-sidebar-foreground/30 group-hover:text-sidebar-foreground/60 transition-colors shrink-0" />
             </Link>
+          )}
+
+          {/* Role switch button — admin only */}
+          {canPreview && (
+            <button
+              onClick={() => { togglePreviewRole(); close(); }}
+              className="w-full flex items-center gap-3 px-3 py-3 mt-3 rounded-xl text-sm font-semibold bg-sidebar-primary/20 hover:bg-sidebar-primary/30 text-sidebar-primary transition-all duration-150"
+            >
+              <div className="w-8 h-8 rounded-lg bg-sidebar-primary/20 flex items-center justify-center shrink-0">
+                <Repeat2 className="w-4 h-4" />
+              </div>
+              Switch to {previewRole === 'athlete' ? 'Coach' : 'Athlete'}
+            </button>
           )}
 
           {/* Nav items for current role */}
