@@ -55,8 +55,10 @@ export default function CoachPanel() {
     enabled: !!effectiveTeamId,
   });
 
-  const athleteEmails = members.map(m => m.athlete_email);
-  const normalizedAthletes = members.map(m => ({ email: m.athlete_email, full_name: m.athlete_name }));
+  // Exclude the coach themselves from the athlete list (in case they joined as an athlete)
+  const nonCoachMembers = members.filter(m => m.athlete_email !== user?.email);
+  const athleteEmails = nonCoachMembers.map(m => m.athlete_email);
+  const normalizedAthletes = nonCoachMembers.map(m => ({ email: m.athlete_email, full_name: m.athlete_name }));
   const selectedAthleteEmail = athleteFilter !== 'all' ? athleteFilter : null;
   const { completions } = useCompletions(selectedAthleteEmail);
 
@@ -194,7 +196,7 @@ export default function CoachPanel() {
                 <TabsList className="h-8">
                   <TabsTrigger value="workouts" className="text-xs px-3">Workouts</TabsTrigger>
                   <TabsTrigger value="athletes" className="text-xs px-3">
-                    Athletes {members.length > 0 && <Badge className="ml-1 h-4 px-1 text-[10px]">{members.length}</Badge>}
+                    Athletes {nonCoachMembers.length > 0 && <Badge className="ml-1 h-4 px-1 text-[10px]">{nonCoachMembers.length}</Badge>}
                   </TabsTrigger>
                 </TabsList>
 

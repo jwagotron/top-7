@@ -17,8 +17,10 @@ export default function TeamMembershipList({ teamId, coachEmail }) {
     enabled: !!teamId,
   });
 
-  const pending = memberships.filter(m => m.status === 'pending');
-  const active = memberships.filter(m => m.status === 'active');
+  // Exclude the coach themselves in case they joined as an athlete
+  const nonCoachMemberships = memberships.filter(m => m.athlete_email !== coachEmail);
+  const pending = nonCoachMemberships.filter(m => m.status === 'pending');
+  const active = nonCoachMemberships.filter(m => m.status === 'active');
 
   const [removingId, setRemovingId] = useState(null);
   const removingAthlete = memberships.find(m => m.id === removingId);
