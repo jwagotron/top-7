@@ -193,9 +193,9 @@ export default function Analytics() {
         <Tabs defaultValue="performance">
           <div className="[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] overflow-x-auto mb-1">
             <TabsList className="flex w-max h-9">
-              <TabsTrigger value="performance" className="text-xs px-4 whitespace-nowrap">Performance</TabsTrigger>
-              <TabsTrigger value="health" className="text-xs px-4 whitespace-nowrap">Health & Fitness</TabsTrigger>
-              <TabsTrigger value="trends" className="text-xs px-4 whitespace-nowrap">Trends</TabsTrigger>
+              <TabsTrigger value="performance" className="text-xs px-4 whitespace-nowrap">⚡ Performance</TabsTrigger>
+              <TabsTrigger value="health" className="text-xs px-4 whitespace-nowrap">❤️ Health & Fitness</TabsTrigger>
+              <TabsTrigger value="trends" className="text-xs px-4 whitespace-nowrap">📈 Trends</TabsTrigger>
               <TabsTrigger value="records" className="text-xs px-4 whitespace-nowrap">🏆 Records</TabsTrigger>
             </TabsList>
           </div>
