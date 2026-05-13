@@ -44,10 +44,7 @@ const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts',
 
 function PersistentTab({ path, element, currentPath }) {
   const isActive = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
-  const [mounted, setMounted] = React.useState(isActive);
   const ref = React.useRef(null);
-
-  React.useEffect(() => { if (isActive) setMounted(true); }, [isActive]);
 
   // Scroll to top whenever this tab becomes active
   React.useEffect(() => {
@@ -56,7 +53,6 @@ function PersistentTab({ path, element, currentPath }) {
     }
   }, [isActive]);
 
-  if (!mounted) return null;
   return (
     <div
       ref={ref}
@@ -128,7 +124,7 @@ function AnimatedRoutes() {
                   <Route path="/plans"           element={<TrainingPlans />} />
                   <Route path="/activities"      element={<Activities />} />
                   <Route path="/athlete-profile" element={<AthleteProfile />} />
-                  {/* /workout-builder is now a persistent tab */}
+
                 </Route>
                 <Route path="*" element={<PageNotFound />} />
               </Routes>
