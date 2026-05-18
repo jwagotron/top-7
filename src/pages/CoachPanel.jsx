@@ -231,7 +231,7 @@ export default function CoachPanel() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Athletes</SelectItem>
-                    {members.map(m => (
+                    {activeMembers.map(m => (
                       <SelectItem key={m.athlete_email} value={m.athlete_email}>
                         {m.athlete_name || m.athlete_email}
                       </SelectItem>
