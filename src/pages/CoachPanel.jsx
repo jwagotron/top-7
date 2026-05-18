@@ -4,7 +4,6 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useRole } from '@/lib/RoleContext';
 import TopBar from '@/components/layout/TopBar';
-import RoleGate from '@/components/RoleGate';
 import TeamInviteCard from '@/components/coach/TeamInviteCard';
 import TeamMembershipList from '@/components/coach/TeamMembershipList';
 import TrainingMonthGrid from '@/components/workouts/TrainingMonthGrid';
@@ -130,7 +129,6 @@ export default function CoachPanel() {
   const upcoming = monthWorkouts.filter(w => w.status === 'upcoming').length;
 
   return (
-    <RoleGate allow={['coach', 'admin']}>
       <div className="min-h-screen bg-background">
         <TopBar title="Coach Panel">
           {/* Team selector */}
@@ -327,6 +325,5 @@ export default function CoachPanel() {
           </div>
         )}
       </div>
-    </RoleGate>
   );
 }
