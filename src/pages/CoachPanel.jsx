@@ -198,7 +198,7 @@ export default function CoachPanel() {
                 <TabsList className="h-8">
                   <TabsTrigger value="workouts" className="text-xs px-3">Workouts</TabsTrigger>
                   <TabsTrigger value="athletes" className="text-xs px-3">
-                    Athletes {nonCoachMembers.length > 0 && <Badge className="ml-1 h-4 px-1 text-[10px]">{nonCoachMembers.length}</Badge>}
+                    Athletes {nonCoachMembers.filter(m => m.status === 'pending').length > 0 && <Badge className="ml-1 h-4 px-1 text-[10px]">{nonCoachMembers.filter(m => m.status === 'pending').length}</Badge>}
                   </TabsTrigger>
                 </TabsList>
 
