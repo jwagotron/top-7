@@ -37,6 +37,7 @@ export default function CoachPanel() {
   const [athleteFilter, setAthleteFilter] = useState('all');
   const [showCreateTeam, setShowCreateTeam] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+  const [activeTab, setActiveTab] = useState('workouts');
 
   // Fetch coach's teams
   const { data: myTeams = [], refetch: refetchTeams } = useQuery({
@@ -194,7 +195,7 @@ export default function CoachPanel() {
                 </Button>
               )}
 
-              <Tabs defaultValue="workouts">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="h-8">
                   <TabsTrigger value="workouts" className="text-xs px-3">Workouts</TabsTrigger>
                   <TabsTrigger value="athletes" className="text-xs px-3">
