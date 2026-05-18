@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -8,22 +8,16 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { CheckCircle2, XCircle, UserMinus, Clock, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function TeamMembershipList({ teamId, coachEmail }) {
+export default function TeamMembershipList({ teamId, coachEmail, members }) {
   const qc = useQueryClient();
 
-  const { data: memberships = [] } = useQuery({
-    queryKey: ['memberships', teamId],
-    queryFn: () => base44.entities.TeamMembership.filter({ team_id: teamId }),
-    enabled: !!teamId,
-  });
-
-  // Exclude the coach themselves in case they joined as an athlete
-  const nonCoachMemberships = memberships.filter(m => m.athlete_email !== coachEmail);
+  // Use passed members prop (shared cache from CoachPanel) so counts stay in sync
+  const nonCoachMemberships = (members || []).filter(m => m.athlete_email !== coachEmail);
   const pending = nonCoachMemberships.filter(m => m.status === 'pending');
   const active = nonCoachMemberships.filter(m => m.status === 'active');
 
   const [removingId, setRemovingId] = useState(null);
-  const removingAthlete = memberships.find(m => m.id === removingId);
+  const removingAthlete = nonCoachMemberships.find(m => m.id === removingId);
 
   const handleAction = async (membershipId, action) => {
     // Require confirmation for removal

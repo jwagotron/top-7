@@ -48,16 +48,17 @@ export default function CoachPanel() {
   const selectedTeam = myTeams.find(t => t.id === selectedTeamId) || myTeams[0] || null;
   const effectiveTeamId = selectedTeam?.id;
 
-  // Fetch members of selected team
+  // Fetch ALL members of selected team (including pending) — single source of truth
   const { data: members = [] } = useQuery({
     queryKey: ['memberships', effectiveTeamId],
-    queryFn: () => base44.entities.TeamMembership.filter({ team_id: effectiveTeamId, status: 'active' }),
+    queryFn: () => base44.entities.TeamMembership.filter({ team_id: effectiveTeamId }),
     enabled: !!effectiveTeamId,
   });
 
-  // Exclude the coach themselves from the athlete list (in case they joined as an athlete)
-  const nonCoachMembers = members.filter(m => m.athlete_email !== user?.email);
-  const athleteEmails = nonCoachMembers.map(m => m.athlete_email);
+  // Exclude the coach themselves; only active members count for workouts/badge
+  const activeMembers = members.filter(m => m.athlete_email !== user?.email && m.status === 'active');
+  const nonCoachMembers = activeMembers;
+  const athleteEmails = activeMembers.map(m => m.athlete_email);
   const normalizedAthletes = nonCoachMembers.map(m => ({ email: m.athlete_email, full_name: m.athlete_name }));
   const selectedAthleteEmail = athleteFilter !== 'all' ? athleteFilter : null;
   const { completions } = useCompletions(selectedAthleteEmail);
@@ -270,7 +271,7 @@ export default function CoachPanel() {
 
               {/* ATHLETES TAB */}
               <TabsContent value="athletes" className="mt-0 space-y-6">
-                <TeamMembershipList teamId={effectiveTeamId} coachEmail={user?.email} />
+                <TeamMembershipList teamId={effectiveTeamId} coachEmail={user?.email} members={members} />
                 <div className="border-t border-border pt-5">
                   <AthleteGroupManager teamId={effectiveTeamId} coachEmail={user?.email} members={members} />
                 </div>
