@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
 import { useRole } from '@/lib/RoleContext';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 import { useCompletions } from '@/hooks/useCompletions';
@@ -45,7 +44,6 @@ function SectionLabel({ children }) {
 
 export default function MyPlan() {
   const { role } = useRole();
-  const navigate = useNavigate();
   const { toDisplay, label } = useUnits();
   const [selectedDayWorkout, setSelectedDayWorkout] = useState(undefined);
   const [selectedDay, setSelectedDay] = useState(null); // tracks the calendar day even if no workout
@@ -53,9 +51,6 @@ export default function MyPlan() {
   const [completingId, setCompletingId] = useState(null);
   const [notesMap, setNotesMap] = useState({});
   const [showNotesFor, setShowNotesFor] = useState(null);
-  useEffect(() => {
-    if (role && role !== 'athlete') navigate('/coach', { replace: true });
-  }, [role, navigate]);
 
   const { activePlan, plannedWorkouts, isLoading: plansLoading, athleteEmail } = useAssignedPlan();
   const { completions, completeMut: sharedCompleteMut } = useCompletions(athleteEmail);

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import StatCard from '@/components/dashboard/StatCard';
@@ -14,7 +13,6 @@ import {
 } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
-import { DEFAULT_ROUTE } from '@/lib/roleConfig';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 import { useCompletions } from '@/hooks/useCompletions';
 import {
@@ -52,7 +50,6 @@ const HORIZONS = [
 
 export default function Dashboard() {
   const { role, canPreview } = useRole();
-  const navigate = useNavigate();
   const { user, refetchUser } = useAuth();
   const { athleteEmail, plannedWorkouts, activePlan, isLoading } = useAssignedPlan();
   const { completions, completeMut } = useCompletions(athleteEmail);
@@ -60,12 +57,6 @@ export default function Dashboard() {
   const [showTodayWorkout, setShowTodayWorkout] = useState(false);
   const [horizon, setHorizon] = useState('14');
 
-  useEffect(() => {
-    if (!role || canPreview) return;
-    if (role !== 'athlete') {
-      navigate(DEFAULT_ROUTE[role] || '/coach', { replace: true });
-    }
-  }, [role, canPreview, navigate]);
 
   const { data: workouts = [] } = useQuery({
     queryKey: ['workouts', athleteEmail],
