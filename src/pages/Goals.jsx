@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Target, Trash2, Pencil, Trophy, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
 
 const categoryIcons = {
@@ -106,7 +107,7 @@ export default function Goals() {
                       </div>
                     )}
                     {goal.deadline && (
-                      <p className="text-xs text-muted-foreground mt-2">Deadline: {format(new Date(goal.deadline), 'MMM d, yyyy')}</p>
+                      <p className="text-xs text-muted-foreground mt-2">Deadline: {format(parseDateOnly(goal.deadline), 'MMM d, yyyy')}</p>
                     )}
                   </CardContent>
                 </Card>

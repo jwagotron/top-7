@@ -154,10 +154,24 @@ function CoachProfileContent({ user }) {
     enabled: !!user?.email,
   });
 
+  const teamIds = teams.map(t => t.id);
+
   const { data: plannedWorkouts = [] } = useQuery({
-    queryKey: ['coach-planned-workouts-profile', user?.email],
-    queryFn: () => base44.entities.PlannedWorkout.filter({ coach_email: user.email }, '-scheduled_date', 200),
-    enabled: !!user?.email,
+    queryKey: ['coach-planned-workouts-profile', user?.email, teamIds.join(',')],
+    queryFn: async () => {
+      if (teams.length === 0) return [];
+      // Fetch plans owned by this coach, then get their planned workouts
+      const plans = await base44.entities.TrainingPlan.filter({ coach_email: user.email }, '-created_date', 50);
+      if (plans.length === 0) return [];
+      const results = await Promise.all(
+        plans.slice(0, 5).map(p => base44.entities.PlannedWorkout.filter({ plan_id: p.id }, '-scheduled_date', 50))
+      );
+      const seen = new Set();
+      const all = [];
+      for (const arr of results) for (const w of arr) { if (!seen.has(w.id)) { seen.add(w.id); all.push(w); } }
+      return all;
+    },
+    enabled: !!user?.email && teams.length > 0,
   });
 
   const activeAthletes = memberships.filter(m => m.status === 'active');

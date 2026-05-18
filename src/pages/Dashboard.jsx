@@ -417,7 +417,7 @@ export default function Dashboard() {
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-semibold text-foreground truncate flex-1">{w.title}</p>
                       <span className="text-[11px] text-muted-foreground/60 shrink-0 whitespace-nowrap">
-                        {format(new Date(w.date), 'MMM d')}
+                        {w.date ? format(parseDateOnly(w.date), 'MMM d') : '—'}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">

@@ -8,14 +8,13 @@ import AssignmentSelector from '@/components/plans/AssignmentSelector';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ChevronDown, ChevronUp, Calendar, Trash2, Pencil, Bike, Footprints, Waves, Dumbbell, CircleDot } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Calendar, Trash2, Pencil, Bike, Footprints, Waves, Dumbbell, CircleDot, Activity } from 'lucide-react';
 import { format } from 'date-fns';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
 import { useAuth } from '@/lib/AuthContext';
-
-import { Activity } from 'lucide-react';
 
 const sportIcons = { run: Footprints, bike: Bike, swim: Waves, strength: Dumbbell, other: CircleDot, triathlon: Activity, general: CircleDot };
 
@@ -174,7 +173,7 @@ export default function TrainingPlans() {
                             {w.status}
                           </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">{format(new Date(w.scheduled_date), 'EEE, MMM d')}
+                        <p className="text-xs text-muted-foreground mt-0.5">{format(parseDateOnly(w.scheduled_date), 'EEE, MMM d')}
                           {w.target_distance_km ? ` · ${toDisplay(w.target_distance_km)} ${label}` : ''}
                           {w.target_duration_minutes ? ` · ${w.target_duration_minutes} min` : ''}
                         </p>

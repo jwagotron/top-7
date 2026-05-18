@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, RotateCcw, Pencil, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';
 
 const DEFAULT_MAX_KM = 700;
@@ -211,7 +212,7 @@ export default function ShoeTracker() {
                       {isWarning && !isRetired && <Badge className="bg-accent/10 text-accent text-xs">Almost Done</Badge>}
                     </div>
                     {shoe.start_date && (
-                      <p className="text-xs text-muted-foreground mt-0.5">Since {format(new Date(shoe.start_date), 'MMM d, yyyy')}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Since {format(parseDateOnly(shoe.start_date), 'MMM d, yyyy')}</p>
                     )}
                   </div>
                 </div>

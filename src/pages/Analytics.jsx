@@ -10,7 +10,8 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   ComposedChart, ReferenceLine
 } from 'recharts';
-import { format, subDays, startOfWeek, endOfWeek, eachWeekOfInterval, parseISO } from 'date-fns';
+import { format, subDays, startOfWeek, endOfWeek, eachWeekOfInterval } from 'date-fns';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';
 import { useAuth } from '@/lib/AuthContext';
 import { Heart, Wind, Moon, Brain, Zap, TrendingUp, Activity, Flame } from 'lucide-react';
@@ -66,7 +67,7 @@ export default function Analytics() {
   });
 
   const cutoff = subDays(new Date(), Number(period));
-  const filtered = workouts.filter(w => w.date && new Date(w.date) >= cutoff);
+  const filtered = workouts.filter(w => w.date && parseDateOnly(w.date) >= cutoff);
   const filteredActivities = activities.filter(a => a.started_at && new Date(a.started_at) >= cutoff);
 
   // Volume chart data — daily for 7d, weekly otherwise
@@ -91,7 +92,7 @@ export default function Analytics() {
     : eachWeekOfInterval({ start: cutoff, end: new Date() }, { weekStartsOn: 1 }).map(weekStart => {
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         const ww = filtered.filter(w => {
-          const d = new Date(w.date);
+          const d = parseDateOnly(w.date);
           return d >= weekStart && d <= weekEnd;
         });
         return {
