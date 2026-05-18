@@ -54,24 +54,25 @@ export default function MobileDrawer() {
   return (
     <>
       {/* Backdrop */}
-      <div
-        className={cn(
-          'lg:hidden fixed inset-0 z-50 transition-all duration-300',
-          open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        )}
-        style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: open ? 'blur(2px)' : 'none' }}
-        onClick={close}
-      />
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 transition-opacity duration-300 opacity-100"
+          style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)' }}
+          onClick={close}
+        />
+      )}
 
       {/* Drawer panel */}
       <div
         className={cn(
           'lg:hidden fixed left-0 top-0 h-full z-[60] bg-sidebar flex flex-col',
-          'transition-transform duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)]',
           'shadow-[4px_0_40px_rgba(0,0,0,0.4)]',
-          open ? 'translate-x-0' : '-translate-x-full'
         )}
-        style={{ width: 'min(82vw, 310px)' }}
+        style={{
+          width: 'min(82vw, 310px)',
+          transform: open ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 320ms cubic-bezier(0.32,0.72,0,1)',
+        }}
       >
         {/* Branding header */}
         <div
