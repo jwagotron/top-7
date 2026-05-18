@@ -6,6 +6,8 @@ const RoleContext = createContext();
 // Emails that can preview-switch between athlete and coach
 const PREVIEW_EMAILS = ['dan@stratagemims.com', 'jwagone987@gmail.com'];
 
+const DEFAULT_ROUTE = { athlete: '/', coach: '/coach' };
+
 export function RoleProvider({ children }) {
   const { user } = useAuth();
   const [previewRole, setPreviewRole] = useState(null); // 'athlete' | 'coach' | null
@@ -19,8 +21,13 @@ export function RoleProvider({ children }) {
     return user.user_type || null;
   }, [user, canPreview, previewRole]);
 
-  const togglePreviewRole = () => {
-    setPreviewRole(r => (r === 'athlete' ? 'coach' : 'athlete'));
+  const togglePreviewRole = (navigate) => {
+    setPreviewRole(r => {
+      const next = r === 'athlete' ? 'coach' : 'athlete';
+      // Navigate to the default route for the new role
+      if (navigate) navigate(DEFAULT_ROUTE[next] || '/');
+      return next;
+    });
   };
 
   // Initialize preview role on first canPreview render

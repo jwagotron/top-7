@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Repeat2, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/lib/RoleContext';
@@ -72,6 +72,7 @@ function MenuSection({ section, collapsed, isActive, onAction, isLast }) {
 
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { role, canPreview, previewRole, togglePreviewRole } = useRole();
   const { logout, user } = useAuth();
   
@@ -117,7 +118,7 @@ export default function Sidebar({ collapsed, onToggle }) {
         )}
         {canPreview && (
           <button
-            onClick={togglePreviewRole}
+            onClick={() => togglePreviewRole(navigate)}
             title={`Switch to ${previewRole === 'athlete' ? 'coach' : 'athlete'} view`}
             className={cn(
               "flex items-center gap-2 rounded-lg transition-colors",

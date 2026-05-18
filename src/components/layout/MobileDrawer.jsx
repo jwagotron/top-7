@@ -43,6 +43,7 @@ function getInitials(name) {
 export default function MobileDrawer() {
   const { open, close } = useDrawer();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { role, canPreview, previewRole, togglePreviewRole } = useRole();
   const items = NAV_ITEMS[role] || NAV_ITEMS.athlete;
 
@@ -126,7 +127,7 @@ export default function MobileDrawer() {
           {/* Role switch button — admin only */}
           {canPreview && (
             <button
-              onClick={() => { togglePreviewRole(); close(); }}
+              onClick={() => { togglePreviewRole(navigate); close(); }}
               className="w-full flex items-center gap-3 px-3 py-3 mt-3 rounded-xl text-sm font-semibold bg-sidebar-primary/20 hover:bg-sidebar-primary/30 text-sidebar-primary transition-all duration-150"
             >
               <div className="w-8 h-8 rounded-lg bg-sidebar-primary/20 flex items-center justify-center shrink-0">
