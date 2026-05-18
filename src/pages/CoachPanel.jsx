@@ -55,9 +55,10 @@ export default function CoachPanel() {
     enabled: !!effectiveTeamId,
   });
 
-  // Exclude the coach themselves; only active members count for workouts/badge
-  const activeMembers = members.filter(m => m.athlete_email !== user?.email && m.status === 'active');
-  const nonCoachMembers = activeMembers;
+  // Exclude the coach themselves
+  const nonCoachMembers = members.filter(m => m.athlete_email !== user?.email);
+  // Only active members are used for workout assignment
+  const activeMembers = nonCoachMembers.filter(m => m.status === 'active');
   const athleteEmails = activeMembers.map(m => m.athlete_email);
   const normalizedAthletes = nonCoachMembers.map(m => ({ email: m.athlete_email, full_name: m.athlete_name }));
   const selectedAthleteEmail = athleteFilter !== 'all' ? athleteFilter : null;
