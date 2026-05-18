@@ -196,7 +196,7 @@ export default function CoachPanel() {
               )}
 
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="h-8">
+                <TabsList>
                   <TabsTrigger value="workouts" className="text-xs px-3">Workouts</TabsTrigger>
                   <TabsTrigger value="athletes" className="text-xs px-3">
                     Athletes {nonCoachMembers.filter(m => m.status === 'pending').length > 0 && <Badge className="ml-1 h-4 px-1 text-[10px]">{nonCoachMembers.filter(m => m.status === 'pending').length}</Badge>}

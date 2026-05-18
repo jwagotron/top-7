@@ -19,6 +19,7 @@ const statusDot = { success: 'bg-secondary', failed: 'bg-destructive', pending: 
 export default function AdminPanel() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [activeTab, setActiveTab] = useState('users');
   const [editingTeamId, setEditingTeamId] = useState(null);
   const [editingTeamName, setEditingTeamName] = useState('');
   const [addUserToTeamId, setAddUserToTeamId] = useState(null);
@@ -163,7 +164,7 @@ export default function AdminPanel() {
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="users">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full">
             <TabsTrigger value="users" className="flex-1 text-xs">Users</TabsTrigger>
             <TabsTrigger value="teams" className="flex-1 text-xs">Teams</TabsTrigger>
