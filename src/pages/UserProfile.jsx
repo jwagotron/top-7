@@ -155,8 +155,9 @@ function CoachProfileContent({ user }) {
   });
 
   const { data: plannedWorkouts = [] } = useQuery({
-    queryKey: ['coach-planned-workouts-profile'],
-    queryFn: () => base44.entities.PlannedWorkout.list('-scheduled_date', 200),
+    queryKey: ['coach-planned-workouts-profile', user?.email],
+    queryFn: () => base44.entities.PlannedWorkout.filter({ coach_email: user.email }, '-scheduled_date', 200),
+    enabled: !!user?.email,
   });
 
   const activeAthletes = memberships.filter(m => m.status === 'active');

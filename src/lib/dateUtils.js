@@ -21,7 +21,7 @@ import { parse } from 'date-fns';
  * parseDateOnly("2026-04-06") // Always April 6, not April 5 or 7
  */
 export const parseDateOnly = (dateInput) => {
-  if (!dateInput) return new Date();
+  if (!dateInput) return new Date(0); // epoch sentinel — won't match any real date
   
   // If already a Date object, return as-is
   if (dateInput instanceof Date) return dateInput;

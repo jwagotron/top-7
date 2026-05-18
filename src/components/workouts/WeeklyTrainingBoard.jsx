@@ -90,8 +90,7 @@ export default function WeeklyTrainingBoard({
           // Filter: ONLY assigned workouts that are not completed
           const visibleAssigned = dayWorkouts.filter(w => getCompletion(w.id)?.status !== 'completed' && w.status !== 'completed');
           
-          // Debug: only assigned pending workouts
-          console.debug(`[Day ${format(day, 'EEE')}] visible_assigned_pending=${visibleAssigned.length}`);
+
           
           const isToday = isSameDay(day, today);
 
@@ -143,10 +142,10 @@ export default function WeeklyTrainingBoard({
                   <div className="space-y-3">
                     {visibleAssigned.map(pw => (
                       <PlannedWorkoutCard
-                        key={pw.id}
-                        planned={pw}
-                        expanded={expandedPlanned === pw.id}
-                        onToggle={() => onToggleExpanded(expandedPlanned === pw.id ? null : pw.id)}
+                      key={pw.id}
+                      planned={pw}
+                      expanded={expandedPlanned === pw.id}
+                      onToggle={() => onToggleExpanded(pw.id)}
                         completion={getCompletion(pw.id)}
                         showCompleteButton={showCompleteButton}
                         onMarkComplete={onMarkComplete}

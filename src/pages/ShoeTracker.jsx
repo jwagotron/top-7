@@ -238,7 +238,7 @@ export default function ShoeTracker() {
                     <span className="font-medium">{displayMileage.toLocaleString()} {label}</span>
                     {remaining !== null && (
                       <span className={`text-xs ${isOver ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
-                        {isOver ? `${Math.abs(remaining)} ${label} over` : `${remaining} ${label} left`}
+                        {isOver ? `${Math.round(Math.abs(remaining) * 10) / 10} ${label} over` : `${Math.round(remaining * 10) / 10} ${label} left`}
                       </span>
                     )}
                   </div>

@@ -9,9 +9,9 @@ import RunLogForm from '@/components/workouts/RunLogForm';
 import RunDetailDrawer from '@/components/workouts/RunDetailDrawer';
 import PlannedWorkoutCard from '@/components/workouts/PlannedWorkoutCard';
 import { Button } from '@/components/ui/button';
-import { Plus, CalendarDays, Footprints, Clock, MapPin, Upload } from 'lucide-react';
+import { Plus, Footprints, Clock, MapPin, Upload } from 'lucide-react';
 import FitImportDialog from '@/components/workouts/FitImportDialog';
-import { format, isSameDay, addMonths, subMonths, startOfWeek, addDays } from 'date-fns';
+import { format, startOfWeek, addDays } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
@@ -123,10 +123,7 @@ export default function Workouts() {
 
 
 
-  // DEBUG: athlete workout visibility
-  console.debug('[Workouts] role:', role, '| athlete:', athleteEmail, '| weekStart:', format(weekStart, 'yyyy-MM-dd'));
-  console.debug('[Workouts] assignedWorkouts total:', assignedWorkouts.length, '| myPlanned total:', myPlanned.length);
-  console.debug('[Workouts] all myPlanned dates:', myPlanned.map(p => p.scheduled_date + '(' + p.title + ')').join(', '));
+
 
   // Weekly stats for the current week
   const weekEnd = addDays(weekStart, 6);
@@ -179,7 +176,7 @@ export default function Workouts() {
           workouts={workouts}
           completions={completions}
           expandedPlanned={expandedPlanned}
-          onToggleExpanded={(id) => setExpandedPlanned(expandedPlanned === id ? null : id)}
+          onToggleExpanded={(id) => setExpandedPlanned(prev => prev === id ? null : id)}
           showCompleteButton={isAthlete}
           onMarkComplete={isAthlete ? ({ workout, notes }) => completeMut.mutateAsync({ workout, notes }) : undefined}
           onViewWorkout={(w) => setViewingWorkout(w)}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Clock, MapPin, Zap, ChevronDown, ChevronUp, Loader2, StickyNote, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import WorkoutComments from '@/components/workouts/WorkoutComments';
@@ -71,8 +72,9 @@ export default function PlannedWorkoutCard({
   const isCompleted = completion?.status === 'completed' || planned.status === 'completed';
   const isSkipped = planned.status === 'skipped';
   // A workout is "missed" if it was scheduled in the past and not completed/skipped
+  const today = new Date(); today.setHours(0, 0, 0, 0);
   const isMissed = !isCompleted && !isSkipped &&
-    planned.scheduled_date && new Date(planned.scheduled_date) < new Date(new Date().toDateString());
+    planned.scheduled_date && parseDateOnly(planned.scheduled_date) < today;
 
   const handleComplete = async () => {
     if (!onMarkComplete) return;

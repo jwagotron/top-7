@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import RoleGate from '@/components/RoleGate';
 import TopBar from '@/components/layout/TopBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -149,7 +148,6 @@ export default function WorkoutBuilder() {
   const getStepsForWorkout = (id) => allSteps.filter(s => s.workout_id === id).sort((a, b) => a.order - b.order);
 
   return (
-    <RoleGate allow={['coach', 'admin', 'athlete']}>
       <div className="flex flex-col h-full bg-background">
         <TopBar title="Workout Builder">
           <Button onClick={() => { resetForm(); setShowForm(true); }} size="sm" className="gap-1.5 h-8 px-2 sm:px-4">
@@ -303,6 +301,5 @@ export default function WorkoutBuilder() {
           </div>
         </div>
       </div>
-    </RoleGate>
   );
 }

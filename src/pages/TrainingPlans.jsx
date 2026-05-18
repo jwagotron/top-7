@@ -15,8 +15,9 @@ import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
 import { useAuth } from '@/lib/AuthContext';
 
-const sportIcons = { run: Footprints, bike: Bike, swim: Waves, strength: Dumbbell, other: CircleDot, triathlon: Activity, general: CircleDot };
 import { Activity } from 'lucide-react';
+
+const sportIcons = { run: Footprints, bike: Bike, swim: Waves, strength: Dumbbell, other: CircleDot, triathlon: Activity, general: CircleDot };
 
 const statusColors = {
   active: "bg-secondary/10 text-secondary border-secondary/20",

@@ -26,8 +26,17 @@ export function useAssignedPlan() {
   const { data: plans = [], isLoading: plansLoading } = useQuery({
     queryKey: ['assigned-plans', athleteEmail],
     queryFn: async () => {
-      // Filter directly by assigned_to containing this athlete
-      const all = await base44.entities.TrainingPlan.filter({ coach_email: coachEmails }, '-created_date', 100);
+      // Fetch plans from each coach in parallel, then deduplicate
+      const results = await Promise.all(
+        coachEmails.map(email => base44.entities.TrainingPlan.filter({ coach_email: email }, '-created_date', 100))
+      );
+      const seen = new Set();
+      const all = [];
+      for (const arr of results) {
+        for (const p of arr) {
+          if (!seen.has(p.id)) { seen.add(p.id); all.push(p); }
+        }
+      }
       return all.filter(p => Array.isArray(p.assigned_to) && p.assigned_to.includes(athleteEmail));
     },
     enabled: !!athleteEmail && coachEmails.length > 0,

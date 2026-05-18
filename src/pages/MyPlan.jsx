@@ -60,11 +60,7 @@ export default function MyPlan() {
 
   const todayWorkout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), today));
 
-  // DEBUG: athlete workout visibility
-  console.debug('[MyPlan] athlete:', athleteEmail, '| today:', format(today, 'yyyy-MM-dd'), '| plannedWorkouts:', plannedWorkouts.length, '| todayWorkout:', todayWorkout?.title ?? 'none');
-  plannedWorkouts.filter(w => isSameDay(parseDateOnly(w.scheduled_date), today)).forEach(w =>
-    console.debug('[MyPlan] today match:', w.scheduled_date, w.title, '| assigned_to:', w.assigned_to)
-  );
+
 
   const displayWorkout = selectedDayWorkout === undefined ? todayWorkout : selectedDayWorkout;
   const displayCompletion = displayWorkout
@@ -236,7 +232,6 @@ export default function MyPlan() {
                 setSelectedDayWorkout(workout || null);
                 setSelectedDay(day);
               }
-              console.debug('[MyPlan] selected day:', format(day, 'yyyy-MM-dd'), '| workout:', workout?.scheduled_date ?? 'rest');
             }}
           />
         </div>

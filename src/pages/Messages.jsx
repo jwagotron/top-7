@@ -34,17 +34,17 @@ export default function Messages() {
 
   const createMut = useMutation({
     mutationFn: (d) => base44.entities.CoachMessage.create(d),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages'] }); setShowCompose(false); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages', user?.email] }); setShowCompose(false); },
   });
 
   const updateMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.CoachMessage.update(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['messages'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['messages', user?.email] }),
   });
 
   const deleteMut = useMutation({
     mutationFn: (id) => base44.entities.CoachMessage.delete(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages'] }); setSelected(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages', user?.email] }); setSelected(null); },
   });
 
   const handleSelect = (msg) => {

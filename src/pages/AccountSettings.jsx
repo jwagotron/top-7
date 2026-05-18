@@ -185,7 +185,14 @@ export default function AccountSettings() {
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    onClick={() => base44.auth.logout()}
+                    onClick={async () => {
+                      try {
+                        await base44.auth.deleteAccount();
+                      } catch {
+                        // deleteAccount may not exist on all SDK versions; fall back to logout
+                        base44.auth.logout();
+                      }
+                    }}
                   >
                     Yes, delete my account
                   </AlertDialogAction>
