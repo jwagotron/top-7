@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { CheckCircle2, XCircle, UserMinus, Clock, Users } from 'lucide-react';
+import { CheckCircle2, XCircle, UserMinus, Clock, Users, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function TeamMembershipList({ teamId, coachEmail, members }) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   // Use passed members prop (shared cache from CoachPanel) so counts stay in sync
   const nonCoachMemberships = (members || []).filter(m => m.athlete_email !== coachEmail);
@@ -105,7 +107,8 @@ export default function TeamMembershipList({ teamId, coachEmail, members }) {
         ) : (
           <div className="space-y-1.5">
             {active.map(m => (
-              <div key={m.id} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-card border border-border hover:border-primary/30 transition-all">
+              <div key={m.id} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-card border border-border hover:border-primary/30 transition-all cursor-pointer group"
+                onClick={() => navigate(`/athlete-profile?athlete=${encodeURIComponent(m.athlete_email)}&name=${encodeURIComponent(m.athlete_name || m.athlete_email)}`)}>
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                     {(m.athlete_name || m.athlete_email)[0].toUpperCase()}
@@ -115,9 +118,13 @@ export default function TeamMembershipList({ teamId, coachEmail, members }) {
                     <p className="text-xs text-muted-foreground truncate">{m.athlete_email}</p>
                   </div>
                 </div>
-                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive shrink-0" onClick={() => handleAction(m.id, 'remove')}>
-                  <UserMinus className="w-3.5 h-3.5" />
-                </Button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                    onClick={(e) => { e.stopPropagation(); handleAction(m.id, 'remove'); }}>
+                    <UserMinus className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

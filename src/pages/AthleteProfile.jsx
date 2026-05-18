@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, parseISO, subWeeks } from 'date-fns';
-import { Trophy, Target, MessageSquare, Activity, TrendingUp, Calendar, MapPin, Clock, Heart } from 'lucide-react';
+import { Trophy, Target, MessageSquare, Activity, TrendingUp, Calendar, MapPin, Clock, Heart, ArrowLeft } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import RaceGoalForm from '@/components/athlete/RaceGoalForm';
 import CoachNoteForm from '@/components/athlete/CoachNoteForm';
@@ -17,9 +18,11 @@ const priorityColors = { A: 'bg-destructive/10 text-destructive', B: 'bg-accent/
 export default function AthleteProfile() {
   const urlParams = new URLSearchParams(window.location.search);
   const athleteEmail = urlParams.get('athlete');
+  const athleteName = urlParams.get('name');
   const [showRaceForm, setShowRaceForm] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: workouts = [] } = useQuery({
     queryKey: ['workouts-athlete', athleteEmail],
@@ -80,7 +83,8 @@ export default function AthleteProfile() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopBar title={athleteEmail}>
+      <TopBar title={athleteName || athleteEmail}>
+        <Button size="sm" variant="ghost" onClick={() => navigate(-1)} className="gap-1"><ArrowLeft className="w-4 h-4" /> Back</Button>
         <Button size="sm" onClick={() => setShowNoteForm(true)} variant="outline"><MessageSquare className="w-4 h-4 mr-1" /> Add Note</Button>
         <Button size="sm" onClick={() => setShowRaceForm(true)}><Trophy className="w-4 h-4 mr-1" /> Add Race</Button>
       </TopBar>
