@@ -8,7 +8,7 @@ import JoinTeamCTA from '@/components/dashboard/JoinTeamCTA';
 import WorkoutDetailDrawer from '@/components/dashboard/WorkoutDetailDrawer.jsx';
 import {
   Activity, MapPin, Clock, Flame, CheckCircle2, ChevronRight,
-  Footprints, Bike, Waves, Dumbbell, CircleDot, ChevronLeft,
+  Footprints, Bike, Waves, Dumbbell, CircleDot,
   Moon, Zap, Play
 } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
@@ -17,7 +17,7 @@ import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 import { useCompletions } from '@/hooks/useCompletions';
 import {
   startOfWeek, endOfWeek, isWithinInterval, format, isToday,
-  isTomorrow, isSameDay, addDays, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval
+  isTomorrow, isSameDay, addDays
 } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useAuth } from '@/lib/AuthContext';
@@ -42,11 +42,6 @@ function dayLabel(dateObj) {
   return format(dateObj, 'EEE, MMM d');
 }
 
-const HORIZONS = [
-  { key: '7', label: '1 Week', days: 7 },
-  { key: '14', label: '2 Weeks', days: 14 },
-  { key: '30', label: 'Month', days: 30 },
-];
 
 export default function Dashboard() {
   const { role, canPreview } = useRole();
@@ -55,7 +50,6 @@ export default function Dashboard() {
   const { completions, completeMut } = useCompletions(athleteEmail);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [showTodayWorkout, setShowTodayWorkout] = useState(false);
-  const [horizon, setHorizon] = useState('14');
 
 
   const { data: workouts = [] } = useQuery({
@@ -108,29 +102,6 @@ export default function Dashboard() {
   const todayWorkout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), today));
   const todayCompletion = todayWorkout ? completions.find(c => c.planned_workout_id === todayWorkout.id) : null;
   const todayDone = !!todayCompletion;
-
-  // Schedule horizon
-  const horizonDays = HORIZONS.find(h => h.key === horizon)?.days || 14;
-  const horizonEnd = addDays(today, horizonDays - 1);
-
-  // All days in the horizon
-  const horizonDayList = eachDayOfInterval({ start: today, end: horizonEnd });
-
-  // Group planned workouts by date string
-  const plannedByDate = {};
-  plannedWorkouts.forEach(w => {
-    const key = format(parseDateOnly(w.scheduled_date), 'yyyy-MM-dd');
-    if (!plannedByDate[key]) plannedByDate[key] = [];
-    plannedByDate[key].push(w);
-  });
-
-  const loggedByDate = {};
-  workouts.forEach(w => {
-    if (!w.date) return;
-    const key = w.date.slice(0, 10);
-    if (!loggedByDate[key]) loggedByDate[key] = [];
-    loggedByDate[key].push(w);
-  });
 
   // Recent completed workouts
   const recentWorkouts = [...workouts]
@@ -276,120 +247,6 @@ export default function Dashboard() {
             <StatCard title="Avg Calories" value={totalCalories} unit="kcal/day" icon={Flame} color="destructive" />
             <StatCard title="Avg Cadence" value={avgCadence ?? '—'} unit={avgCadence ? 'spm' : ''} icon={Zap} color="primary" />
             <StatCard title="Avg Sleep" value={avgSleep ?? '—'} unit={avgSleep ? 'hrs' : ''} icon={Moon} color="secondary" />
-          </div>
-        </div>
-
-        {/* ── UPCOMING SCHEDULE — always visible ── */}
-        <div className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm overflow-hidden">
-          {/* Header + horizon selector */}
-          <div className="px-5 pt-4 pb-3 flex items-center justify-between border-b border-border/20 gap-3 flex-wrap">
-            <div>
-              <h3 className="text-base font-bold tracking-tight">Upcoming Schedule</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {format(today, 'MMM d')} – {format(horizonEnd, 'MMM d, yyyy')}
-              </p>
-            </div>
-            <div className="flex items-center gap-1 bg-background/60 rounded-lg p-1 border border-border/30">
-              {HORIZONS.map(h => (
-                <button
-                  key={h.key}
-                  onClick={() => setHorizon(h.key)}
-                  className={cn(
-                    'px-3 py-1 rounded-md text-xs font-semibold transition-all duration-150',
-                    horizon === h.key
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  {h.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Day rows */}
-          <div className="divide-y divide-border/15 max-h-[480px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {horizonDayList.map(day => {
-              const key = format(day, 'yyyy-MM-dd');
-              const planned = plannedByDate[key] || [];
-              const logged = loggedByDate[key] || [];
-              const isT = isToday(day);
-              const hasAnything = planned.length > 0 || logged.length > 0;
-
-              return (
-                <div
-                  key={key}
-                  className={cn(
-                    'flex gap-3 px-4 py-3',
-                    isT && 'bg-primary/5',
-                    !hasAnything && 'opacity-50'
-                  )}
-                >
-                  {/* Date column */}
-                  <div className={cn('w-10 shrink-0 text-center pt-0.5', isT ? 'text-primary' : 'text-muted-foreground/60')}>
-                    <p className="text-[10px] font-bold uppercase">{format(day, 'EEE')}</p>
-                    <p className={cn('text-lg font-bold leading-none mt-0.5', isT ? 'text-primary' : 'text-foreground/70')}>
-                      {format(day, 'd')}
-                    </p>
-                  </div>
-
-                  {/* Workouts for this day */}
-                  <div className="flex-1 min-w-0 space-y-1.5">
-                    {planned.map(w => {
-                      const done = isCompleted(w);
-                      const SportIcon = sportIcons[w.sport] || CircleDot;
-                      return (
-                        <div
-                          key={w.id}
-                          className={cn(
-                            'flex items-center gap-2 px-3 py-2 rounded-xl border text-sm',
-                            done
-                              ? 'bg-secondary/8 border-secondary/20 text-secondary'
-                              : isT
-                                ? 'bg-primary/10 border-primary/25 text-foreground'
-                                : 'bg-background/60 border-border/30 text-foreground'
-                          )}
-                        >
-                          <div className={cn('w-6 h-6 rounded-lg flex items-center justify-center shrink-0', done ? 'bg-secondary/20' : 'bg-primary/10')}>
-                            {done
-                              ? <CheckCircle2 className="w-3.5 h-3.5 text-secondary" />
-                              : <SportIcon className="w-3.5 h-3.5 text-primary" />
-                            }
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className={cn('font-semibold text-xs truncate', done && 'line-through opacity-70')}>{w.title}</p>
-                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                              {w.run_type && <span className="text-[10px] text-muted-foreground capitalize">{w.run_type.replace(/_/g, ' ')}</span>}
-                              {w.target_distance_km && <span className="text-[10px] text-muted-foreground">{toDisplay(w.target_distance_km).toFixed(1)} {label}</span>}
-                              {w.target_duration_minutes && <span className="text-[10px] text-muted-foreground">{w.target_duration_minutes} min</span>}
-                            </div>
-                          </div>
-                          {w.intensity && !done && (
-                            <Badge variant="outline" className={cn('text-[9px] capitalize shrink-0 py-0', intensityColors[w.intensity])}>
-                              {w.intensity.replace('_', ' ')}
-                            </Badge>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {logged.map(w => (
-                      <button
-                        key={w.id}
-                        onClick={() => setSelectedWorkout(w)}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border bg-secondary/8 border-secondary/20 text-left hover:bg-secondary/15 transition-colors"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5 text-secondary shrink-0" />
-                        <span className="text-xs font-semibold text-secondary truncate">{w.title}</span>
-                        {w.distance_km && <span className="text-[10px] text-secondary/70 ml-auto shrink-0">{toDisplay(w.distance_km).toFixed(1)} {label}</span>}
-                      </button>
-                    ))}
-                    {!hasAnything && (
-                      <p className="text-[11px] text-muted-foreground/40 py-1 pl-1">Rest day</p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
 

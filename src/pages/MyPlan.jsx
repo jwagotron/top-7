@@ -12,7 +12,7 @@ import {
   ClipboardList, ChevronDown, ChevronUp,
   CheckCircle2, Clock, MapPin, StickyNote, Loader2, ArrowLeft
 } from 'lucide-react';
-import { format, isToday, isSameDay } from 'date-fns';
+import { format, isToday, isSameDay, addDays, eachDayOfInterval } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';
@@ -235,6 +235,69 @@ export default function MyPlan() {
             }}
           />
         </div>
+
+        {/* Upcoming Schedule */}
+        {plannedWorkouts.length > 0 && (
+          <div>
+            <SectionLabel>Upcoming Schedule</SectionLabel>
+            <div className="rounded-2xl border border-border/30 bg-card overflow-hidden">
+              {(() => {
+                const tomorrow = addDays(today, 1);
+                const horizonEnd = addDays(today, 13); // 2 weeks ahead
+                const upcoming = sortedWorkouts.filter(w => {
+                  const d = parseDateOnly(w.scheduled_date);
+                  return d >= tomorrow && d <= horizonEnd;
+                });
+                if (upcoming.length === 0) {
+                  return (
+                    <p className="text-sm text-muted-foreground text-center py-6">No upcoming workouts in the next 2 weeks</p>
+                  );
+                }
+                return (
+                  <div className="divide-y divide-border/20">
+                    {upcoming.map(w => {
+                      const comp = completions.find(c => c.planned_workout_id === w.id);
+                      const done = comp?.status === 'completed';
+                      const d = parseDateOnly(w.scheduled_date);
+                      return (
+                        <div key={w.id} className={cn("flex items-center gap-3 px-4 py-3", done && "opacity-60")}>
+                          {/* Date pill */}
+                          <div className="text-center shrink-0 w-9">
+                            <p className="text-[9px] font-bold uppercase text-muted-foreground/50 leading-none">{format(d, 'EEE')}</p>
+                            <p className="text-base font-bold leading-tight text-foreground/70">{format(d, 'd')}</p>
+                            <p className="text-[9px] text-muted-foreground/40 leading-none">{format(d, 'MMM')}</p>
+                          </div>
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <p className={cn("text-sm font-semibold truncate", done ? "line-through text-secondary" : "text-foreground")}>{w.title}</p>
+                            <div className="flex gap-2 mt-0.5 flex-wrap">
+                              {w.intensity && (
+                                <span className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded-full border", intensityColors[w.intensity])}>
+                                  {w.intensity.replace('_', ' ')}
+                                </span>
+                              )}
+                              {w.target_duration_minutes && (
+                                <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                                  <Clock className="w-2.5 h-2.5" />{w.target_duration_minutes}m
+                                </span>
+                              )}
+                              {w.target_distance_km && (
+                                <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                                  <MapPin className="w-2.5 h-2.5" />{toDisplay(w.target_distance_km)} {label}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {done && <CheckCircle2 className="w-4 h-4 text-secondary shrink-0" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        )}
 
         {/* Full schedule */}
         {sortedWorkouts.length > 0 && (
