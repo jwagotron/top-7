@@ -53,15 +53,23 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
           notes: notes || undefined,
         });
       }
-      // Auto-log mileage to best available shoe
+      // Auto-log mileage to primary shoe (fresh fetch to avoid stale data)
       if (workout.target_distance_km) {
-        const activeShoes = shoes.filter(s => s.status !== 'retired');
         const primaryShoeId = localStorage.getItem('primary_shoe_id');
-        const targetShoe = activeShoes.find(s => s.id === primaryShoeId) || activeShoes[0];
-        if (targetShoe) {
-          await base44.entities.Shoe.update(targetShoe.id, {
-            mileage_km: (targetShoe.mileage_km || 0) + workout.target_distance_km,
-          });
+        let targetShoeId = primaryShoeId;
+        if (!targetShoeId) {
+          // fall back to first active shoe
+          const allShoes = await base44.entities.Shoe.list('-created_date', 100);
+          const firstActive = allShoes.find(s => s.status !== 'retired');
+          if (firstActive) targetShoeId = firstActive.id;
+        }
+        if (targetShoeId) {
+          const freshShoe = await base44.entities.Shoe.get(targetShoeId);
+          if (freshShoe && freshShoe.status !== 'retired') {
+            await base44.entities.Shoe.update(targetShoeId, {
+              mileage_km: (freshShoe.mileage_km || 0) + workout.target_distance_km,
+            });
+          }
         }
       }
       return result;
