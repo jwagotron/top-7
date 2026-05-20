@@ -41,7 +41,10 @@ export default function CoachPanel() {
   // Fetch coach's teams
   const { data: myTeams = [], refetch: refetchTeams } = useQuery({
     queryKey: ['my-teams', user?.email],
-    queryFn: () => base44.entities.Team.filter({ coach_email: user?.email, status: 'active' }),
+    queryFn: async () => {
+      const teams = await base44.entities.Team.filter({ coach_email: user?.email });
+      return teams.filter(t => t.status !== 'archived');
+    },
     enabled: !!user?.email,
   });
 
