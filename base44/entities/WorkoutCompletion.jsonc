@@ -37,6 +37,14 @@
     "notes": {
       "type": "string",
       "description": "Athlete notes on this workout"
+    },
+    "shoe_id": {
+      "type": "string",
+      "description": "ID of the shoe mileage was logged to"
+    },
+    "distance_logged_km": {
+      "type": "number",
+      "description": "Distance in km that was auto-logged to the shoe"
     }
   },
   "required": [

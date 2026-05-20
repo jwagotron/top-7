@@ -35,9 +35,24 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
 
   const uncompleteMut = useMutation({
     mutationFn: async () => {
-      if (completion?.id) {
-        await base44.entities.WorkoutCompletion.update(completion.id, { status: 'upcoming' });
+      if (!completion?.id) return;
+      // Reverse shoe mileage if it was logged
+      if (completion.shoe_id && completion.distance_logged_km) {
+        const freshShoe = await base44.entities.Shoe.get(completion.shoe_id);
+        if (freshShoe) {
+          await base44.entities.Shoe.update(completion.shoe_id, {
+            mileage_km: Math.max(0, (freshShoe.mileage_km || 0) - completion.distance_logged_km),
+          });
+        }
       }
+      await base44.entities.WorkoutCompletion.update(completion.id, {
+        status: 'pending',
+        shoe_id: null,
+        distance_logged_km: null,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['shoes'] });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
@@ -65,23 +80,42 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
         });
       }
       // Auto-log mileage to primary shoe (fresh fetch to avoid stale data)
-      if (workout.target_distance_km) {
+      let loggedShoeId = null;
+      let loggedDistanceKm = null;
+      const distanceToLog = workout.target_distance_km;
+      console.log('[ShoeLog] target_distance_km:', distanceToLog);
+      if (distanceToLog) {
         const primaryShoeId = localStorage.getItem('primary_shoe_id');
+        console.log('[ShoeLog] primaryShoeId from localStorage:', primaryShoeId);
         let targetShoeId = primaryShoeId;
         if (!targetShoeId) {
-          // fall back to first active shoe
           const allShoes = await base44.entities.Shoe.list('-created_date', 100);
           const firstActive = allShoes.find(s => s.status !== 'retired');
+          console.log('[ShoeLog] fallback shoe:', firstActive?.id, firstActive?.name);
           if (firstActive) targetShoeId = firstActive.id;
         }
         if (targetShoeId) {
           const freshShoe = await base44.entities.Shoe.get(targetShoeId);
+          console.log('[ShoeLog] freshShoe:', freshShoe?.name, 'current mileage:', freshShoe?.mileage_km);
           if (freshShoe && freshShoe.status !== 'retired') {
             await base44.entities.Shoe.update(targetShoeId, {
-              mileage_km: (freshShoe.mileage_km || 0) + workout.target_distance_km,
+              mileage_km: (freshShoe.mileage_km || 0) + distanceToLog,
             });
+            loggedShoeId = targetShoeId;
+            loggedDistanceKm = distanceToLog;
+            console.log('[ShoeLog] Updated shoe mileage +', distanceToLog, 'km');
           }
+        } else {
+          console.log('[ShoeLog] No shoe found to log to');
         }
+      }
+      // Save shoe log info on the completion record
+      const completionId = result?.id || completion?.id;
+      if (completionId && loggedShoeId) {
+        await base44.entities.WorkoutCompletion.update(completionId, {
+          shoe_id: loggedShoeId,
+          distance_logged_km: loggedDistanceKm,
+        });
       }
       return result;
     },
@@ -112,17 +146,11 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
     },
     onSuccess: () => {
       setShowNotes(false);
-      const activeShoes = shoes.filter(s => s.status !== 'retired');
-      const primaryShoeId = localStorage.getItem('primary_shoe_id');
-      const targetShoe = activeShoes.find(s => s.id === primaryShoeId) || activeShoes[0];
-      const shoeMsg = workout.target_distance_km && targetShoe
-        ? ` Mileage logged to ${targetShoe.name}.`
-        : '';
+      qc.invalidateQueries({ queryKey: ['shoes'] });
       toast.success('Workout completed! 🎉', {
-        description: `Great work — keep the momentum going.${shoeMsg}`,
+        description: 'Great work — keep the momentum going.',
         duration: 3000,
       });
-      qc.invalidateQueries({ queryKey: ['shoes'] });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
