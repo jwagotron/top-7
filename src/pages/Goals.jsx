@@ -161,7 +161,7 @@ function GoalFormDialog({ open, onClose, onSubmit, goal }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label>Title</Label>
-            <Input value={form.title} onChange={e => handleChange('title', e.target.value)} placeholder="Run 1000km this year" required />
+            <Input value={form.title} onChange={e => handleChange('title', e.target.value)} placeholder="Run 500 miles this year" required />
           </div>
           <div>
             <Label>Description</Label>
