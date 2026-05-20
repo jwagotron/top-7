@@ -129,12 +129,12 @@ export default function Goals() {
 
 function GoalFormDialog({ open, onClose, onSubmit, goal }) {
   const [form, setForm] = useState(goal || {
-    title: '', description: '', category: 'distance', target_value: '', current_value: '', unit: 'km', deadline: '', status: 'in_progress'
+    title: '', description: '', category: 'distance', target_value: '', current_value: '', unit: 'miles', deadline: '', status: 'in_progress'
   });
   
   React.useEffect(() => {
     if (goal) setForm(goal);
-    else setForm({ title: '', description: '', category: 'distance', target_value: '', current_value: '', unit: 'km', deadline: '', status: 'in_progress' });
+    else setForm({ title: '', description: '', category: 'distance', target_value: '', current_value: '', unit: 'miles', deadline: '', status: 'in_progress' });
   }, [goal, open]);
 
   const handleChange = (f, v) => setForm(p => ({ ...p, [f]: v }));
