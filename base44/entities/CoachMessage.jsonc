@@ -1,0 +1,86 @@
+{
+  "name": "CoachMessage",
+  "type": "object",
+  "properties": {
+    "sender_email": {
+      "type": "string",
+      "description": "Sender email"
+    },
+    "sender_name": {
+      "type": "string",
+      "description": "Sender display name"
+    },
+    "recipient_email": {
+      "type": "string",
+      "description": "Recipient email"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Message subject"
+    },
+    "body": {
+      "type": "string",
+      "description": "Message body"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether message has been read"
+    }
+  },
+  "required": [
+    "sender_email",
+    "recipient_email",
+    "body"
+  ],
+  "rls": {
+    "create": {
+      "data.sender_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.sender_email": "{{user.email}}"
+        },
+        {
+          "data.recipient_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.sender_email": "{{user.email}}"
+        },
+        {
+          "data.recipient_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.sender_email": "{{user.email}}"
+        },
+        {
+          "data.recipient_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
