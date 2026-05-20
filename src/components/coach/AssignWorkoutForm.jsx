@@ -357,7 +357,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
 
               <div>
                 <Label>Workout Title <RequiredMark /></Label>
-                <Input value={form.title} onChange={e => set('title', e.target.value)} placeholder="Tempo Run – 8km" required />
+                <Input value={form.title} onChange={e => set('title', e.target.value)} placeholder={label === 'mi' ? 'Tempo Run – 5mi' : 'Tempo Run – 8km'} required />
               </div>
 
               <div>
@@ -414,8 +414,11 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                 {!isEditing && <Button type="button" variant="outline" onClick={() => setActiveTab('assign')}>← Back</Button>}
                 <div className="flex gap-2 ml-auto">
                   <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-                  <Button type="button" onClick={() => setActiveTab('structure')} className="gap-1.5">
-                    Structure <ChevronRight className="w-4 h-4" />
+                  <Button type="button" variant="outline" onClick={() => setActiveTab('structure')} className="gap-1.5">
+                    + Structure
+                  </Button>
+                  <Button type="submit" disabled={selectedAthletes.length === 0 || !isRequiredComplete}>
+                    {selectedAthletes.length > 1 ? `Assign to ${selectedAthletes.length}` : 'Assign Workout'}
                   </Button>
                 </div>
               </div>
