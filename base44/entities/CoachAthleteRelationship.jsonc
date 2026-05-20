@@ -1,0 +1,98 @@
+{
+  "name": "CoachAthleteRelationship",
+  "type": "object",
+  "properties": {
+    "coach_email": {
+      "type": "string"
+    },
+    "athlete_email": {
+      "type": "string"
+    },
+    "athlete_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "pending"
+      ],
+      "default": "active"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "goals": {
+      "type": "string"
+    },
+    "current_plan_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "coach_email",
+    "athlete_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.coach_email": "{{user.email}}"
+        },
+        {
+          "data.athlete_email": "{{user.email}}"
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.coach_email": "{{user.email}}"
+        },
+        {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.coach_email": "{{user.email}}"
+        },
+        {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.coach_email": "{{user.email}}"
+        },
+        {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
