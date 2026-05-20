@@ -1,0 +1,158 @@
+{
+  "name": "PlannedWorkout",
+  "type": "object",
+  "properties": {
+    "plan_id": {
+      "type": "string",
+      "description": "Reference to TrainingPlan"
+    },
+    "title": {
+      "type": "string",
+      "description": "Workout title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed workout instructions"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "run",
+        "bike",
+        "swim",
+        "strength",
+        "other"
+      ],
+      "description": "Type of sport"
+    },
+    "run_type": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "long_run",
+        "tempo",
+        "interval",
+        "fartlek",
+        "hill_repeats",
+        "race",
+        "recovery",
+        "progression"
+      ],
+      "description": "Type of run"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Scheduled date"
+    },
+    "target_duration_minutes": {
+      "type": "number",
+      "description": "Target duration in minutes"
+    },
+    "target_distance_km": {
+      "type": "number",
+      "description": "Target distance in km"
+    },
+    "target_pace": {
+      "type": "string",
+      "description": "Target pace (e.g. 5:30 /km)"
+    },
+    "warmup_description": {
+      "type": "string",
+      "description": "Warm-up instructions"
+    },
+    "main_set_description": {
+      "type": "string",
+      "description": "Main set / intervals description"
+    },
+    "cooldown_description": {
+      "type": "string",
+      "description": "Cool-down instructions"
+    },
+    "intensity": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "moderate",
+        "hard",
+        "race_pace",
+        "recovery"
+      ],
+      "description": "Workout intensity"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "upcoming",
+        "completed",
+        "skipped"
+      ],
+      "default": "upcoming",
+      "description": "Completion status"
+    },
+    "athlete_feedback": {
+      "type": "string",
+      "description": "Athlete feedback after completing"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Email of athlete this is assigned to"
+    },
+    "coach_notes": {
+      "type": "string",
+      "description": "Private notes from coach"
+    }
+  },
+  "required": [
+    "title",
+    "sport",
+    "scheduled_date"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.assigned_to": "{{user.email}}"
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.assigned_to": "{{user.email}}"
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
