@@ -1,0 +1,91 @@
+{
+  "name": "RaceGoal",
+  "type": "object",
+  "properties": {
+    "athlete_email": {
+      "type": "string"
+    },
+    "race_name": {
+      "type": "string"
+    },
+    "race_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "distance": {
+      "type": "string"
+    },
+    "goal_time": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "upcoming",
+        "completed",
+        "cancelled"
+      ],
+      "default": "upcoming"
+    },
+    "result_time": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "athlete_email",
+    "race_name",
+    "race_date"
+  ],
+  "rls": {
+    "create": {
+      "data.athlete_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
