@@ -74,7 +74,19 @@ export default function Goals() {
           <div className="grid sm:grid-cols-2 gap-4 lg:gap-5">
             {goals.map(goal => {
               const Icon = categoryIcons[goal.category] || Target;
-              const progress = goal.target_value ? Math.min(100, ((goal.current_value || 0) / goal.target_value) * 100) : 0;
+              const isTimeVal = (v) => v && String(v).includes(':');
+              const timeToSec = (v) => { const p = String(v).split(':').map(Number); return p.length === 3 ? p[0]*3600+p[1]*60+p[2] : p[0]*60+(p[1]||0); };
+              const progress = (() => {
+                if (!goal.target_value) return 0;
+                if (isTimeVal(goal.target_value) && isTimeVal(goal.current_value)) {
+                  // For time goals, faster = better, so progress is inverse
+                  const target = timeToSec(goal.target_value);
+                  const current = timeToSec(goal.current_value);
+                  return Math.min(100, Math.max(0, (target / current) * 100));
+                }
+                return Math.min(100, ((parseFloat(goal.current_value) || 0) / parseFloat(goal.target_value)) * 100);
+              })();
+              const showUnit = goal.unit && !isTimeVal(goal.target_value);
               return (
                 <Card key={goal.id} className="border rounded-2xl group hover:shadow-md transition-all">
                   <CardContent className="p-5">
@@ -103,7 +115,7 @@ export default function Goals() {
                     {goal.target_value && (
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">{goal.current_value || 0} / {goal.target_value} {goal.unit}</span>
+                          <span className="text-muted-foreground">{goal.current_value || 0} / {goal.target_value}{showUnit ? ` ${goal.unit}` : ''}</span>
                           <span className="font-medium">{Math.round(progress)}%</span>
                         </div>
                         <Progress value={progress} className="h-2" />
