@@ -8,15 +8,70 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { format, parseISO, subWeeks } from 'date-fns';
-import { Trophy, MessageSquare, Activity, TrendingUp, MapPin, Clock, Heart, ArrowLeft, CheckCircle2, XCircle, Send } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { format, parseISO, subDays, startOfWeek, isWithinInterval } from 'date-fns';
+import {
+  Trophy, MessageSquare, TrendingUp, MapPin, Clock, Heart,
+  ArrowLeft, CheckCircle2, XCircle, Send, Flame, Target,
+  BarChart2, Zap, Award, CalendarCheck, AlertCircle
+} from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  LineChart, Line, CartesianGrid, Cell
+} from 'recharts';
 import RaceGoalForm from '@/components/athlete/RaceGoalForm';
 import CoachNoteForm from '@/components/athlete/CoachNoteForm';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useAuth } from '@/lib/AuthContext';
+import { cn } from '@/lib/utils';
 
-const priorityColors = { A: 'bg-destructive/10 text-destructive', B: 'bg-accent/10 text-accent', C: 'bg-muted text-muted-foreground' };
+const priorityColors = {
+  A: 'bg-destructive/10 text-destructive border-destructive/20',
+  B: 'bg-accent/10 text-accent border-accent/20',
+  C: 'bg-muted text-muted-foreground border-border'
+};
+
+function StatCard({ icon: Icon, label, value, sub, color = 'text-primary', bg = 'bg-primary/10' }) {
+  return (
+    <Card className="relative overflow-hidden">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">{label}</p>
+            <p className="text-3xl font-bold tracking-tight text-foreground">{value}</p>
+            {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+          </div>
+          <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', bg)}>
+            <Icon className={cn('w-5 h-5', color)} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ComplianceRing({ value }) {
+  const r = 36;
+  const circ = 2 * Math.PI * r;
+  const fill = circ * (value / 100);
+  const color = value >= 80 ? '#22c55e' : value >= 60 ? '#3b82f6' : value >= 40 ? '#f59e0b' : '#ef4444';
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <svg width="96" height="96" viewBox="0 0 96 96">
+        <circle cx="48" cy="48" r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
+        <circle
+          cx="48" cy="48" r={r} fill="none"
+          stroke={color} strokeWidth="8"
+          strokeDasharray={`${fill} ${circ}`}
+          strokeLinecap="round"
+          transform="rotate(-90 48 48)"
+          style={{ transition: 'stroke-dasharray 0.6s ease' }}
+        />
+        <text x="48" y="48" textAnchor="middle" dy="0.35em" fontSize="18" fontWeight="700" fill="currentColor">{value}%</text>
+      </svg>
+      <p className="text-xs text-muted-foreground font-medium">Compliance</p>
+    </div>
+  );
+}
 
 export default function AthleteProfile() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -29,33 +84,21 @@ export default function AthleteProfile() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const { data: activities = [] } = useQuery({
-    queryKey: ['activities-athlete', athleteEmail],
-    queryFn: () => base44.entities.Activity.filter({ user_email: athleteEmail }),
-    enabled: !!athleteEmail,
-  });
-
   const { data: raceGoals = [] } = useQuery({
     queryKey: ['race-goals', athleteEmail],
     queryFn: () => base44.entities.RaceGoal.filter({ athlete_email: athleteEmail }),
     enabled: !!athleteEmail,
   });
 
-  const { data: feedback = [] } = useQuery({
-    queryKey: ['feedback-athlete', athleteEmail],
-    queryFn: () => base44.entities.AthleteFeedback.filter({ athlete_email: athleteEmail }),
-    enabled: !!athleteEmail,
-  });
-
   const { data: plannedWorkouts = [] } = useQuery({
     queryKey: ['planned-athlete', athleteEmail],
-    queryFn: () => base44.entities.PlannedWorkout.filter({ assigned_to: athleteEmail }, 'scheduled_date', 200),
+    queryFn: () => base44.entities.PlannedWorkout.filter({ assigned_to: athleteEmail }, 'scheduled_date', 300),
     enabled: !!athleteEmail,
   });
 
   const { data: completions = [] } = useQuery({
     queryKey: ['completions-athlete', athleteEmail],
-    queryFn: () => base44.entities.WorkoutCompletion.filter({ athlete_email: athleteEmail }, '-completed_at', 200),
+    queryFn: () => base44.entities.WorkoutCompletion.filter({ athlete_email: athleteEmail }, '-completed_at', 300),
     enabled: !!athleteEmail,
   });
 
@@ -63,6 +106,12 @@ export default function AthleteProfile() {
     queryKey: ['messages-thread', athleteEmail, user?.email],
     queryFn: () => base44.entities.CoachMessage.list('-created_date', 100),
     enabled: !!athleteEmail && !!user?.email,
+  });
+
+  const { data: feedback = [] } = useQuery({
+    queryKey: ['feedback-athlete', athleteEmail],
+    queryFn: () => base44.entities.AthleteFeedback.filter({ athlete_email: athleteEmail }),
+    enabled: !!athleteEmail,
   });
 
   const thread = allMessages.filter(m =>
@@ -80,7 +129,6 @@ export default function AthleteProfile() {
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['messages-thread'] });
-      qc.invalidateQueries({ queryKey: ['messages'] });
       setReplyBody('');
     },
   });
@@ -90,27 +138,58 @@ export default function AthleteProfile() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['race-goals'] }); setShowRaceForm(false); }
   });
 
-  const weeklyData = Array.from({ length: 8 }, (_, i) => {
-    const weekStart = subWeeks(new Date(), 7 - i);
-    const weekEnd = subWeeks(new Date(), 6 - i);
-    const weekActs = activities.filter(a => {
-      const d = new Date(a.started_at);
-      return d >= weekStart && d < weekEnd;
-    });
-    return {
-      week: `W${i + 1}`,
-      km: Math.round(weekActs.reduce((s, a) => s + (a.distance_m || 0) / 1000, 0) * 10) / 10,
-    };
-  });
+  // ── Derived stats ──────────────────────────────────────────────
+  const completedIds = new Set(completions.filter(c => c.status === 'completed').map(c => c.planned_workout_id));
+  const today = new Date();
+  const pastWorkouts = plannedWorkouts.filter(w => parseDateOnly(w.scheduled_date) <= today);
+  const compliance = pastWorkouts.length > 0 ? Math.round((completedIds.size / pastWorkouts.length) * 100) : 0;
 
-  const totalKm = Math.round(activities.reduce((s, a) => s + (a.distance_m || 0) / 1000, 0));
-  const completedCount = completions.filter(c => c.status === 'completed').length;
-  const compliance = plannedWorkouts.length > 0 ? Math.round((completedCount / plannedWorkouts.length) * 100) : 0;
+  const totalDistanceKm = completions
+    .filter(c => c.status === 'completed' && c.distance_logged_km)
+    .reduce((s, c) => s + c.distance_logged_km, 0);
+
   const avgRpe = feedback.filter(f => f.rpe).length
     ? (feedback.reduce((s, f) => s + (f.rpe || 0), 0) / feedback.filter(f => f.rpe).length).toFixed(1)
     : '—';
 
+  // Current streak
+  const sortedPast = [...pastWorkouts].sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date));
+  let streak = 0;
+  for (const w of sortedPast) {
+    if (completedIds.has(w.id)) streak++;
+    else break;
+  }
+
+  // Last 8 weeks chart
+  const weeklyChart = Array.from({ length: 8 }, (_, i) => {
+    const weekEnd = subDays(today, (7 - i - 1) * 7);
+    const weekStart = subDays(weekEnd, 6);
+    const label = `W${i + 1}`;
+    const scheduled = plannedWorkouts.filter(w => {
+      const d = parseDateOnly(w.scheduled_date);
+      return d >= weekStart && d <= weekEnd;
+    });
+    const done = scheduled.filter(w => completedIds.has(w.id)).length;
+    return { week: label, scheduled: scheduled.length, completed: done };
+  });
+
+  // Volume chart (target km per week)
+  const volumeChart = Array.from({ length: 8 }, (_, i) => {
+    const weekEnd = subDays(today, (7 - i - 1) * 7);
+    const weekStart = subDays(weekEnd, 6);
+    const weekCompletions = completions.filter(c => {
+      if (c.status !== 'completed' || !c.completed_at) return false;
+      const d = new Date(c.completed_at);
+      return d >= weekStart && d <= weekEnd;
+    });
+    const km = weekCompletions.reduce((s, c) => s + (c.distance_logged_km || 0), 0);
+    return { week: `W${i + 1}`, km: Math.round(km * 10) / 10 };
+  });
+
   const unreadInThread = thread.filter(m => !m.read && m.recipient_email === user?.email).length;
+  const upcomingRace = raceGoals.filter(r => r.status === 'upcoming').sort((a, b) => new Date(a.race_date) - new Date(b.race_date))[0];
+
+  const initials = (athleteName || athleteEmail || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   if (!athleteEmail) {
     return (
@@ -136,30 +215,55 @@ export default function AthleteProfile() {
       </TopBar>
 
       <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-5 pb-24 lg:pb-8">
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-            { label: 'Activities', value: activities.length, icon: Activity, color: 'text-primary' },
-            { label: 'Total km', value: totalKm, icon: MapPin, color: 'text-secondary' },
-            { label: 'Compliance', value: `${compliance}%`, icon: TrendingUp, color: 'text-accent' },
-            { label: 'Avg RPE', value: avgRpe, icon: Heart, color: 'text-destructive' },
-          ].map(s => (
-            <Card key={s.label}>
-              <CardContent className="p-4 flex items-center gap-3">
-                <s.icon className={`w-7 h-7 ${s.color}`} />
-                <div>
-                  <p className="text-2xl font-bold">{s.value}</p>
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+
+        {/* Hero header */}
+        <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-card to-secondary/10 border border-border/40 p-5 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary shrink-0">
+            {initials}
+          </div>
+          <div className="flex-1 text-center sm:text-left">
+            <h2 className="text-xl font-bold text-foreground">{athleteName || athleteEmail}</h2>
+            <p className="text-sm text-muted-foreground">{athleteEmail}</p>
+            {upcomingRace && (
+              <div className="inline-flex items-center gap-1.5 mt-2 bg-accent/10 text-accent border border-accent/20 rounded-full px-3 py-1 text-xs font-medium">
+                <Trophy className="w-3 h-3" />
+                Next race: {upcomingRace.race_name} · {format(parseISO(upcomingRace.race_date), 'MMM d, yyyy')}
+              </div>
+            )}
+          </div>
+          <div className="sm:self-start">
+            <ComplianceRing value={compliance} />
+          </div>
         </div>
 
-        <Tabs defaultValue="workouts">
-          <TabsList>
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard
+            icon={CalendarCheck} label="Completed" value={completedIds.size}
+            sub={`of ${pastWorkouts.length} workouts`}
+            color="text-secondary" bg="bg-secondary/10"
+          />
+          <StatCard
+            icon={MapPin} label="Total Distance" value={totalDistanceKm > 0 ? `${totalDistanceKm.toFixed(1)} km` : '—'}
+            sub="logged km"
+            color="text-primary" bg="bg-primary/10"
+          />
+          <StatCard
+            icon={Flame} label="Streak" value={streak}
+            sub={streak === 1 ? 'workout in a row' : 'workouts in a row'}
+            color="text-accent" bg="bg-accent/10"
+          />
+          <StatCard
+            icon={Heart} label="Avg RPE" value={avgRpe}
+            sub="rate of perceived effort"
+            color="text-destructive" bg="bg-destructive/10"
+          />
+        </div>
+
+        <Tabs defaultValue="overview">
+          <TabsList className="flex-wrap h-auto">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="workouts">Workouts</TabsTrigger>
-            <TabsTrigger value="activities">Activities</TabsTrigger>
             <TabsTrigger value="volume">Volume</TabsTrigger>
             <TabsTrigger value="races">Races</TabsTrigger>
             <TabsTrigger value="messages">
@@ -167,27 +271,112 @@ export default function AthleteProfile() {
             </TabsTrigger>
           </TabsList>
 
+          {/* Overview tab */}
+          <TabsContent value="overview" className="space-y-4 mt-4">
+            {/* Weekly completion chart */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <BarChart2 className="w-4 h-4 text-primary" /> Weekly Completion — Last 8 Weeks
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={weeklyChart} barGap={2}>
+                    <XAxis dataKey="week" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="scheduled" name="Scheduled" fill="hsl(var(--muted))" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="completed" name="Completed" fill="hsl(var(--secondary))" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Recent workouts quick view */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-accent" /> Recent Workouts
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {pastWorkouts.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">No workouts yet.</p>
+                ) : [...pastWorkouts].sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date)).slice(0, 5).map(w => {
+                  const done = completedIds.has(w.id);
+                  return (
+                    <div key={w.id} className="flex items-center justify-between gap-3 px-5 py-3 border-b border-border/50 last:border-0">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={cn('w-7 h-7 rounded-full flex items-center justify-center shrink-0',
+                          done ? 'bg-secondary/15' : 'bg-destructive/10')}>
+                          {done
+                            ? <CheckCircle2 className="w-3.5 h-3.5 text-secondary" />
+                            : <XCircle className="w-3.5 h-3.5 text-destructive/50" />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{w.title}</p>
+                          <p className="text-xs text-muted-foreground">{format(parseDateOnly(w.scheduled_date), 'MMM d')}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 text-xs text-muted-foreground">
+                        {w.target_distance_km && <span>{w.target_distance_km} km</span>}
+                        <Badge variant={done ? 'secondary' : 'outline'} className={cn('text-[10px]',
+                          done ? 'bg-secondary/10 text-secondary border-secondary/20' : 'text-destructive border-destructive/20')}>
+                          {done ? 'Done' : 'Missed'}
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+
+            {/* RPE trend if available */}
+            {feedback.filter(f => f.rpe).length > 2 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-primary" /> RPE Trend
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <LineChart data={feedback.filter(f => f.rpe).slice(-12).map((f, i) => ({ i: i + 1, rpe: f.rpe }))}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="i" tick={{ fontSize: 10 }} />
+                      <YAxis domain={[1, 10]} tick={{ fontSize: 10 }} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="rpe" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Workouts tab */}
           <TabsContent value="workouts" className="space-y-3 mt-4">
             {plannedWorkouts.length === 0 ? (
               <p className="text-muted-foreground text-sm text-center py-8">No workouts assigned yet.</p>
-            ) : plannedWorkouts.map(w => {
+            ) : [...plannedWorkouts].sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date)).map(w => {
               const comp = completions.find(c => c.planned_workout_id === w.id);
               const done = comp?.status === 'completed';
-              const isPast = parseDateOnly(w.scheduled_date) < new Date();
+              const isPast = parseDateOnly(w.scheduled_date) <= today;
               const missed = !done && isPast;
               return (
-                <Card key={w.id} className={done ? 'border-secondary/30' : missed ? 'border-destructive/20' : ''}>
+                <Card key={w.id} className={cn('transition-colors', done ? 'border-secondary/30' : missed ? 'border-destructive/20' : '')}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          {done ? <CheckCircle2 className="w-4 h-4 text-secondary shrink-0" />
-                            : missed ? <XCircle className="w-4 h-4 text-destructive/50 shrink-0" /> : null}
-                          <p className={`font-medium text-sm ${done ? 'text-secondary' : ''}`}>{w.title}</p>
+                          {done && <CheckCircle2 className="w-4 h-4 text-secondary shrink-0" />}
+                          {missed && <AlertCircle className="w-4 h-4 text-destructive/50 shrink-0" />}
+                          <p className={cn('font-medium text-sm', done ? 'text-secondary' : '')}>{w.title}</p>
                           {w.run_type && <Badge variant="outline" className="text-[10px]">{w.run_type.replace('_', ' ')}</Badge>}
                         </div>
-                        <div className="flex gap-3 text-xs text-muted-foreground">
-                          <span>{format(parseDateOnly(w.scheduled_date), 'MMM d')}</span>
+                        <div className="flex gap-3 text-xs text-muted-foreground flex-wrap">
+                          <span>{format(parseDateOnly(w.scheduled_date), 'MMM d, yyyy')}</span>
                           {w.target_distance_km && <span><MapPin className="w-3 h-3 inline mr-0.5" />{w.target_distance_km} km</span>}
                           {w.target_duration_minutes && <span><Clock className="w-3 h-3 inline mr-0.5" />{w.target_duration_minutes} min</span>}
                         </div>
@@ -195,8 +384,11 @@ export default function AthleteProfile() {
                           <p className="text-xs text-muted-foreground italic mt-1.5 border-l-2 border-secondary/30 pl-2">"{comp.notes}"</p>
                         )}
                       </div>
-                      <Badge className={`text-[10px] shrink-0 ${done ? 'bg-secondary/10 text-secondary' : missed ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
-                        {done ? 'Done' : missed ? 'Missed' : 'Upcoming'}
+                      <Badge className={cn('text-[10px] shrink-0',
+                        done ? 'bg-secondary/10 text-secondary border-secondary/20' :
+                        missed ? 'bg-destructive/10 text-destructive border-destructive/20' :
+                        'bg-primary/10 text-primary border-primary/20')}>
+                        {done ? '✓ Done' : missed ? '✗ Missed' : 'Upcoming'}
                       </Badge>
                     </div>
                   </CardContent>
@@ -205,75 +397,67 @@ export default function AthleteProfile() {
             })}
           </TabsContent>
 
-          <TabsContent value="activities" className="space-y-3 mt-4">
-            {activities.length === 0 && <p className="text-muted-foreground text-sm text-center py-8">No activities yet.</p>}
-            {activities.slice(0, 20).map(a => (
-              <Card key={a.id}>
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-sm">{a.title || a.sport}</p>
-                    <p className="text-xs text-muted-foreground">{format(new Date(a.started_at), 'MMM d, yyyy')}</p>
-                  </div>
-                  <div className="flex gap-3 text-sm text-muted-foreground flex-wrap justify-end">
-                    {a.distance_m && <span>{(a.distance_m / 1000).toFixed(2)} km</span>}
-                    {a.elapsed_sec && <span><Clock className="w-3 h-3 inline mr-1" />{Math.round(a.elapsed_sec / 60)} min</span>}
-                    {a.avg_hr && <span><Heart className="w-3 h-3 inline mr-1" />{a.avg_hr} bpm</span>}
-                    <Badge variant="outline" className="text-xs">{a.source}</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="volume" className="mt-4">
+          {/* Volume tab */}
+          <TabsContent value="volume" className="mt-4 space-y-4">
             <Card>
-              <CardHeader><CardTitle className="text-base">Weekly Volume (km) — Last 8 Weeks</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">Weekly Distance (km) — Last 8 Weeks</CardTitle></CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={weeklyData}>
+                  <BarChart data={volumeChart}>
                     <XAxis dataKey="week" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="km" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="km" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                      {volumeChart.map((entry, i) => (
+                        <Cell key={i} fill={entry.km > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted))'} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
           </TabsContent>
 
+          {/* Races tab */}
           <TabsContent value="races" className="space-y-3 mt-4">
             {raceGoals.length === 0 && <p className="text-muted-foreground text-sm text-center py-8">No races added yet.</p>}
             {raceGoals.map(r => (
               <Card key={r.id}>
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Trophy className="w-4 h-4 text-accent" />
-                      <p className="font-medium">{r.race_name}</p>
-                      {r.priority && <Badge className={priorityColors[r.priority]}>{r.priority}-Race</Badge>}
+                <CardContent className="p-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', priorityColors[r.priority] || 'bg-muted')}>
+                      <Trophy className="w-5 h-5" />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">{format(parseISO(r.race_date), 'MMMM d, yyyy')} · {r.distance}</p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-sm">{r.race_name}</p>
+                        {r.priority && <Badge variant="outline" className={cn('text-[10px]', priorityColors[r.priority])}>{r.priority}-Race</Badge>}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{format(parseISO(r.race_date), 'MMMM d, yyyy')} · {r.distance}</p>
+                    </div>
                   </div>
-                  <div className="text-right text-sm">
-                    <p className="font-medium text-primary">{r.goal_time || '—'}</p>
-                    <p className="text-xs text-muted-foreground">Goal time</p>
+                  <div className="text-right shrink-0">
+                    <p className="font-bold text-primary text-lg">{r.goal_time || '—'}</p>
+                    <p className="text-[10px] text-muted-foreground">Goal time</p>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </TabsContent>
 
+          {/* Messages tab */}
           <TabsContent value="messages" className="mt-4 space-y-3">
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
               {thread.length === 0 ? (
-                <p className="text-muted-foreground text-sm text-center py-8">No messages yet. Send a note to this athlete.</p>
+                <p className="text-muted-foreground text-sm text-center py-8">No messages yet.</p>
               ) : thread.map(msg => {
                 const isFromMe = msg.sender_email === user?.email;
                 return (
-                  <div key={msg.id} className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${isFromMe ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'}`}>
+                  <div key={msg.id} className={cn('flex', isFromMe ? 'justify-end' : 'justify-start')}>
+                    <div className={cn('max-w-[80%] rounded-2xl px-4 py-2.5',
+                      isFromMe ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground')}>
                       <p className="text-sm leading-relaxed">{msg.body}</p>
-                      <p className={`text-[10px] mt-1 ${isFromMe ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
+                      <p className={cn('text-[10px] mt-1', isFromMe ? 'text-primary-foreground/60' : 'text-muted-foreground')}>
                         {isFromMe ? 'You' : (msg.sender_name || 'Athlete')} · {format(new Date(msg.created_date), 'MMM d, h:mm a')}
                       </p>
                     </div>
