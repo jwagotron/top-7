@@ -25,9 +25,10 @@ export default function WeeklySchedule({ plannedWorkouts, completions, selectedD
   return (
     <div className="rounded-2xl border border-border/30 bg-card overflow-hidden divide-y divide-border/20">
       {days.map((day, idx) => {
-         const workout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), day));
-        const completion = workout ? completions.find(c => c.planned_workout_id === workout.id) : null;
-        const isDone = completion?.status === 'completed';
+        const dayWorkouts = plannedWorkouts.filter(w => isSameDay(parseDateOnly(w.scheduled_date), day));
+        const workout = dayWorkouts[0] || null; // primary for accent/intensity
+        const doneCount = dayWorkouts.filter(w => completions.find(c => c.planned_workout_id === w.id && c.status === 'completed')).length;
+        const isDone = dayWorkouts.length > 0 && doneCount === dayWorkouts.length;
         const isSelected = selectedDate && isSameDay(day, selectedDate);
         const today = isToday(day);
 
@@ -77,17 +78,22 @@ export default function WeeklySchedule({ plannedWorkouts, completions, selectedD
             )} />
 
             {/* Content */}
-            {workout ? (
+            {dayWorkouts.length > 0 ? (
               <div className="flex-1 min-w-0 py-0.5">
                 <div className="flex items-start gap-1.5 mb-0.5">
-                   <p className={cn(
-                     "text-sm font-medium leading-tight break-words flex-1",
-                     isDone ? "text-secondary" : "text-foreground"
-                   )}>
-                     {workout.title}
-                   </p>
-                   {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-secondary shrink-0 mt-0.5" />}
-                 </div>
+                  <p className={cn(
+                    "text-sm font-medium leading-tight break-words flex-1",
+                    isDone ? "text-secondary" : "text-foreground"
+                  )}>
+                    {workout.title}
+                    {dayWorkouts.length > 1 && (
+                      <span className="ml-1.5 text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                        +{dayWorkouts.length - 1} more
+                      </span>
+                    )}
+                  </p>
+                  {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-secondary shrink-0 mt-0.5" />}
+                </div>
                 <div className="flex gap-3">
                   {workout.target_duration_minutes && (
                     <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
@@ -110,7 +116,11 @@ export default function WeeklySchedule({ plannedWorkouts, completions, selectedD
 
             {/* Right badge */}
             <div className="shrink-0">
-              {isDone ? (
+              {dayWorkouts.length > 1 && doneCount > 0 && !isDone ? (
+                <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                  {doneCount}/{dayWorkouts.length}
+                </span>
+              ) : isDone ? (
                 <span className="text-[10px] font-semibold text-secondary bg-secondary/15 px-2 py-0.5 rounded-full">
                   Done
                 </span>

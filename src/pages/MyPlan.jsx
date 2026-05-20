@@ -45,8 +45,7 @@ function SectionLabel({ children }) {
 export default function MyPlan() {
   const { role } = useRole();
   const { toDisplay, label } = useUnits();
-  const [selectedDayWorkout, setSelectedDayWorkout] = useState(undefined);
-  const [selectedDay, setSelectedDay] = useState(null); // tracks the calendar day even if no workout
+  const [selectedDay, setSelectedDay] = useState(null); // null = today
   const [showAllWorkouts, setShowAllWorkouts] = useState(false);
   const [completingId, setCompletingId] = useState(null);
   const [notesMap, setNotesMap] = useState({});
@@ -58,16 +57,9 @@ export default function MyPlan() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const todayWorkout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), today));
-
-
-
-  const displayWorkout = selectedDayWorkout === undefined ? todayWorkout : selectedDayWorkout;
-  const displayCompletion = displayWorkout
-    ? completions.find(c => c.planned_workout_id === displayWorkout.id)
-    : null;
-
-  const isViewingToday = selectedDayWorkout === undefined;
+  const viewingDay = selectedDay || today;
+  const displayWorkouts = plannedWorkouts.filter(w => isSameDay(parseDateOnly(w.scheduled_date), viewingDay));
+  const isViewingToday = !selectedDay;
 
   const completedCount = completions.filter(
     c => c.status === 'completed' && c.plan_id === activePlan?.id
@@ -188,30 +180,47 @@ export default function MyPlan() {
         {/* Today's / selected workout */}
         <div>
           <div className="flex items-center justify-between mb-3 px-1">
-            <SectionLabel>
-              {isViewingToday
-                ? 'Today · ' + format(today, 'EEEE, MMM d')
-                : displayWorkout
-                  ? format(parseDateOnly(displayWorkout.scheduled_date), 'EEEE, MMM d')
-                  : selectedDay
-                  ? format(selectedDay, 'EEEE, MMM d') + ' · Rest'
-                  : format(today, 'EEEE, MMM d') + ' · Rest'
-              }
-            </SectionLabel>
+            <div className="flex items-center gap-2">
+              <SectionLabel>
+                {isViewingToday ? 'Today · ' + format(today, 'EEEE, MMM d') : format(viewingDay, 'EEEE, MMM d')}
+              </SectionLabel>
+              {displayWorkouts.length > 1 && (() => {
+                const doneCount = displayWorkouts.filter(w => completions.find(c => c.planned_workout_id === w.id && c.status === 'completed')).length;
+                return (
+                  <span className={cn(
+                    'text-[11px] font-bold px-2 py-0.5 rounded-full border',
+                    doneCount === displayWorkouts.length
+                      ? 'text-secondary bg-secondary/10 border-secondary/20'
+                      : 'text-primary bg-primary/10 border-primary/20'
+                  )}>
+                    {doneCount}/{displayWorkouts.length} done
+                  </span>
+                );
+              })()}
+            </div>
             {!isViewingToday && (
               <button
-                onClick={() => setSelectedDayWorkout(undefined)}
+                onClick={() => setSelectedDay(null)}
                 className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
               >
                 <ArrowLeft className="w-3 h-3" /> Today
               </button>
             )}
           </div>
-          <TodayWorkout
-            workout={displayWorkout || null}
-            completion={displayCompletion}
-            athleteEmail={athleteEmail}
-          />
+          {displayWorkouts.length > 0 ? (
+            <div className="space-y-3">
+              {displayWorkouts.map(w => (
+                <TodayWorkout
+                  key={w.id}
+                  workout={w}
+                  completion={completions.find(c => c.planned_workout_id === w.id) || null}
+                  athleteEmail={athleteEmail}
+                />
+              ))}
+            </div>
+          ) : (
+            <TodayWorkout workout={null} completion={null} athleteEmail={athleteEmail} />
+          )}
         </div>
 
         {/* Weekly schedule */}
@@ -220,16 +229,11 @@ export default function MyPlan() {
           <WeeklySchedule
             plannedWorkouts={plannedWorkouts}
             completions={completions}
-            selectedDate={selectedDayWorkout !== undefined && selectedDayWorkout
-              ? parseDateOnly(selectedDayWorkout.scheduled_date)
-              : null}
+            selectedDate={selectedDay}
             onSelectDate={(day) => {
-              const workout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), day));
               if (isToday(day)) {
-                setSelectedDayWorkout(undefined);
                 setSelectedDay(null);
               } else {
-                setSelectedDayWorkout(workout || null);
                 setSelectedDay(day);
               }
             }}
