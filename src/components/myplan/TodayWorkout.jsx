@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Clock, MapPin, Zap, StickyNote, Loader2, Moon, Flame } from 'lucide-react';
@@ -28,9 +28,13 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
   const [notes, setNotes] = useState(completion?.notes || '');
   const isCompleted = completion?.status === 'completed';
 
+  const { data: shoes = [] } = useQuery({
+    queryKey: ['shoes'],
+    queryFn: () => base44.entities.Shoe.list('-created_date', 100),
+  });
+
   const completeMut = useMutation({
     mutationFn: async () => {
-      // Complete the workout
       let result;
       if (completion?.id) {
         result = await base44.entities.WorkoutCompletion.update(completion.id, {
@@ -49,17 +53,16 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
           notes: notes || undefined,
         });
       }
-      // Auto-log mileage to primary shoe if workout has distance
-      const primaryShoeId = localStorage.getItem('primary_shoe_id');
-      if (primaryShoeId && workout.target_distance_km) {
-        try {
-          const shoe = await base44.entities.Shoe.get(primaryShoeId);
-          if (shoe && shoe.status !== 'retired') {
-            await base44.entities.Shoe.update(primaryShoeId, {
-              mileage_km: (shoe.mileage_km || 0) + workout.target_distance_km,
-            });
-          }
-        } catch (_) { /* silently skip if shoe not found */ }
+      // Auto-log mileage to best available shoe
+      if (workout.target_distance_km) {
+        const activeShoes = shoes.filter(s => s.status !== 'retired');
+        const primaryShoeId = localStorage.getItem('primary_shoe_id');
+        const targetShoe = activeShoes.find(s => s.id === primaryShoeId) || activeShoes[0];
+        if (targetShoe) {
+          await base44.entities.Shoe.update(targetShoe.id, {
+            mileage_km: (targetShoe.mileage_km || 0) + workout.target_distance_km,
+          });
+        }
       }
       return result;
     },
@@ -90,8 +93,14 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
     },
     onSuccess: () => {
       setShowNotes(false);
+      const activeShoes = shoes.filter(s => s.status !== 'retired');
+      const primaryShoeId = localStorage.getItem('primary_shoe_id');
+      const targetShoe = activeShoes.find(s => s.id === primaryShoeId) || activeShoes[0];
+      const shoeMsg = workout.target_distance_km && targetShoe
+        ? ` Mileage logged to ${targetShoe.name}.`
+        : '';
       toast.success('Workout completed! 🎉', {
-        description: 'Great work — keep the momentum going.',
+        description: `Great work — keep the momentum going.${shoeMsg}`,
         duration: 3000,
       });
       qc.invalidateQueries({ queryKey: ['shoes'] });
