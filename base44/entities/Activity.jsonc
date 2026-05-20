@@ -1,0 +1,128 @@
+{
+  "name": "Activity",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Athlete email"
+    },
+    "title": {
+      "type": "string"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "run",
+        "bike",
+        "swim",
+        "strength",
+        "other"
+      ]
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "elapsed_sec": {
+      "type": "number"
+    },
+    "distance_m": {
+      "type": "number"
+    },
+    "avg_hr": {
+      "type": "number"
+    },
+    "max_hr": {
+      "type": "number"
+    },
+    "avg_pace_sec_per_km": {
+      "type": "number"
+    },
+    "avg_cadence": {
+      "type": "number"
+    },
+    "calories": {
+      "type": "number"
+    },
+    "elevation_gain_m": {
+      "type": "number"
+    },
+    "garmin_activity_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "garmin",
+        "gpx_import",
+        "manual"
+      ],
+      "default": "manual"
+    },
+    "import_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "imported",
+        "failed",
+        "duplicate"
+      ],
+      "default": "imported"
+    },
+    "linked_workout_id": {
+      "type": "string"
+    },
+    "fit_file_url": {
+      "type": "string"
+    },
+    "raw_payload": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "sport",
+    "started_at"
+  ],
+  "rls": {
+    "create": {
+      "data.user_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
