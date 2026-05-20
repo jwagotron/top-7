@@ -1,0 +1,98 @@
+{
+  "name": "AthleteFeedback",
+  "type": "object",
+  "properties": {
+    "workout_id": {
+      "type": "string"
+    },
+    "athlete_email": {
+      "type": "string"
+    },
+    "rpe": {
+      "type": "number",
+      "description": "1-10 RPE"
+    },
+    "completion_status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "partial",
+        "skipped",
+        "modified"
+      ]
+    },
+    "soreness": {
+      "type": "string",
+      "enum": [
+        "none",
+        "mild",
+        "moderate",
+        "severe"
+      ]
+    },
+    "energy_level": {
+      "type": "string",
+      "enum": [
+        "great",
+        "good",
+        "okay",
+        "tired",
+        "exhausted"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "actual_distance_km": {
+      "type": "number"
+    },
+    "actual_duration_minutes": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "workout_id",
+    "athlete_email"
+  ],
+  "rls": {
+    "create": {
+      "data.athlete_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
