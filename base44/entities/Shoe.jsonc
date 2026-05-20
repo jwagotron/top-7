@@ -1,0 +1,88 @@
+{
+  "name": "Shoe",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Shoe model name"
+    },
+    "brand": {
+      "type": "string",
+      "description": "Brand name"
+    },
+    "color": {
+      "type": "string",
+      "description": "Color / colorway"
+    },
+    "mileage_km": {
+      "type": "number",
+      "description": "Total km logged on this pair",
+      "default": 0
+    },
+    "max_mileage_km": {
+      "type": "number",
+      "description": "Recommended max mileage before replacement",
+      "default": 700
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the shoes were put into service"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "retired"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
