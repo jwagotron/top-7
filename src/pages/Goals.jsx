@@ -141,8 +141,14 @@ function GoalFormDialog({ open, onClose, onSubmit, goal }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = { ...form };
-    if (data.target_value) data.target_value = Number(data.target_value);
-    if (data.current_value) data.current_value = Number(data.current_value);
+    const parseVal = (v) => {
+      if (!v) return v;
+      if (String(v).includes(':')) return String(v);
+      const n = Number(v);
+      return isNaN(n) ? String(v) : n;
+    };
+    data.target_value = parseVal(data.target_value);
+    data.current_value = parseVal(data.current_value);
     onSubmit(data);
   };
 
@@ -188,11 +194,11 @@ function GoalFormDialog({ open, onClose, onSubmit, goal }) {
             </div>
             <div>
               <Label>Target Value or Time</Label>
-              <Input type="number" value={form.target_value} onChange={e => handleChange('target_value', e.target.value)} placeholder="1000" />
+              <Input type="text" value={form.target_value} onChange={e => handleChange('target_value', e.target.value)} placeholder="1000 or 1:30:00" />
             </div>
             <div>
               <Label>Current Value or Time</Label>
-              <Input type="number" value={form.current_value} onChange={e => handleChange('current_value', e.target.value)} placeholder="250" />
+              <Input type="text" value={form.current_value} onChange={e => handleChange('current_value', e.target.value)} placeholder="250 or 0:45:00" />
             </div>
             <div>
               <Label>Unit</Label>
