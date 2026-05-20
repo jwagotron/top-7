@@ -187,11 +187,11 @@ function GoalFormDialog({ open, onClose, onSubmit, goal }) {
               </Select>
             </div>
             <div>
-              <Label>Target Value</Label>
+              <Label>Target Value or Time</Label>
               <Input type="number" value={form.target_value} onChange={e => handleChange('target_value', e.target.value)} placeholder="1000" />
             </div>
             <div>
-              <Label>Current Value</Label>
+              <Label>Current Value or Time</Label>
               <Input type="number" value={form.current_value} onChange={e => handleChange('current_value', e.target.value)} placeholder="250" />
             </div>
             <div>
