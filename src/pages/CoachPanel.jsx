@@ -46,6 +46,7 @@ export default function CoachPanel() {
       return teams.filter(t => t.status !== 'archived');
     },
     enabled: !!user?.email,
+    staleTime: 30000,
   });
 
   const selectedTeam = myTeams.find(t => t.id === selectedTeamId) || myTeams[0] || null;
@@ -56,6 +57,7 @@ export default function CoachPanel() {
     queryKey: ['memberships', effectiveTeamId],
     queryFn: () => base44.entities.TeamMembership.filter({ team_id: effectiveTeamId }),
     enabled: !!effectiveTeamId,
+    staleTime: 15000,
   });
 
   // Exclude the coach themselves
@@ -86,6 +88,7 @@ export default function CoachPanel() {
       return merged.sort((a, b) => a.scheduled_date > b.scheduled_date ? 1 : -1);
     },
     enabled: !!effectiveTeamId,
+    staleTime: 20000,
   });
 
   const invalidatePlanned = () => {
