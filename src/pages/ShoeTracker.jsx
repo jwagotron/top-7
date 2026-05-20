@@ -10,7 +10,8 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, RotateCcw, Pencil, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Plus, RotateCcw, Pencil, Trash2, AlertTriangle, CheckCircle2, Star } from 'lucide-react';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';
@@ -121,6 +122,13 @@ export default function ShoeTracker() {
   const [addMileage, setAddMileage] = useState(null);
   const [confirmReset, setConfirmReset] = useState(null);
   const [showRetired, setShowRetired] = useState(false);
+  const [primaryShoeId, setPrimaryShoeIdState] = useState(() => localStorage.getItem('primary_shoe_id') || null);
+
+  const setPrimary = (shoe) => {
+    localStorage.setItem('primary_shoe_id', shoe.id);
+    setPrimaryShoeIdState(shoe.id);
+    toast.success(`${shoe.name} set as primary shoe`);
+  };
 
   const { data: shoes = [], isLoading } = useQuery({
     queryKey: ['shoes'],
@@ -219,6 +227,17 @@ export default function ShoeTracker() {
                 <div className="flex flex-wrap items-center gap-2 mb-4">
                   {!isRetired && (
                     <Button size="sm" variant="outline" onClick={() => setAddMileage(shoe)} className="text-xs h-7 px-2">+ {label}</Button>
+                  )}
+                  {!isRetired && (
+                    <Button
+                      size="icon"
+                      variant={primaryShoeId === shoe.id ? 'default' : 'outline'}
+                      className={`h-7 w-7 ${primaryShoeId === shoe.id ? 'bg-accent text-white border-accent' : ''}`}
+                      title={primaryShoeId === shoe.id ? 'Primary shoe' : 'Set as primary shoe'}
+                      onClick={() => setPrimary(shoe)}
+                    >
+                      <Star className="w-3.5 h-3.5" fill={primaryShoeId === shoe.id ? 'currentColor' : 'none'} />
+                    </Button>
                   )}
                   {!isRetired && (
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(shoe)}><Pencil className="w-3.5 h-3.5" /></Button>

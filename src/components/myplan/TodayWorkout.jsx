@@ -30,22 +30,38 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
 
   const completeMut = useMutation({
     mutationFn: async () => {
+      // Complete the workout
+      let result;
       if (completion?.id) {
-        return base44.entities.WorkoutCompletion.update(completion.id, {
+        result = await base44.entities.WorkoutCompletion.update(completion.id, {
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          notes: notes || undefined,
+        });
+      } else {
+        result = await base44.entities.WorkoutCompletion.create({
+          athlete_email: athleteEmail,
+          planned_workout_id: workout.id,
+          plan_id: workout.plan_id,
+          scheduled_date: workout.scheduled_date,
           status: 'completed',
           completed_at: new Date().toISOString(),
           notes: notes || undefined,
         });
       }
-      return base44.entities.WorkoutCompletion.create({
-        athlete_email: athleteEmail,
-        planned_workout_id: workout.id,
-        plan_id: workout.plan_id,
-        scheduled_date: workout.scheduled_date,
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-        notes: notes || undefined,
-      });
+      // Auto-log mileage to primary shoe if workout has distance
+      const primaryShoeId = localStorage.getItem('primary_shoe_id');
+      if (primaryShoeId && workout.target_distance_km) {
+        try {
+          const shoe = await base44.entities.Shoe.get(primaryShoeId);
+          if (shoe && shoe.status !== 'retired') {
+            await base44.entities.Shoe.update(primaryShoeId, {
+              mileage_km: (shoe.mileage_km || 0) + workout.target_distance_km,
+            });
+          }
+        } catch (_) { /* silently skip if shoe not found */ }
+      }
+      return result;
     },
     onMutate: async () => {
       await qc.cancelQueries({ queryKey: ['completions', athleteEmail] });
@@ -78,6 +94,7 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
         description: 'Great work — keep the momentum going.',
         duration: 3000,
       });
+      qc.invalidateQueries({ queryKey: ['shoes'] });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
