@@ -1,0 +1,56 @@
+{
+  "name": "Goal",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Goal title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Goal description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "distance",
+        "time",
+        "race",
+        "consistency",
+        "other"
+      ],
+      "description": "Goal category"
+    },
+    "target_value": {
+      "type": "string",
+      "description": "Target value (number or time like 1:30:00)"
+    },
+    "current_value": {
+      "type": "string",
+      "description": "Current progress value (number or time like 0:45:00)"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unit of measurement (miles, minutes, etc.)"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Target deadline"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "completed",
+        "abandoned"
+      ],
+      "default": "in_progress",
+      "description": "Goal status"
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ]
+}

@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Target, Trash2, Pencil, Trophy, TrendingUp } from 'lucide-react';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
@@ -38,11 +39,13 @@ export default function Goals() {
 
   const createMut = useMutation({
     mutationFn: (d) => base44.entities.Goal.create(d),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['goals'] }); setShowForm(false); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['goals'] }); setShowForm(false); toast.success('Goal created!'); },
+    onError: (err) => toast.error(err?.message || 'Failed to create goal'),
   });
   const updateMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Goal.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['goals'] }); setEditing(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['goals'] }); setEditing(null); toast.success('Goal updated!'); },
+    onError: (err) => toast.error(err?.message || 'Failed to update goal'),
   });
   const deleteMut = useMutation({
     mutationFn: (id) => base44.entities.Goal.delete(id),
@@ -141,14 +144,9 @@ function GoalFormDialog({ open, onClose, onSubmit, goal }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = { ...form };
-    const parseVal = (v) => {
-      if (!v) return v;
-      if (String(v).includes(':')) return String(v);
-      const n = Number(v);
-      return isNaN(n) ? String(v) : n;
-    };
-    data.target_value = parseVal(data.target_value);
-    data.current_value = parseVal(data.current_value);
+    // Store as string to support both numbers and time formats (e.g. 1:30:00)
+    data.target_value = data.target_value !== '' ? String(data.target_value) : undefined;
+    data.current_value = data.current_value !== '' ? String(data.current_value) : undefined;
     onSubmit(data);
   };
 
