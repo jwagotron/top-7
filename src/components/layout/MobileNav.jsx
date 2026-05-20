@@ -2,13 +2,22 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/lib/RoleContext';
+import { useAuth } from '@/lib/AuthContext';
+import { Shield } from 'lucide-react';
 import { MOBILE_NAV_TABS } from '@/lib/roleConfig';
 
 export default function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { role } = useRole();
-  const tabs = MOBILE_NAV_TABS[role] || MOBILE_NAV_TABS.athlete;
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const baseTabs = MOBILE_NAV_TABS[role] || MOBILE_NAV_TABS.athlete;
+  // Always show Admin tab for real admins regardless of preview role
+  const adminTab = { path: '/admin', label: 'Admin', icon: Shield };
+  const tabs = isAdmin && !baseTabs.find(t => t.path === '/admin')
+    ? [adminTab, ...baseTabs]
+    : baseTabs;
 
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
