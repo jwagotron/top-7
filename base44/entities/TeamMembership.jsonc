@@ -48,20 +48,25 @@
     "create": {
       "$or": [
         {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
           "data.coach_email": "{{user.email}}"
         },
         {
-          "data.athlete_email": "{{user.email}}"
+          "user_condition": {
+            "role": "admin"
+          }
         }
       ]
     },
     "read": {
       "$or": [
         {
-          "data.coach_email": "{{user.email}}"
+          "data.athlete_email": "{{user.email}}"
         },
         {
-          "data.athlete_email": "{{user.email}}"
+          "data.coach_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -76,9 +81,6 @@
           "data.coach_email": "{{user.email}}"
         },
         {
-          "data.athlete_email": "{{user.email}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -89,9 +91,6 @@
       "$or": [
         {
           "data.coach_email": "{{user.email}}"
-        },
-        {
-          "data.athlete_email": "{{user.email}}"
         },
         {
           "user_condition": {
