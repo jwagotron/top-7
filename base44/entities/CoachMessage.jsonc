@@ -35,7 +35,19 @@
   ],
   "rls": {
     "create": {
-      "data.sender_email": "{{user.email}}"
+      "$or": [
+        {
+          "data.sender_email": "{{user.email}}"
+        },
+        {
+          "data.recipient_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
