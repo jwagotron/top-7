@@ -42,7 +42,16 @@
   ],
   "rls": {
     "create": {
-      "data.coach_email": "{{user.email}}"
+      "$or": [
+        {
+          "data.coach_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
@@ -63,9 +72,6 @@
       "$or": [
         {
           "data.coach_email": "{{user.email}}"
-        },
-        {
-          "data.athlete_email": "{{user.email}}"
         },
         {
           "user_condition": {
