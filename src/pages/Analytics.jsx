@@ -14,9 +14,9 @@ import { format, subDays, startOfWeek, endOfWeek, eachWeekOfInterval } from 'dat
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';
 import { useAuth } from '@/lib/AuthContext';
-import { Heart, Wind, Moon, Brain, Zap, TrendingUp, Activity, Flame, Flag } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Heart, Wind, Moon, Brain, Zap, TrendingUp, Activity, Flame } from 'lucide-react';
 import PersonalRecords from '@/components/analytics/PersonalRecords';
+import RacePredictor from '@/components/predictor/RacePredictor';
 import { cn } from '@/lib/utils';
 
 const tooltipStyle = {
@@ -52,7 +52,6 @@ function MetricCard({ icon: Icon, label, value, unit, trend, color = 'text-prima
 
 export default function Analytics() {
   const [period, setPeriod] = useState('30');
-  const navigate = useNavigate();
   const { toDisplay, label, formatPace } = useUnits();
   const { user } = useAuth();
 
@@ -201,13 +200,6 @@ export default function Analytics() {
               <TabsTrigger value="trends" className="text-xs px-4 whitespace-nowrap"><TrendingUp className="w-3 h-3 mr-1" />Trends</TabsTrigger>
               <TabsTrigger value="records" className="text-xs px-4 whitespace-nowrap"><Activity className="w-3 h-3 mr-1" />Records</TabsTrigger>
             </TabsList>
-            <button
-              onClick={() => navigate('/race-predictor')}
-              className="flex items-center gap-1.5 ml-3 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow hover:bg-primary/90 transition-all shrink-0"
-            >
-              <Flag className="w-3.5 h-3.5" />
-              Race Predictor
-            </button>
           </div>
 
           {/* === PERFORMANCE TAB === */}
@@ -484,7 +476,16 @@ export default function Analytics() {
 
           {/* === RECORDS TAB === */}
           <TabsContent value="records" className="space-y-5 mt-0">
-            <PersonalRecords athleteEmail={user?.email} />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              <div>
+                <h2 className="text-base font-bold mb-3">Personal Records</h2>
+                <PersonalRecords athleteEmail={user?.email} />
+              </div>
+              <div>
+                <h2 className="text-base font-bold mb-3">Race Predictor</h2>
+                <RacePredictor userEmail={user?.email} />
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
