@@ -264,7 +264,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (selectedAthletes.length === 0 || !isRequiredComplete) return;
+    if (selectedAthletes.length === 0) return;
 
     const base = { ...form };
     if (base.target_duration_minutes) base.target_duration_minutes = Number(base.target_duration_minutes);
@@ -432,7 +432,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                   <Button type="button" variant="outline" onClick={() => setActiveTab('structure')} className="gap-1.5">
                     + Structure
                   </Button>
-                  <Button type="submit" disabled={selectedAthletes.length === 0 || !isRequiredComplete}>
+                  <Button type="submit" disabled={selectedAthletes.length === 0}>
                     {selectedAthletes.length > 1 ? `Assign to ${selectedAthletes.length}` : 'Assign Workout'}
                   </Button>
                 </div>
@@ -470,7 +470,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                 <Button type="button" variant="outline" onClick={() => setActiveTab('details')}>← Details</Button>
                 <div className="flex gap-2">
                   <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-                  <Button type="submit" disabled={selectedAthletes.length === 0 || !isRequiredComplete}>
+                  <Button type="submit" disabled={selectedAthletes.length === 0}>
                     {isEditing ? 'Update Workout'
                       : selectedAthletes.length > 1 ? `Assign to ${selectedAthletes.length} Athletes`
                       : 'Assign Workout'}
