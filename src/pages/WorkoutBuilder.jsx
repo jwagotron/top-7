@@ -11,7 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import WorkoutStepEditor from '@/components/workouts/WorkoutStepEditor';
-import { Save, Plus, Pencil, Trash2, Dumbbell } from 'lucide-react';
+import { Save, Plus, Pencil, Trash2, Dumbbell, UserPlus } from 'lucide-react';
+import AssignWorkoutForm from '@/components/coach/AssignWorkoutForm';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
 
@@ -42,6 +43,7 @@ export default function WorkoutBuilder() {
   const [steps, setSteps] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [assignTarget, setAssignTarget] = useState(null);
 
   const { data: workouts = [] } = useQuery({
     queryKey: ['builder-workouts'],
@@ -53,6 +55,34 @@ export default function WorkoutBuilder() {
     queryFn: () => base44.entities.WorkoutStep.list('order', 500),
   });
 
+  const { data: teams = [] } = useQuery({
+    queryKey: ['coach-teams', user?.email],
+    queryFn: () => base44.entities.Team.filter({ coach_email: user.email }),
+    enabled: !!user?.email,
+  });
+
+  const primaryTeam = teams[0] || null;
+
+  const { data: memberships = [] } = useQuery({
+    queryKey: ['team-memberships', primaryTeam?.id],
+    queryFn: () => base44.entities.TeamMembership.filter({ team_id: primaryTeam.id, status: 'active' }),
+    enabled: !!primaryTeam?.id,
+  });
+
+  const athletes = memberships
+    .filter(m => m.athlete_email !== user?.email)
+    .map(m => ({ email: m.athlete_email, full_name: m.athlete_name }));
+
+  const assignMut = useMutation({
+    mutationFn: async (items) => {
+      const arr = Array.isArray(items) ? items : [items];
+      await Promise.all(arr.map(item =>
+        base44.entities.PlannedWorkout.create({ ...item, plan_id: null, status: 'upcoming' })
+      ));
+    },
+    onSuccess: () => setAssignTarget(null),
+  });
+
   const set = (f, v) => setForm(p => ({ ...p, [f]: v }));
 
   const saveMut = useMutation({
@@ -60,14 +90,12 @@ export default function WorkoutBuilder() {
       let workoutId = editingId;
       if (editingId) {
         await base44.entities.Workout.update(editingId, data.workout);
-        // Delete old steps
         const oldSteps = allSteps.filter(s => s.workout_id === editingId);
         await Promise.all(oldSteps.map(s => base44.entities.WorkoutStep.delete(s.id)));
       } else {
         const created = await base44.entities.Workout.create(data.workout);
         workoutId = created.id;
       }
-      // Save steps
       if (data.steps.length > 0) {
         await base44.entities.WorkoutStep.bulkCreate(data.steps.map((s, i) => ({
           workout_id: workoutId,
@@ -148,6 +176,7 @@ export default function WorkoutBuilder() {
   const getStepsForWorkout = (id) => allSteps.filter(s => s.workout_id === id).sort((a, b) => a.order - b.order);
 
   return (
+    <>
       <div className="flex flex-col h-full bg-background">
         <TopBar title="Workout Builder">
           <Button onClick={() => { resetForm(); setShowForm(true); }} size="sm" className="gap-1.5 h-8 px-2 sm:px-4">
@@ -159,147 +188,155 @@ export default function WorkoutBuilder() {
         <div className="flex-1 overflow-y-auto p-4 lg:p-6">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-5 gap-6 items-start">
-          {/* Workout list */}
-          <div className="lg:col-span-2 space-y-3">
-            <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Saved Workouts</h2>
-            {workouts.length === 0 && (
-              <div className="text-center py-8 border-2 border-dashed border-border rounded-xl text-sm text-muted-foreground">
-                <Dumbbell className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                No workouts yet.
+              {/* Workout list */}
+              <div className="lg:col-span-2 space-y-3">
+                <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Saved Workouts</h2>
+                {workouts.length === 0 && (
+                  <div className="text-center py-8 border-2 border-dashed border-border rounded-xl text-sm text-muted-foreground">
+                    <Dumbbell className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                    No workouts yet.
+                  </div>
+                )}
+                {workouts.map(w => {
+                  const wSteps = getStepsForWorkout(w.id);
+                  return (
+                    <Card key={w.id} className={`cursor-pointer transition-shadow hover:shadow-md ${editingId === w.id ? 'ring-2 ring-primary' : ''}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate">{w.title}</p>
+                            <div className="flex gap-1 mt-1 flex-wrap">
+                              <Badge variant="outline" className="text-[10px]">{w.sport}</Badge>
+                              {w.run_type && <Badge variant="outline" className="text-[10px]">{w.run_type}</Badge>}
+                              {wSteps.length > 0 && <Badge variant="outline" className="text-[10px]">{wSteps.length} steps</Badge>}
+                            </div>
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1 text-primary border-primary/30" onClick={() => setAssignTarget(w)}>
+                              <UserPlus className="w-3 h-3" /> Assign
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleEdit(w)}><Pencil className="w-3.5 h-3.5" /></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteMut.mutate(w.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                          </div>
+                        </div>
+                        {w.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{w.description}</p>}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
-            )}
-            {workouts.map(w => {
-              const wSteps = getStepsForWorkout(w.id);
-              return (
-                <Card key={w.id} className={`cursor-pointer transition-shadow hover:shadow-md ${editingId === w.id ? 'ring-2 ring-primary' : ''}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{w.title}</p>
-                        <div className="flex gap-1 mt-1 flex-wrap">
-                          <Badge variant="outline" className="text-[10px]">{w.sport}</Badge>
-                          {w.run_type && <Badge variant="outline" className="text-[10px]">{w.run_type}</Badge>}
-                          {wSteps.length > 0 && <Badge variant="outline" className="text-[10px]">{wSteps.length} steps</Badge>}
+
+              {/* Editor */}
+              <div className="lg:col-span-3">
+                {!showForm ? (
+                  <div className="text-center py-20 border-2 border-dashed border-border rounded-xl text-muted-foreground">
+                    <Dumbbell className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                    <p>Select a workout to edit or create a new one.</p>
+                  </div>
+                ) : (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">{editingId ? 'Edit Workout' : 'New Workout'}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-5">
+                      <div>
+                        <Label>Workout Title <span className="text-destructive">*</span></Label>
+                        <Input value={form.title} onChange={e => set('title', e.target.value)} placeholder="Tempo Run – 8km" />
+                      </div>
+
+                      <div>
+                        <Label>Run Type <span className="text-destructive">*</span></Label>
+                        <div className="flex flex-wrap gap-2 mt-1.5">
+                          {RUN_TYPES.map(rt => (
+                            <button key={rt.value} type="button" onClick={() => set('run_type', rt.value)}
+                              className={cn('px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                                form.run_type === rt.value ? `${rt.color} border-current shadow-sm` : 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80')}>
+                              {rt.label}
+                            </button>
+                          ))}
                         </div>
                       </div>
-                      <div className="flex gap-1 shrink-0">
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleEdit(w)}><Pencil className="w-3.5 h-3.5" /></Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteMut.mutate(w.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Intensity <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                          <Select value={form.intensity} onValueChange={v => set('intensity', v)}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="recovery">Recovery</SelectItem>
+                              <SelectItem value="easy">Easy</SelectItem>
+                              <SelectItem value="moderate">Moderate</SelectItem>
+                              <SelectItem value="hard">Hard</SelectItem>
+                              <SelectItem value="race_pace">Race Pace</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Target Distance ({label}) <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                          <Input type="number" step="0.01" value={form.estimated_distance_km} onChange={e => set('estimated_distance_km', e.target.value)} placeholder={label === 'mi' ? '6.2' : '10'} />
+                        </div>
+                        <div>
+                          <Label>Target Duration (min) <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                          <Input type="number" value={form.estimated_duration_min} onChange={e => set('estimated_duration_min', e.target.value)} placeholder="55" />
+                        </div>
+                        <div>
+                          <Label>Target Pace ({paceLabel}) <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                          <Input value={form.target_pace} onChange={e => set('target_pace', e.target.value)} placeholder={label === 'mi' ? '8:27' : '5:15'} />
+                        </div>
                       </div>
-                    </div>
-                    {w.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{w.description}</p>}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
 
-          {/* Editor */}
-          <div className="lg:col-span-3">
-            {!showForm ? (
-              <div className="text-center py-20 border-2 border-dashed border-border rounded-xl text-muted-foreground">
-                <Dumbbell className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p>Select a workout to edit or create a new one.</p>
+                      <div>
+                        <Label>General Description <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                        <Textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2} placeholder="Overview of what this workout is about…" />
+                      </div>
+
+                      <div className="space-y-3 border-t pt-4">
+                        <p className="text-sm font-semibold">Workout Structure <span className="text-xs text-muted-foreground font-normal">(required for assigning)</span></p>
+                        <div>
+                          <Label>Warm-Up <span className="text-destructive">*</span></Label>
+                          <Textarea value={form.warmup_description} onChange={e => set('warmup_description', e.target.value)} rows={2} placeholder="e.g. 10 min easy jog, dynamic stretches…" />
+                        </div>
+                        <div>
+                          <Label>Main Set <span className="text-destructive">*</span></Label>
+                          <Textarea value={form.main_set_description} onChange={e => set('main_set_description', e.target.value)} rows={3} placeholder="e.g. 4 × 1km at threshold pace with 90s recovery…" />
+                        </div>
+                        <div>
+                          <Label>Cool-Down <span className="text-destructive">*</span></Label>
+                          <Textarea value={form.cooldown_description} onChange={e => set('cooldown_description', e.target.value)} rows={2} placeholder="e.g. 10 min easy jog, static stretches…" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="mb-3 block">Workout Steps <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                        <WorkoutStepEditor steps={steps} onChange={setSteps} />
+                      </div>
+
+                      <div className="flex justify-end gap-3 pt-2 border-t">
+                        <Button variant="outline" onClick={resetForm}>Cancel</Button>
+                        <Button onClick={handleSubmit} disabled={!form.title || saveMut.isPending} className="gap-2">
+                          <Save className="w-4 h-4" />
+                          {saveMut.isPending ? 'Saving…' : editingId ? 'Update Workout' : 'Save Workout'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
-            ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">{editingId ? 'Edit Workout' : 'New Workout'}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-5">
-
-                  {/* Title */}
-                  <div>
-                    <Label>Workout Title <span className="text-destructive">*</span></Label>
-                    <Input value={form.title} onChange={e => set('title', e.target.value)} placeholder="Tempo Run – 8km" />
-                  </div>
-
-                  {/* Run Type pills — exactly matching AssignWorkoutForm */}
-                  <div>
-                    <Label>Run Type <span className="text-destructive">*</span></Label>
-                    <div className="flex flex-wrap gap-2 mt-1.5">
-                      {RUN_TYPES.map(rt => (
-                        <button key={rt.value} type="button" onClick={() => set('run_type', rt.value)}
-                          className={cn('px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                            form.run_type === rt.value ? `${rt.color} border-current shadow-sm` : 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80')}>
-                          {rt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Metrics row */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Intensity <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
-                      <Select value={form.intensity} onValueChange={v => set('intensity', v)}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="recovery">Recovery</SelectItem>
-                          <SelectItem value="easy">Easy</SelectItem>
-                          <SelectItem value="moderate">Moderate</SelectItem>
-                          <SelectItem value="hard">Hard</SelectItem>
-                          <SelectItem value="race_pace">Race Pace</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Target Distance ({label}) <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
-                      <Input type="number" step="0.01" value={form.estimated_distance_km} onChange={e => set('estimated_distance_km', e.target.value)} placeholder={label === 'mi' ? '6.2' : '10'} />
-                    </div>
-                    <div>
-                      <Label>Target Duration (min) <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
-                      <Input type="number" value={form.estimated_duration_min} onChange={e => set('estimated_duration_min', e.target.value)} placeholder="55" />
-                    </div>
-                    <div>
-                      <Label>Target Pace ({paceLabel}) <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
-                      <Input value={form.target_pace} onChange={e => set('target_pace', e.target.value)} placeholder={label === 'mi' ? '8:27' : '5:15'} />
-                    </div>
-                  </div>
-
-                  {/* General description */}
-                  <div>
-                    <Label>General Description <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
-                    <Textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2} placeholder="Overview of what this workout is about…" />
-                  </div>
-
-                  {/* Structure — required for assigning */}
-                  <div className="space-y-3 border-t pt-4">
-                    <p className="text-sm font-semibold">Workout Structure <span className="text-xs text-muted-foreground font-normal">(required for assigning)</span></p>
-                    <div>
-                      <Label>Warm-Up <span className="text-destructive">*</span></Label>
-                      <Textarea value={form.warmup_description} onChange={e => set('warmup_description', e.target.value)} rows={2} placeholder="e.g. 10 min easy jog, dynamic stretches…" />
-                    </div>
-                    <div>
-                      <Label>Main Set <span className="text-destructive">*</span></Label>
-                      <Textarea value={form.main_set_description} onChange={e => set('main_set_description', e.target.value)} rows={3} placeholder="e.g. 4 × 1km at threshold pace with 90s recovery…" />
-                    </div>
-                    <div>
-                      <Label>Cool-Down <span className="text-destructive">*</span></Label>
-                      <Textarea value={form.cooldown_description} onChange={e => set('cooldown_description', e.target.value)} rows={2} placeholder="e.g. 10 min easy jog, static stretches…" />
-                    </div>
-                  </div>
-
-                  {/* Workout steps */}
-                  <div>
-                    <Label className="mb-3 block">Workout Steps <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
-                    <WorkoutStepEditor steps={steps} onChange={setSteps} />
-                  </div>
-
-                  <div className="flex justify-end gap-3 pt-2 border-t">
-                    <Button variant="outline" onClick={resetForm}>Cancel</Button>
-                    <Button onClick={handleSubmit} disabled={!form.title || saveMut.isPending} className="gap-2">
-                      <Save className="w-4 h-4" />
-                      {saveMut.isPending ? 'Saving…' : editingId ? 'Update Workout' : 'Save Workout'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
             </div>
           </div>
         </div>
       </div>
+
+      {assignTarget && (
+        <AssignWorkoutForm
+          open={!!assignTarget}
+          onClose={() => setAssignTarget(null)}
+          onSubmit={d => assignMut.mutate(d)}
+          athletes={athletes}
+          teamId={primaryTeam?.id}
+          preloadWorkout={assignTarget}
+        />
+      )}
+    </>
   );
 }

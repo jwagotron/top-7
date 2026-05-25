@@ -177,7 +177,7 @@ function AssignTargetStep({ athletes, groups, selectedAthletes, setSelectedAthle
   );
 }
 
-export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, defaultDate, athletes = [], athleteFilter = 'all', teamId }) {
+export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, defaultDate, athletes = [], athleteFilter = 'all', teamId, preloadWorkout }) {
   const { toDisplay, toKm, label, paceLabel } = useUnits();
   const [form, setForm] = useState(defaults);
   const [activeTab, setActiveTab] = useState('assign');
@@ -210,7 +210,22 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
       setSelectedAthletes(workout.assigned_to ? [workout.assigned_to] : []);
       setActiveTab('details');
     } else if (justOpened) {
-      setForm({ ...defaults, scheduled_date: defaultDate || '' });
+      const base = preloadWorkout
+        ? {
+            title: preloadWorkout.title || '',
+            sport: preloadWorkout.sport || 'run',
+            run_type: preloadWorkout.run_type || 'easy',
+            description: preloadWorkout.description || '',
+            target_duration_minutes: preloadWorkout.duration_minutes || '',
+            target_distance_km: preloadWorkout.distance_km ? toDisplay(preloadWorkout.distance_km) : '',
+            target_pace: preloadWorkout.target_pace || '',
+            intensity: preloadWorkout.intensity || 'moderate',
+            warmup_description: preloadWorkout.warmup_description || '',
+            main_set_description: preloadWorkout.main_set_description || '',
+            cooldown_description: preloadWorkout.cooldown_description || '',
+          }
+        : {};
+      setForm({ ...defaults, scheduled_date: defaultDate || '', ...base });
       if (athleteFilter && athleteFilter !== 'all') {
         setSelectedAthletes([athleteFilter]);
       } else if (athleteFilter === 'all' && athletes.length > 0) {
