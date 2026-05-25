@@ -50,19 +50,19 @@ function ShoeForm({ shoe, onSubmit, onClose, units }) {
               <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Alphafly 3" />
             </div>
             <div>
-              <Label>Brand</Label>
+              <Label>Brand <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
               <Input value={form.brand} onChange={e => set('brand', e.target.value)} placeholder="Nike" />
             </div>
             <div>
-              <Label>Color</Label>
+              <Label>Color <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
               <Input value={form.color} onChange={e => set('color', e.target.value)} placeholder="Black / Gold" />
             </div>
             <div>
-              <Label>Start Date</Label>
+              <Label>Start Date <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
               <Input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)} />
             </div>
             <div>
-              <Label>Max {unitLabel} (before retire)</Label>
+              <Label>Max {unitLabel} before retire <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
               <Input type="number" value={form._display_max} onChange={e => set('_display_max', e.target.value)} />
             </div>
             {shoe && (
@@ -73,7 +73,7 @@ function ShoeForm({ shoe, onSubmit, onClose, units }) {
             )}
           </div>
           <div>
-            <Label>Notes</Label>
+            <Label>Notes <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
             <Textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2} placeholder="Race-day only, etc." />
           </div>
           <div className="flex justify-end gap-3 pt-2">
