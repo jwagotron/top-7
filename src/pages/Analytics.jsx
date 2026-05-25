@@ -199,6 +199,7 @@ export default function Analytics() {
               <TabsTrigger value="health" className="text-xs px-4 whitespace-nowrap"><Heart className="w-3 h-3 mr-1" />Health</TabsTrigger>
               <TabsTrigger value="trends" className="text-xs px-4 whitespace-nowrap"><TrendingUp className="w-3 h-3 mr-1" />Trends</TabsTrigger>
               <TabsTrigger value="records" className="text-xs px-4 whitespace-nowrap"><Activity className="w-3 h-3 mr-1" />Records</TabsTrigger>
+              <TabsTrigger value="predictor" className="text-xs px-4 whitespace-nowrap"><TrendingUp className="w-3 h-3 mr-1" />Race Predictor</TabsTrigger>
             </TabsList>
           </div>
 
@@ -481,11 +482,12 @@ export default function Analytics() {
                 <h2 className="text-base font-bold mb-3">Personal Records</h2>
                 <PersonalRecords athleteEmail={user?.email} />
               </div>
-              <div>
-                <h2 className="text-base font-bold mb-3">Race Predictor</h2>
-                <RacePredictor userEmail={user?.email} />
-              </div>
             </div>
+          </TabsContent>
+
+          {/* === RACE PREDICTOR TAB === */}
+          <TabsContent value="predictor" className="space-y-5 mt-0">
+            <RacePredictor userEmail={user?.email} />
           </TabsContent>
         </Tabs>
       </div>

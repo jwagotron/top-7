@@ -2,7 +2,7 @@ import {
   LayoutDashboard, BarChart3,
   Target, ShieldCheck,
   Wifi, Hammer, Settings, Shield, Activity,
-  HelpCircle, LogOut, Users, UserCircle, ClipboardList, MessageSquare, Flag
+  HelpCircle, LogOut, Users, UserCircle, ClipboardList, MessageSquare
 } from 'lucide-react';
 
 export const NAV_ITEMS = {
@@ -57,7 +57,6 @@ export const SIDEBAR_MENU = {
         { path: '/analytics',  label: 'Analytics',      icon: BarChart3 },
         { path: '/goals',      label: 'Goals',          icon: Target },
         { path: '/messages',        label: 'Messages',       icon: MessageSquare },
-        { path: '/race-predictor', label: 'Race Predictor', icon: Flag },
         { path: '/shoes',          label: 'Shoe Tracker',   icon: Activity },
         { path: '/garmin',         label: 'Garmin Connect', icon: Wifi },
         { path: '/settings',       label: 'Settings',       icon: Settings },
@@ -118,7 +117,7 @@ export const DEFAULT_ROUTE = {
 };
 
 export const ALLOWED_ROUTES = {
-  athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/shoes', '/garmin', '/settings', '/athlete-profile', '/profile', '/messages', '/race-predictor'],
+  athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/shoes', '/garmin', '/settings', '/athlete-profile', '/profile', '/messages'],
   coach:   ['/coach', '/workout-builder', '/plans', '/settings', '/profile', '/athlete-profile', '/messages'],
   admin:   ['/', '/admin', '/coach', '/workout-builder', '/plans', '/settings', '/athlete-profile', '/activities', '/workouts', '/analytics', '/goals', '/shoes', '/garmin', '/my-plan', '/profile'],
 };

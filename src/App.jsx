@@ -33,7 +33,6 @@ import UserProfile from '@/pages/UserProfile';
 const ShoeTracker    = lazy(() => import('@/pages/ShoeTracker'));
 const MyPlan         = lazy(() => import('@/pages/MyPlan'));
 const Messages       = lazy(() => import('@/pages/Messages'));
-const RacePredictorPage = lazy(() => import('@/pages/RacePredictorPage'));
 
 const pageVariants = {
   initial: { opacity: 0, x: 12 },
@@ -42,7 +41,7 @@ const pageVariants = {
 };
 
 // Routes that should stay mounted for native-like tab switching
-const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts', '/my-plan', '/goals', '/shoes', '/garmin', '/admin', '/workout-builder', '/profile', '/messages', '/race-predictor'];
+const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts', '/my-plan', '/goals', '/shoes', '/garmin', '/admin', '/workout-builder', '/profile', '/messages'];
 
 function PersistentTab({ path, element, currentPath }) {
   const isActive = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
@@ -101,7 +100,6 @@ function AnimatedRoutes() {
           <PersistentTab path="/workout-builder" element={<WorkoutBuilder />}    currentPath={location.pathname} />
           <PersistentTab path="/profile"        element={<UserProfile />}         currentPath={location.pathname} />
           <PersistentTab path="/messages"       element={<Messages />}            currentPath={location.pathname} />
-          <PersistentTab path="/race-predictor" element={<RacePredictorPage />}    currentPath={location.pathname} />
         </Suspense>
       </AppLayout>
 
