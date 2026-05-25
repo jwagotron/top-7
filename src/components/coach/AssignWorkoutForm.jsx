@@ -430,7 +430,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                 <div className="flex gap-2 ml-auto">
                   <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
                   <Button type="button" variant="outline" onClick={() => setActiveTab('structure')} className="gap-1.5">
-                    + Structure
+                    Go to Structure →
                   </Button>
                   <Button type="submit" disabled={selectedAthletes.length === 0}>
                     {selectedAthletes.length > 1 ? `Assign to ${selectedAthletes.length}` : 'Assign Workout'}
@@ -460,11 +460,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                 <Textarea value={form.coach_notes} onChange={e => set('coach_notes', e.target.value)} placeholder="Notes only visible to you..." rows={2} />
               </div>
 
-              {!isRequiredComplete && (
-                <p className="text-xs text-destructive bg-destructive/5 border border-destructive/20 rounded-lg px-3 py-2">
-                  Please fill in the required fields: <span className="font-medium">Title</span>, <span className="font-medium">Run Type</span>, and <span className="font-medium">Date</span>.
-                </p>
-              )}
+
 
               <div className="flex justify-between gap-3 pt-2 border-t">
                 <Button type="button" variant="outline" onClick={() => setActiveTab('details')}>← Details</Button>
