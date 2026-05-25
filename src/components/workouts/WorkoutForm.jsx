@@ -64,19 +64,6 @@ export default function WorkoutForm({ open, onClose, onSubmit, workout }) {
               <Input value={form.title} onChange={e => handleChange('title', e.target.value)} placeholder="Morning Run" required />
             </div>
             <div>
-              <Label>Sport</Label>
-              <Select value={form.sport} onValueChange={v => handleChange('sport', v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="run">Run</SelectItem>
-                  <SelectItem value="bike">Bike</SelectItem>
-                  <SelectItem value="swim">Swim</SelectItem>
-                  <SelectItem value="strength">Strength</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
               <Label>Date</Label>
               <Input type="date" value={form.date} onChange={e => handleChange('date', e.target.value)} required />
             </div>
