@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, RotateCcw, Pencil, Trash2, AlertTriangle, CheckCircle2, Star } from 'lucide-react';
+import { Plus, RotateCcw, Pencil, Trash2, AlertTriangle, CheckCircle2, Star, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
@@ -188,6 +188,18 @@ export default function ShoeTracker() {
           </div>
         )}
 
+        {/* Info banner */}
+        {!isLoading && (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20 text-sm text-muted-foreground">
+            <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p><strong className="text-foreground">Primary Shoe</strong> — Mark one shoe as primary (⭐) and its mileage will be automatically updated whenever you log a run workout.</p>
+              <p><strong className="text-foreground">Retire</strong> — Marks a shoe as retired so it no longer appears in your active list. You can re-activate it at any time.</p>
+              <p><strong className="text-foreground">Reset</strong> — Resets a shoe's mileage counter back to 0, useful if you resoled or are re-using the shoe.</p>
+            </div>
+          </div>
+        )}
+
         {!isLoading && displayed.length === 0 && (
           <div className="text-center py-20 border-2 border-dashed border-border rounded-2xl">
             <span className="text-5xl">👟</span>
@@ -226,31 +238,35 @@ export default function ShoeTracker() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2 mb-4">
                   {!isRetired && (
-                    <Button size="sm" variant="outline" onClick={() => setAddMileage(shoe)} className="text-xs h-7 px-2">+ {label}</Button>
+                    <Button size="sm" variant="outline" onClick={() => setAddMileage(shoe)} className="text-xs h-7 px-2">+ Log {label}</Button>
                   )}
                   {!isRetired && (
                     <Button
-                      size="icon"
+                      size="sm"
                       variant={primaryShoeId === shoe.id ? 'default' : 'outline'}
-                      className={`h-7 w-7 ${primaryShoeId === shoe.id ? 'bg-accent text-white border-accent' : ''}`}
-                      title={primaryShoeId === shoe.id ? 'Primary shoe' : 'Set as primary shoe'}
+                      className={`text-xs h-7 px-2 gap-1 ${primaryShoeId === shoe.id ? 'bg-accent text-white border-accent' : ''}`}
                       onClick={() => setPrimary(shoe)}
                     >
-                      <Star className="w-3.5 h-3.5" fill={primaryShoeId === shoe.id ? 'currentColor' : 'none'} />
+                      <Star className="w-3 h-3" fill={primaryShoeId === shoe.id ? 'currentColor' : 'none'} />
+                      {primaryShoeId === shoe.id ? 'Primary' : 'Set Primary'}
                     </Button>
                   )}
                   {!isRetired && (
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(shoe)}><Pencil className="w-3.5 h-3.5" /></Button>
-                  )}
-                  {!isRetired && (
-                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Reset mileage" onClick={() => setConfirmReset(shoe)}>
-                      <RotateCcw className="w-3.5 h-3.5" />
+                    <Button size="sm" variant="ghost" className="text-xs h-7 px-2 gap-1" onClick={() => setEditing(shoe)}>
+                      <Pencil className="w-3 h-3" /> Edit
                     </Button>
                   )}
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground" title={isRetired ? 'Re-activate' : 'Retire'} onClick={() => handleRetire(shoe)}>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  {!isRetired && (
+                    <Button size="sm" variant="ghost" className="text-xs h-7 px-2 gap-1 text-muted-foreground" onClick={() => setConfirmReset(shoe)}>
+                      <RotateCcw className="w-3 h-3" /> Reset
+                    </Button>
+                  )}
+                  <Button size="sm" variant="ghost" className="text-xs h-7 px-2 gap-1 text-muted-foreground" onClick={() => handleRetire(shoe)}>
+                    <CheckCircle2 className="w-3 h-3" /> {isRetired ? 'Re-activate' : 'Retire'}
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteMut.mutate(shoe.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                  <Button size="sm" variant="ghost" className="text-xs h-7 px-2 gap-1 text-destructive" onClick={() => deleteMut.mutate(shoe.id)}>
+                    <Trash2 className="w-3 h-3" /> Delete
+                  </Button>
                 </div>
 
                 <div className="space-y-2">
