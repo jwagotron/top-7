@@ -14,7 +14,7 @@ import { format, subDays, startOfWeek, endOfWeek, eachWeekOfInterval } from 'dat
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';
 import { useAuth } from '@/lib/AuthContext';
-import { Heart, Wind, Moon, Brain, Zap, TrendingUp, Activity, Flame } from 'lucide-react';
+import { Heart, Wind, Moon, Brain, Zap, TrendingUp, Activity, Flame, Flag } from 'lucide-react';
 import PersonalRecords from '@/components/analytics/PersonalRecords';
 import RacePredictor from '@/components/predictor/RacePredictor';
 import { cn } from '@/lib/utils';
@@ -199,7 +199,7 @@ export default function Analytics() {
               <TabsTrigger value="health" className="text-xs px-4 whitespace-nowrap"><Heart className="w-3 h-3 mr-1" />Health</TabsTrigger>
               <TabsTrigger value="trends" className="text-xs px-4 whitespace-nowrap"><TrendingUp className="w-3 h-3 mr-1" />Trends</TabsTrigger>
               <TabsTrigger value="records" className="text-xs px-4 whitespace-nowrap"><Activity className="w-3 h-3 mr-1" />Records</TabsTrigger>
-              <TabsTrigger value="predictor" className="text-xs px-4 whitespace-nowrap"><TrendingUp className="w-3 h-3 mr-1" />Race Predictor</TabsTrigger>
+              <TabsTrigger value="predictor" className="text-xs px-4 whitespace-nowrap"><Flag className="w-3 h-3 mr-1" />Race Predictor</TabsTrigger>
             </TabsList>
           </div>
 
