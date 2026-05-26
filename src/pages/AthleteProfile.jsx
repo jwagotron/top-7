@@ -23,6 +23,7 @@ import CoachNoteForm from '@/components/athlete/CoachNoteForm';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
+import { useUnits } from '@/hooks/useUnits';
 
 const priorityColors = {
   A: 'bg-destructive/10 text-destructive border-destructive/20',
@@ -83,6 +84,7 @@ export default function AthleteProfile() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toDisplay, label } = useUnits();
 
   const { data: raceGoals = [] } = useQuery({
     queryKey: ['race-goals', athleteEmail],
@@ -147,6 +149,7 @@ export default function AthleteProfile() {
   const totalDistanceKm = completions
     .filter(c => c.status === 'completed' && c.distance_logged_km)
     .reduce((s, c) => s + c.distance_logged_km, 0);
+  const totalDistance = toDisplay(totalDistanceKm);
 
   const avgRpe = feedback.filter(f => f.rpe).length
     ? (feedback.reduce((s, f) => s + (f.rpe || 0), 0) / feedback.filter(f => f.rpe).length).toFixed(1)
@@ -183,7 +186,7 @@ export default function AthleteProfile() {
       return d >= weekStart && d <= weekEnd;
     });
     const km = weekCompletions.reduce((s, c) => s + (c.distance_logged_km || 0), 0);
-    return { week: `W${i + 1}`, km: Math.round(km * 10) / 10 };
+    return { week: `W${i + 1}`, dist: Math.round(toDisplay(km) * 10) / 10 };
   });
 
   const unreadInThread = thread.filter(m => !m.read && m.recipient_email === user?.email).length;
@@ -244,8 +247,8 @@ export default function AthleteProfile() {
             color="text-secondary" bg="bg-secondary/10"
           />
           <StatCard
-            icon={MapPin} label="Total Distance" value={totalDistanceKm > 0 ? `${totalDistanceKm.toFixed(1)} km` : '—'}
-            sub="logged km"
+            icon={MapPin} label="Total Distance" value={totalDistance > 0 ? `${totalDistance.toFixed(1)} ${label}` : '—'}
+            sub={`logged ${label}`}
             color="text-primary" bg="bg-primary/10"
           />
           <StatCard
@@ -320,7 +323,7 @@ export default function AthleteProfile() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 text-xs text-muted-foreground">
-                        {w.target_distance_km && <span>{w.target_distance_km} km</span>}
+                        {w.target_distance_km && <span>{toDisplay(w.target_distance_km).toFixed(1)} {label}</span>}
                         <Badge variant={done ? 'secondary' : 'outline'} className={cn('text-[10px]',
                           done ? 'bg-secondary/10 text-secondary border-secondary/20' : 'text-destructive border-destructive/20')}>
                           {done ? 'Done' : 'Missed'}
@@ -377,7 +380,7 @@ export default function AthleteProfile() {
                         </div>
                         <div className="flex gap-3 text-xs text-muted-foreground flex-wrap">
                           <span>{format(parseDateOnly(w.scheduled_date), 'MMM d, yyyy')}</span>
-                          {w.target_distance_km && <span><MapPin className="w-3 h-3 inline mr-0.5" />{w.target_distance_km} km</span>}
+                          {w.target_distance_km && <span><MapPin className="w-3 h-3 inline mr-0.5" />{toDisplay(w.target_distance_km).toFixed(1)} {label}</span>}
                           {w.target_duration_minutes && <span><Clock className="w-3 h-3 inline mr-0.5" />{w.target_duration_minutes} min</span>}
                         </div>
                         {comp?.notes && (
@@ -400,16 +403,16 @@ export default function AthleteProfile() {
           {/* Volume tab */}
           <TabsContent value="volume" className="mt-4 space-y-4">
             <Card>
-              <CardHeader><CardTitle className="text-base">Weekly Distance (km) — Last 8 Weeks</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">Weekly Distance ({label}) — Last 8 Weeks</CardTitle></CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={volumeChart}>
                     <XAxis dataKey="week" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="km" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="dist" name={label} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
                       {volumeChart.map((entry, i) => (
-                        <Cell key={i} fill={entry.km > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted))'} />
+                        <Cell key={i} fill={entry.dist > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted))'} />
                       ))}
                     </Bar>
                   </BarChart>
