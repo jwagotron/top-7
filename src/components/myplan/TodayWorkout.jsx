@@ -70,9 +70,15 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
         shoe_id: null,
         distance_logged_km: null,
       });
+      // Delete any feedback the athlete sent for this workout
+      const existingFeedback = await base44.entities.AthleteFeedback.filter({ workout_id: workout.id, athlete_email: athleteEmail });
+      await Promise.all(existingFeedback.map(fb => base44.entities.AthleteFeedback.delete(fb.id)));
     },
     onSuccess: () => {
+      setFeedbackSent(false);
+      setFeedback({ rpe: '', energy_level: '', notes: '' });
       qc.invalidateQueries({ queryKey: ['shoes'] });
+      qc.invalidateQueries({ queryKey: ['athlete-feedback'] });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
