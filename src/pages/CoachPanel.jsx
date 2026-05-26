@@ -16,7 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AthleteGroupManager from '@/components/coach/AthleteGroupManager';
-import { Plus, Users, Calendar, CheckCircle2, TrendingUp, ChevronDown, Settings } from 'lucide-react';
+import AthleteFeedbackList from '@/components/coach/AthleteFeedbackList';
+import { Plus, Users, Calendar, CheckCircle2, TrendingUp, MessageSquare } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { useCompletions } from '@/hooks/useCompletions';
 import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
@@ -205,6 +206,9 @@ export default function CoachPanel() {
                   <TabsTrigger value="athletes" className="text-xs px-3">
                     Athletes {nonCoachMembers.filter(m => m.status === 'pending').length > 0 && <Badge className="ml-1 h-4 px-1 text-[10px]">{nonCoachMembers.filter(m => m.status === 'pending').length}</Badge>}
                   </TabsTrigger>
+                  <TabsTrigger value="feedback" className="text-xs px-3 gap-1">
+                    <MessageSquare className="w-3.5 h-3.5" /> Feedback
+                  </TabsTrigger>
                 </TabsList>
 
               {/* WORKOUTS TAB */}
@@ -273,6 +277,11 @@ export default function CoachPanel() {
                     onDelete={(id) => deleteMut.mutate(id)}
                   />
                 </div>
+              </TabsContent>
+
+              {/* FEEDBACK TAB */}
+              <TabsContent value="feedback" className="mt-0">
+                <AthleteFeedbackList athleteEmails={athleteEmails} plannedWorkouts={plannedWorkouts} />
               </TabsContent>
 
               {/* ATHLETES TAB */}
