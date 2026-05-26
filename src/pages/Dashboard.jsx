@@ -232,8 +232,8 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* JoinTeam CTA */}
-        {!hasTeam && <JoinTeamCTA onSuccess={refetchUser} />}
+        {/* JoinTeam CTA — athletes only */}
+        {role === 'athlete' && !hasTeam && <JoinTeamCTA onSuccess={refetchUser} />}
 
         {/* This week stats */}
         <div>
