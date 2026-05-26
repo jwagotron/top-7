@@ -456,6 +456,11 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                 <Textarea value={form.cooldown_description} onChange={e => set('cooldown_description', e.target.value)} placeholder="e.g. 10 min easy jog, static stretches..." rows={3} />
               </div>
               <div>
+                <Label>Message to Athletes <OptionalMark /></Label>
+                <Textarea value={form.athlete_message || ''} onChange={e => set('athlete_message', e.target.value)} placeholder="e.g. Focus on breathing. Don't push past 80% effort today..." rows={2} />
+                <p className="text-xs text-muted-foreground mt-1">Athletes will see this message on their workout card.</p>
+              </div>
+              <div>
                 <Label>Coach Notes (private) <OptionalMark /></Label>
                 <Textarea value={form.coach_notes} onChange={e => set('coach_notes', e.target.value)} placeholder="Notes only visible to you..." rows={2} />
               </div>

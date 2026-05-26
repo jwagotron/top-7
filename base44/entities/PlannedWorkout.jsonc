@@ -101,64 +101,15 @@
     "coach_notes": {
       "type": "string",
       "description": "Private notes from coach"
+    },
+    "athlete_message": {
+      "type": "string",
+      "description": "Visible message from coach to athlete"
     }
   },
   "required": [
     "title",
     "sport",
     "scheduled_date"
-  ],
-  "rls": {
-    "create": {
-      "$or": [
-        {
-          "data.coach_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "read": {
-      "$or": [
-        {
-          "data.assigned_to": "{{user.email}}"
-        },
-        {
-          "data.coach_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "update": {
-      "$or": [
-        {
-          "data.coach_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "delete": {
-      "$or": [
-        {
-          "data.coach_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    }
-  }
+  ]
 }

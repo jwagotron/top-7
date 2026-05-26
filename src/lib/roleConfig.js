@@ -2,7 +2,7 @@ import {
   LayoutDashboard, BarChart3,
   Target, ShieldCheck,
   Wifi, Hammer, Settings, Shield, Activity,
-  HelpCircle, LogOut, Users, UserCircle, ClipboardList, MessageSquare
+  HelpCircle, LogOut, Users, UserCircle, ClipboardList
 } from 'lucide-react';
 
 export const NAV_ITEMS = {
@@ -32,7 +32,6 @@ export const MOBILE_NAV_TABS = {
     { path: '/',           label: 'Dashboard',  icon: LayoutDashboard },
     { path: '/my-plan',    label: 'My Plan',    icon: ClipboardList },
     { path: '/analytics',  label: 'Analytics',  icon: BarChart3 },
-    { path: '/messages',   label: 'Messages',   icon: MessageSquare },
     { path: '/settings',   label: 'Settings',   icon: Settings },
   ],
   coach: [
@@ -56,7 +55,6 @@ export const SIDEBAR_MENU = {
         { path: '/my-plan',    label: 'My Plan',        icon: ClipboardList },
         { path: '/analytics',  label: 'Analytics',      icon: BarChart3 },
         { path: '/goals',      label: 'Goals',          icon: Target },
-        { path: '/messages',        label: 'Messages',       icon: MessageSquare },
         { path: '/shoes',          label: 'Shoe Tracker',   icon: Activity },
         { path: '/garmin',         label: 'Garmin Connect', icon: Wifi },
         { path: '/settings',       label: 'Settings',       icon: Settings },
@@ -117,7 +115,7 @@ export const DEFAULT_ROUTE = {
 };
 
 export const ALLOWED_ROUTES = {
-  athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/shoes', '/garmin', '/settings', '/athlete-profile', '/profile', '/messages'],
+  athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/shoes', '/garmin', '/settings', '/athlete-profile', '/profile'],
   coach:   ['/coach', '/workout-builder', '/plans', '/settings', '/profile', '/athlete-profile', '/messages'],
   admin:   ['/', '/admin', '/coach', '/workout-builder', '/plans', '/settings', '/athlete-profile', '/activities', '/workouts', '/analytics', '/goals', '/shoes', '/garmin', '/my-plan', '/profile'],
 };
