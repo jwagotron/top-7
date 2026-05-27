@@ -6,6 +6,7 @@ import { Suspense, lazy, useState, useEffect } from 'react';
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
+import { Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from '@/components/layout/AppLayout';
@@ -126,9 +127,9 @@ function AnimatedRoutes() {
                   <Route path="/plans"           element={<TrainingPlans />} />
                   <Route path="/activities"      element={<Activities />} />
                   <Route path="/athlete-profile" element={<AthleteProfile />} />
-
                 </Route>
-                <Route path="*" element={<PageNotFound />} />
+                {/* Redirect unknown routes to home instead of flashing 404 */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
           </motion.div>
