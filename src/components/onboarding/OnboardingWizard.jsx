@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Dumbbell, Users } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { setLocalRole } from '@/lib/RoleContext';
 import AthleteSetup from './AthleteSetup';
 import CoachOnboarding from './CoachOnboarding';
 
@@ -35,6 +36,8 @@ export default function OnboardingWizard() {
 
   const handleContinue = () => {
     if (!selected) return;
+    // Persist to localStorage immediately for local/Playwright testing
+    setLocalRole(selected);
     if (selected === 'coach') setStep('coach');
     else setStep('athlete');
   };
@@ -108,7 +111,7 @@ export default function OnboardingWizard() {
             selected ? 'bg-primary text-primary-foreground shadow-md hover:bg-primary/90' : 'bg-muted text-muted-foreground cursor-not-allowed'
           }`}
         >
-          {saving ? 'Saving…' : 'Continue →'}
+          {'Continue →'}
         </motion.button>
       </motion.div>
     </motion.div>

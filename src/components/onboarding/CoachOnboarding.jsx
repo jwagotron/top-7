@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Users, Upload, Loader2, CheckCircle2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { setLocalRole } from '@/lib/RoleContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -58,6 +59,7 @@ export default function CoachOnboarding({ userType = 'coach' }) {
         status: 'active',
       });
       await base44.auth.updateMe({ user_type: userType });
+      setLocalRole(userType);
       setDone(true);
     } catch (err) {
       console.error('Failed to create team:', err);
@@ -68,6 +70,7 @@ export default function CoachOnboarding({ userType = 'coach' }) {
 
   const handleSkip = async () => {
     await base44.auth.updateMe({ user_type: userType });
+    setLocalRole(userType);
     await refetchUser();
   };
 

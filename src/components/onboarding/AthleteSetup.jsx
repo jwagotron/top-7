@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Dumbbell, Loader2, CheckCircle2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { setLocalRole } from '@/lib/RoleContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ export default function AthleteSetup({ userType = 'athlete' }) {
         unit_preference: form.unit_preference,
         user_type: userType,
       });
+      setLocalRole(userType);
     } catch (err) {
       console.error('Failed to update profile:', err);
       toast.error('Failed to save profile');
