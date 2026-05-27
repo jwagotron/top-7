@@ -33,18 +33,14 @@ export default function OnboardingWizard() {
   const [selected, setSelected] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (!selected) return;
-    setSaving(true);
-    await base44.auth.updateMe({ user_type: selected });
-    await refetchUser();
-    setSaving(false);
     if (selected === 'coach') setStep('coach');
     else setStep('athlete');
   };
 
-  if (step === 'athlete') return <AthleteSetup />;
-  if (step === 'coach') return <CoachOnboarding />;
+  if (step === 'athlete') return <AthleteSetup userType="athlete" />;  
+  if (step === 'coach') return <CoachOnboarding userType="coach" />;
 
   return (
     <motion.div
@@ -107,7 +103,7 @@ export default function OnboardingWizard() {
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={handleContinue}
-          disabled={!selected || saving}
+          disabled={!selected}
           className={`w-full mt-6 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
             selected ? 'bg-primary text-primary-foreground shadow-md hover:bg-primary/90' : 'bg-muted text-muted-foreground cursor-not-allowed'
           }`}

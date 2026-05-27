@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
-export default function AthleteSetup() {
+export default function AthleteSetup({ userType = 'athlete' }) {
   const { user, refetchUser } = useAuth();
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -30,6 +30,7 @@ export default function AthleteSetup() {
       await base44.auth.updateMe({
         full_name: form.display_name,
         unit_preference: form.unit_preference,
+        user_type: userType,
       });
     } catch (err) {
       console.error('Failed to update profile:', err);

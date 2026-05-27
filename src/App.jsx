@@ -158,8 +158,8 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // Show onboarding wizard if authenticated but user_type not set (and not admin)
-  if (isAuthenticated && user && user.role !== 'admin' && !user.user_type) {
+  // Show onboarding wizard if authenticated but role not yet set
+  if (isAuthenticated && user && !role) {
     return <OnboardingWizard />;
   }
 

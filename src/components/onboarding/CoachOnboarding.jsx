@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-export default function CoachOnboarding() {
+export default function CoachOnboarding({ userType = 'coach' }) {
   const { user, refetchUser } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -57,6 +57,7 @@ export default function CoachOnboarding() {
         invite_code: inviteCode,
         status: 'active',
       });
+      await base44.auth.updateMe({ user_type: userType });
       setDone(true);
     } catch (err) {
       console.error('Failed to create team:', err);
@@ -66,6 +67,7 @@ export default function CoachOnboarding() {
   };
 
   const handleSkip = async () => {
+    await base44.auth.updateMe({ user_type: userType });
     await refetchUser();
   };
 
