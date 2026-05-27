@@ -159,8 +159,8 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // Show onboarding wizard if authenticated but role not yet set
-  if (isAuthenticated && user && !role) {
+  // Block the entire app until a valid role exists (covers local dev + unauthenticated preview)
+  if (!role) {
     return <OnboardingWizard />;
   }
 

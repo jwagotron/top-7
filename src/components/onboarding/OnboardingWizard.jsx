@@ -29,15 +29,19 @@ const roles = [
 ];
 
 export default function OnboardingWizard() {
-  const { refetchUser } = useAuth();
+  const { user, refetchUser } = useAuth();
   const [step, setStep] = useState('choose'); // 'choose' | 'athlete' | 'coach'
   const [selected, setSelected] = useState(null);
-  const [saving, setSaving] = useState(false);
 
   const handleContinue = () => {
     if (!selected) return;
-    // Persist to localStorage immediately for local/Playwright testing
     setLocalRole(selected);
+    // If no authenticated user (local dev / Playwright), just reload — localStorage role
+    // is picked up on next mount and the onboarding guard won't fire again.
+    if (!user) {
+      window.location.href = '/';
+      return;
+    }
     if (selected === 'coach') setStep('coach');
     else setStep('athlete');
   };
