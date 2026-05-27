@@ -35,11 +35,9 @@ export default function OnboardingWizard() {
 
   const handleContinue = () => {
     if (!selected) return;
-    setLocalRole(selected);
-    // If no authenticated user (local dev / Playwright), just reload — localStorage role
-    // is picked up on next mount and the onboarding guard won't fire again.
+    setLocalRole(selected); // reactive — RoleProvider state updates via custom event
     if (!user) {
-      window.location.href = '/';
+      // Unauthenticated (local dev): role state is now updated, guard will dismiss automatically
       return;
     }
     if (selected === 'coach') setStep('coach');
