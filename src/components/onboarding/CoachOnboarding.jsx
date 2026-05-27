@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Upload, Loader2, CheckCircle2 } from 'lucide-react';
+import { Users, Upload, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { setLocalRole } from '@/lib/RoleContext';
@@ -8,13 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export default function CoachOnboarding({ userType = 'coach' }) {
-  const { user, refetchUser } = useAuth();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [done, setDone] = useState(false);
+  const [error, setError] = useState(null);
   const [form, setForm] = useState({
     name: '',
     school_club: '',
@@ -45,68 +46,51 @@ export default function CoachOnboarding({ userType = 'coach' }) {
   };
 
   const handleCreate = async () => {
-    if (!form.name.trim()) {
-      toast.error('Team name is required');
-      return;
-    }
+    if (!form.name.trim()) { setError('Team name is required'); return; }
+    const coachEmail = user?.email || 'local-coach@test.local';
+    console.log('[CoachOnboarding] create team started', { coachEmail, teamName: form.name });
+    setError(null);
     setSaving(true);
-    const inviteCode = generateInviteCode();
+
+    // Safety timeout — never spin forever
+    const timeout = setTimeout(() => {
+      setSaving(false);
+      setError('Team creation timed out. Please check your connection and try again.');
+    }, 15000);
+
     try {
-      await base44.entities.Team.create({
-        ...form,
-        coach_email: user.email,
-        invite_code: inviteCode,
-        status: 'active',
-      });
-      await base44.auth.updateMe({ user_type: userType });
-      setLocalRole(userType);
-      setDone(true);
+      // Avoid duplicate teams
+      const existing = await base44.entities.Team.filter({ coach_email: coachEmail });
+      if (existing?.length > 0) {
+        console.log('[CoachOnboarding] existing team found, skipping create', existing[0].id);
+      } else {
+        const team = await base44.entities.Team.create({
+          ...form,
+          coach_email: coachEmail,
+          invite_code: generateInviteCode(),
+          status: 'active',
+        });
+        console.log('[CoachOnboarding] team save success', team?.id);
+      }
+      if (user) {
+        await base44.auth.updateMe({ user_type: 'coach' }).catch(e => console.warn('[CoachOnboarding] updateMe failed (non-fatal)', e));
+      }
+      setLocalRole('coach');
+      clearTimeout(timeout);
+      navigate('/coach');
     } catch (err) {
-      console.error('Failed to create team:', err);
-      toast.error('Failed to create team');
+      clearTimeout(timeout);
+      console.error('[CoachOnboarding] team save failure', err);
+      setError('Failed to create team: ' + (err?.message || 'Unknown error'));
+      setSaving(false);
     }
-    setSaving(false);
   };
 
-  const handleSkip = async () => {
-    await base44.auth.updateMe({ user_type: userType });
-    setLocalRole(userType);
-    await refetchUser();
+  const handleSkip = () => {
+    if (user) base44.auth.updateMe({ user_type: 'coach' }).catch(() => {});
+    setLocalRole('coach');
+    navigate('/coach');
   };
-
-  const handleDone = async () => {
-    await refetchUser();
-  };
-
-  if (done) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center p-6"
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md text-center"
-        >
-          <div className="w-20 h-20 rounded-2xl bg-secondary/10 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10 text-secondary" />
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Team Created!</h1>
-          <p className="text-muted-foreground mb-8 text-sm">
-            Your team <strong>{form.name}</strong> is ready. You can now add athletes, assign workouts, and manage your team from the Coach Panel.
-          </p>
-          <button
-            onClick={handleDone}
-            className="w-full py-3.5 rounded-xl font-semibold text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
-          >
-            Go to Coach Panel
-          </button>
-        </motion.div>
-      </motion.div>
-    );
-  }
 
   return (
     <motion.div
@@ -220,7 +204,10 @@ export default function CoachOnboarding({ userType = 'coach' }) {
             </div>
           </div>
 
-          <div className="mt-6 flex gap-3">
+          {error && (
+            <p className="mt-4 text-sm text-destructive text-center bg-destructive/10 rounded-lg px-3 py-2">{error}</p>
+          )}
+          <div className="mt-4 flex gap-3">
             <Button variant="outline" onClick={handleSkip} className="flex-1">
               Skip for now
             </Button>
