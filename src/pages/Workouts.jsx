@@ -138,11 +138,9 @@ export default function Workouts() {
     <div className="min-h-screen bg-background">
       <PullToRefreshIndicator {...ptr} />
       <TopBar title="My Runs">
-        {canCreate && (
-          <Button variant="outline" onClick={() => setShowFitImport(true)} className="gap-1 lg:gap-2 px-2 lg:px-4">
-            <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import </span>File
-          </Button>
-        )}
+        <Button variant="outline" onClick={() => setShowFitImport(true)} className="gap-1 lg:gap-2 px-2 lg:px-4">
+          <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import </span>File
+        </Button>
         {canCreate && (
           <Button onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }} className="gap-1 lg:gap-2 px-3 lg:px-4">
             <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Log </span>Run
@@ -188,12 +186,8 @@ export default function Workouts() {
       <FitImportDialog
         open={showFitImport}
         onClose={() => setShowFitImport(false)}
-        plannedWorkouts={myPlanned}
-        onImport={(data, matchedPlanned) => {
+        onImport={(data) => {
           createMut.mutate(data);
-          if (matchedPlanned) {
-            updatePlannedMut.mutate({ id: matchedPlanned.id, data: { status: 'completed' } });
-          }
           setShowFitImport(false);
         }}
       />
