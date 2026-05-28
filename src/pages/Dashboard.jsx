@@ -251,6 +251,15 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Upload Run — always visible for athletes */}
+        <button
+          onClick={() => setShowFitImport(true)}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 text-primary font-semibold text-sm transition-all duration-200 active:scale-[0.99]"
+        >
+          <Upload className="w-4 h-4" />
+          Upload Run
+        </button>
+
         {/* JoinTeam CTA — athletes only */}
         {role === 'athlete' && !hasTeam && <JoinTeamCTA onSuccess={refetchUser} />}
 
