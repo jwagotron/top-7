@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { CheckCircle2, XCircle, UserMinus, Clock, Users, ChevronRight } from 'lucide-react';
+import { CheckCircle2, XCircle, UserMinus, Clock, Users, ChevronRight, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function TeamMembershipList({ teamId, coachEmail, members }) {
@@ -19,26 +19,59 @@ export default function TeamMembershipList({ teamId, coachEmail, members }) {
   const active = nonCoachMemberships.filter(m => m.status === 'active');
 
   const [removingId, setRemovingId] = useState(null);
+  const [approvingId, setApprovingId] = useState(null);
   const removingAthlete = nonCoachMemberships.find(m => m.id === removingId);
 
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ['memberships'] });
+    qc.invalidateQueries({ queryKey: ['team-memberships'] });
+    qc.invalidateQueries({ queryKey: ['athlete-memberships'] });
+    qc.invalidateQueries({ queryKey: ['athlete-memberships-dash'] });
+  };
+
   const handleAction = async (membershipId, action) => {
-    // Require confirmation for removal
     if (action === 'remove') {
       setRemovingId(membershipId);
       return;
     }
-    
-    await base44.functions.invoke('manageMembership', { membership_id: membershipId, action });
-    qc.invalidateQueries({ queryKey: ['memberships', teamId] });
-    toast.success(action === 'approve' ? 'Athlete approved!' : 'Athlete removed');
+    if (action === 'approve') {
+      setApprovingId(membershipId);
+      console.log('[approve] started', { membershipId, teamId });
+      try {
+        const res = await base44.functions.invoke('manageMembership', { membership_id: membershipId, action: 'approve' });
+        console.log('[approve] success', res.data);
+        invalidateAll();
+        toast.success('Athlete approved!');
+      } catch (err) {
+        console.error('[approve] failed', err.response?.data || err.message);
+        toast.error(err.response?.data?.error || 'Could not approve athlete. Try again.');
+      } finally {
+        setApprovingId(null);
+      }
+      return;
+    }
+    try {
+      await base44.functions.invoke('manageMembership', { membership_id: membershipId, action });
+      invalidateAll();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Action failed');
+    }
   };
 
   const confirmRemove = async () => {
     if (!removingId) return;
-    await base44.functions.invoke('manageMembership', { membership_id: removingId, action: 'remove' });
-    qc.invalidateQueries({ queryKey: ['memberships', teamId] });
-    toast.success('Athlete removed');
-    setRemovingId(null);
+    console.log('[remove] started', { removingId });
+    try {
+      await base44.functions.invoke('manageMembership', { membership_id: removingId, action: 'remove' });
+      console.log('[remove] success');
+      invalidateAll();
+      toast.success('Athlete removed');
+    } catch (err) {
+      console.error('[remove] failed', err.message);
+      toast.error('Could not remove athlete. Try again.');
+    } finally {
+      setRemovingId(null);
+    }
   };
 
   return (
@@ -81,10 +114,17 @@ export default function TeamMembershipList({ teamId, coachEmail, members }) {
                   </div>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
-                  <Button size="sm" className="h-7 px-2 text-xs bg-secondary hover:bg-secondary/90" onClick={() => handleAction(m.id, 'approve')}>
-                    <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Approve
+                  <Button
+                    size="sm"
+                    className="h-7 px-2 text-xs bg-secondary hover:bg-secondary/90"
+                    onClick={() => handleAction(m.id, 'approve')}
+                    disabled={approvingId === m.id}
+                  >
+                    {approvingId === m.id
+                      ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />Approving...</>
+                      : <><CheckCircle2 className="w-3.5 h-3.5 mr-1" />Approve</>}
                   </Button>
-                  <Button size="sm" variant="outline" className="h-7 px-2 text-xs text-destructive hover:text-destructive" onClick={() => handleAction(m.id, 'reject')}>
+                  <Button size="sm" variant="outline" className="h-7 px-2 text-xs text-destructive hover:text-destructive" onClick={() => handleAction(m.id, 'reject')} disabled={approvingId === m.id}>
                     <XCircle className="w-3.5 h-3.5" />
                   </Button>
                 </div>
