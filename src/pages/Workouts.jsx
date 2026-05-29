@@ -9,8 +9,7 @@ import RunLogForm from '@/components/workouts/RunLogForm';
 import RunDetailDrawer from '@/components/workouts/RunDetailDrawer';
 import PlannedWorkoutCard from '@/components/workouts/PlannedWorkoutCard';
 import { Button } from '@/components/ui/button';
-import { Plus, Footprints, Clock, MapPin, Upload } from 'lucide-react';
-import FitImportDialog from '@/components/workouts/FitImportDialog';
+import { Plus, Footprints, Clock, MapPin } from 'lucide-react';
 import { format, startOfWeek, addDays } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useAuth } from '@/lib/AuthContext';
@@ -40,7 +39,6 @@ export default function Workouts() {
   const [viewingWorkout, setViewingWorkout] = useState(null);
   const [expandedPlanned, setExpandedPlanned] = useState(null);
   const [preFillPlanned, setPreFillPlanned] = useState(null);
-  const [showFitImport, setShowFitImport] = useState(false);
   const qc = useQueryClient();
 
   const invalidateAll = useCallback(() => {
@@ -138,9 +136,6 @@ export default function Workouts() {
     <div className="min-h-screen bg-background">
       <PullToRefreshIndicator {...ptr} />
       <TopBar title="My Runs">
-        <Button variant="outline" onClick={() => setShowFitImport(true)} className="gap-1 lg:gap-2 px-2 lg:px-4">
-          <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Import </span>File
-        </Button>
         {canCreate && (
           <Button onClick={() => { setPreFillPlanned(null); setShowLogForm(true); }} className="gap-1 lg:gap-2 px-3 lg:px-4">
             <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Log </span>Run
@@ -183,14 +178,7 @@ export default function Workouts() {
         />
       </div>
 
-      <FitImportDialog
-        open={showFitImport}
-        onClose={() => setShowFitImport(false)}
-        onImport={(data) => {
-          createMut.mutate(data);
-          setShowFitImport(false);
-        }}
-      />
+
 
       {/* Forms & drawers — coach/admin only */}
       {canCreate && (

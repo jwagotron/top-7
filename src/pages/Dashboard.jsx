@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import FitImportDialog from '@/components/workouts/FitImportDialog';
+import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import StatCard from '@/components/dashboard/StatCard';
@@ -10,7 +9,7 @@ import WorkoutDetailDrawer from '@/components/dashboard/WorkoutDetailDrawer.jsx'
 import {
   Activity, MapPin, Clock, Flame, CheckCircle2, ChevronRight,
   Footprints, Bike, Waves, Dumbbell, CircleDot,
-  Moon, Zap, Play, Upload
+  Moon, Zap, Play
 } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
@@ -51,17 +50,6 @@ export default function Dashboard() {
   const { completions, completeMut } = useCompletions(athleteEmail);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [showTodayWorkout, setShowTodayWorkout] = useState(false);
-  const [showFitImport, setShowFitImport] = useState(false);
-  const qc = useQueryClient();
-  const createWorkoutMut = useMutation({
-    mutationFn: (data) => base44.entities.Workout.create(data),
-    onSuccess: () => {
-      console.log('[UploadRun] run save success');
-      qc.invalidateQueries({ queryKey: ['workouts'] });
-      setShowFitImport(false);
-    },
-    onError: (err) => console.error('[UploadRun] run save failure', err),
-  });
 
 
   const { data: workouts = [] } = useQuery({
@@ -133,14 +121,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <TopBar title="My Progress">
-        <button
-          onClick={() => setShowFitImport(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-colors"
-        >
-          <Upload className="w-3.5 h-3.5" /> Upload Run
-        </button>
-      </TopBar>
+      <TopBar title="My Progress" />
       <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-5 lg:space-y-6 pb-24 lg:pb-8">
 
         {/* ── TODAY'S WORKOUT — always prominent ── */}
@@ -251,15 +232,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Upload Run — always visible for athletes */}
-        <button
-          onClick={() => setShowFitImport(true)}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 text-primary font-semibold text-sm transition-all duration-200 active:scale-[0.99]"
-        >
-          <Upload className="w-4 h-4" />
-          Upload Run
-        </button>
-
         {/* JoinTeam CTA — athletes only */}
         {role === 'athlete' && !hasTeam && <JoinTeamCTA onSuccess={refetchUser} />}
 
@@ -323,11 +295,6 @@ export default function Dashboard() {
       {selectedWorkout && (
         <WorkoutDetailDrawer workout={selectedWorkout} onClose={() => setSelectedWorkout(null)} />
       )}
-      <FitImportDialog
-        open={showFitImport}
-        onClose={() => setShowFitImport(false)}
-        onImport={(data) => createWorkoutMut.mutate(data)}
-      />
     </div>
   );
 }

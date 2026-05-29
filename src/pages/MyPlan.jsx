@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRole } from '@/lib/RoleContext';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 import { useCompletions } from '@/hooks/useCompletions';
-import FitImportDialog from '@/components/workouts/FitImportDialog';
-import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import TodayWorkout from '@/components/myplan/TodayWorkout';
 import WeeklySchedule from '@/components/myplan/WeeklySchedule';
 import PlanProgress from '@/components/myplan/PlanProgress';
 import {
   ClipboardList, ChevronDown, ChevronUp,
-  CheckCircle2, Clock, MapPin, StickyNote, Loader2, ArrowLeft, Upload
+  CheckCircle2, Clock, MapPin, StickyNote, Loader2, ArrowLeft
 } from 'lucide-react';
 import { format, isToday, isSameDay, addDays, eachDayOfInterval } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -48,17 +45,6 @@ function SectionLabel({ children }) {
 export default function MyPlan() {
   const { role } = useRole();
   const { toDisplay, label } = useUnits();
-  const [showFitImport, setShowFitImport] = useState(false);
-  const qc = useQueryClient();
-  const createWorkoutMut = useMutation({
-    mutationFn: (data) => base44.entities.Workout.create(data),
-    onSuccess: () => {
-      console.log('[UploadRun] run save success');
-      qc.invalidateQueries({ queryKey: ['workouts'] });
-      setShowFitImport(false);
-    },
-    onError: (err) => console.error('[UploadRun] run save failure', err),
-  });
   const [selectedDay, setSelectedDay] = useState(null); // null = today
   const [showAllWorkouts, setShowAllWorkouts] = useState(false);
   const [completingId, setCompletingId] = useState(null);
@@ -135,14 +121,7 @@ export default function MyPlan() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopBar title="My Plan">
-        <button
-          onClick={() => setShowFitImport(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-colors"
-        >
-          <Upload className="w-3.5 h-3.5" /> Upload Run
-        </button>
-      </TopBar>
+      <TopBar title="My Plan" />
 
       <div className="max-w-2xl mx-auto px-4 lg:px-6 pt-5 pb-28 lg:pb-10 space-y-7">
 
@@ -469,11 +448,6 @@ export default function MyPlan() {
           </div>
         )}
       </div>
-      <FitImportDialog
-        open={showFitImport}
-        onClose={() => setShowFitImport(false)}
-        onImport={(data) => createWorkoutMut.mutate(data)}
-      />
     </div>
   );
 }
