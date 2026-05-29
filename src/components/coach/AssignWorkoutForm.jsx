@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, Users, ChevronRight, User, BookOpen, X, ChevronDown } from 'lucide-react';
+import { Check, Users, ChevronRight, User, BookOpen, X, ChevronDown, Loader2, AlertCircle } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { getGroupColorClasses } from '@/components/coach/AthleteGroupManager';
 
@@ -177,7 +177,7 @@ function AssignTargetStep({ athletes, groups, selectedAthletes, setSelectedAthle
   );
 }
 
-export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, defaultDate, athletes = [], athleteFilter = 'all', teamId, preloadWorkout }) {
+export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, defaultDate, athletes = [], athleteFilter = 'all', teamId, preloadWorkout, isSubmitting = false }) {
   const { toDisplay, toKm, label, paceLabel } = useUnits();
   const [form, setForm] = useState(defaults);
   const [activeTab, setActiveTab] = useState('assign');
@@ -261,10 +261,31 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
   };
 
   const isRequiredComplete = form.title && form.run_type && form.scheduled_date;
+  const [validationError, setValidationError] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (selectedAthletes.length === 0) return;
+    setValidationError('');
+
+    if (selectedAthletes.length === 0) {
+      setValidationError('Please select at least one athlete.');
+      return;
+    }
+    if (!form.title?.trim()) {
+      setValidationError('Workout title is required.');
+      return;
+    }
+    if (!form.scheduled_date) {
+      setValidationError('Scheduled date is required.');
+      return;
+    }
+
+    console.log('[assign] started', {
+      athletes: selectedAthletes,
+      title: form.title,
+      run_type: form.run_type,
+      scheduled_date: form.scheduled_date,
+    });
 
     const base = { ...form };
     if (base.target_duration_minutes) base.target_duration_minutes = Number(base.target_duration_minutes);
@@ -425,15 +446,21 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
                 <Textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Overview of what this workout is about..." rows={2} />
               </div>
 
+              {validationError && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-sm text-destructive">{validationError}</p>
+                </div>
+              )}
               <div className="flex justify-between gap-3 pt-2 border-t">
                 {!isEditing && <Button type="button" variant="outline" onClick={() => setActiveTab('assign')}>← Back</Button>}
                 <div className="flex gap-2 ml-auto">
-                  <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-                  <Button type="button" variant="outline" onClick={() => setActiveTab('structure')} className="gap-1.5">
+                  <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+                  <Button type="button" variant="outline" onClick={() => setActiveTab('structure')} className="gap-1.5" disabled={isSubmitting}>
                     Go to Structure →
                   </Button>
-                  <Button type="submit" disabled={selectedAthletes.length === 0}>
-                    {selectedAthletes.length > 1 ? `Assign to ${selectedAthletes.length}` : 'Assign Workout'}
+                  <Button type="submit" disabled={selectedAthletes.length === 0 || isSubmitting}>
+                    {isSubmitting ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Assigning...</> : selectedAthletes.length > 1 ? `Assign to ${selectedAthletes.length}` : 'Assign Workout'}
                   </Button>
                 </div>
               </div>
@@ -467,14 +494,18 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
 
 
 
+              {validationError && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-sm text-destructive">{validationError}</p>
+                </div>
+              )}
               <div className="flex justify-between gap-3 pt-2 border-t">
-                <Button type="button" variant="outline" onClick={() => setActiveTab('details')}>← Details</Button>
+                <Button type="button" variant="outline" onClick={() => setActiveTab('details')} disabled={isSubmitting}>← Details</Button>
                 <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-                  <Button type="submit" disabled={selectedAthletes.length === 0}>
-                    {isEditing ? 'Update Workout'
-                      : selectedAthletes.length > 1 ? `Assign to ${selectedAthletes.length} Athletes`
-                      : 'Assign Workout'}
+                  <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+                  <Button type="submit" disabled={selectedAthletes.length === 0 || isSubmitting}>
+                    {isSubmitting ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Assigning...</> : isEditing ? 'Update Workout' : selectedAthletes.length > 1 ? `Assign to ${selectedAthletes.length} Athletes` : 'Assign Workout'}
                   </Button>
                 </div>
               </div>

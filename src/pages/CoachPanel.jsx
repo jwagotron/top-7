@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AthleteGroupManager from '@/components/coach/AthleteGroupManager';
 import AthleteFeedbackList from '@/components/coach/AthleteFeedbackList';
 import { Plus, Users, Calendar, CheckCircle2, TrendingUp, MessageSquare } from 'lucide-react';
+import { toast } from 'sonner';
 import { useUnits } from '@/hooks/useUnits';
 import { useCompletions } from '@/hooks/useCompletions';
 import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
@@ -99,15 +100,39 @@ export default function CoachPanel() {
   };
 
   const createMut = useMutation({
-    mutationFn: (d) => Array.isArray(d)
-      ? base44.entities.PlannedWorkout.bulkCreate(d)
-      : base44.entities.PlannedWorkout.create(d),
-    onSuccess: () => { invalidatePlanned(); setShowForm(false); },
+    mutationFn: (d) => {
+      console.log('[assign] saving workout(s)', d);
+      return Array.isArray(d)
+        ? base44.entities.PlannedWorkout.bulkCreate(d)
+        : base44.entities.PlannedWorkout.create(d);
+    },
+    onSuccess: (result) => {
+      console.log('[assign] success', result);
+      invalidatePlanned();
+      setShowForm(false);
+      toast.success('Workout assigned!');
+    },
+    onError: (err) => {
+      console.error('[assign] failed', err);
+      toast.error('Could not assign workout. Try again.');
+    },
   });
 
   const updateMut = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.PlannedWorkout.update(id, data),
-    onSuccess: () => { invalidatePlanned(); setEditingWorkout(null); },
+    mutationFn: ({ id, data }) => {
+      console.log('[assign] updating workout', id, data);
+      return base44.entities.PlannedWorkout.update(id, data);
+    },
+    onSuccess: () => {
+      console.log('[assign] update success');
+      invalidatePlanned();
+      setEditingWorkout(null);
+      toast.success('Workout updated!');
+    },
+    onError: (err) => {
+      console.error('[assign] update failed', err);
+      toast.error('Could not update workout. Try again.');
+    },
   });
 
   const deleteMut = useMutation({
@@ -301,6 +326,7 @@ export default function CoachPanel() {
           open={showForm}
           onClose={() => setShowForm(false)}
           onSubmit={(d) => createMut.mutate(d)}
+          isSubmitting={createMut.isPending}
           defaultDate={format(selectedDate, 'yyyy-MM-dd')}
           athletes={normalizedAthletes}
           athleteFilter={athleteFilter}
@@ -311,6 +337,7 @@ export default function CoachPanel() {
             open={!!editingWorkout}
             onClose={() => setEditingWorkout(null)}
             onSubmit={(d) => updateMut.mutate({ id: editingWorkout.id, data: d })}
+            isSubmitting={updateMut.isPending}
             workout={editingWorkout}
             athletes={normalizedAthletes}
             athleteFilter={athleteFilter}
