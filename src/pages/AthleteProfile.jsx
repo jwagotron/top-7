@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,9 +75,9 @@ function ComplianceRing({ value }) {
 }
 
 export default function AthleteProfile() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const athleteEmail = urlParams.get('athlete');
-  const athleteName = urlParams.get('name');
+  const [searchParams] = useSearchParams();
+  const athleteEmail = searchParams.get('athlete');
+  const athleteName = searchParams.get('name');
   const [showRaceForm, setShowRaceForm] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [replyBody, setReplyBody] = useState('');

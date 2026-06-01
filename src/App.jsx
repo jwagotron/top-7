@@ -42,7 +42,7 @@ const pageVariants = {
 };
 
 // Routes that should stay mounted for native-like tab switching
-const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts', '/my-plan', '/goals', '/shoes', '/garmin', '/admin', '/workout-builder', '/profile', '/messages'];
+const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts', '/my-plan', '/goals', '/shoes', '/garmin', '/admin', '/workout-builder', '/profile', '/messages', '/athlete-profile'];
 
 function PersistentTab({ path, element, currentPath }) {
   const isActive = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
@@ -101,6 +101,7 @@ function AnimatedRoutes() {
           <PersistentTab path="/workout-builder" element={<WorkoutBuilder />}    currentPath={location.pathname} />
           <PersistentTab path="/profile"        element={<UserProfile />}         currentPath={location.pathname} />
           <PersistentTab path="/messages"       element={<Messages />}            currentPath={location.pathname} />
+          <PersistentTab path="/athlete-profile" element={<AthleteProfile />}       currentPath={location.pathname} />
         </Suspense>
       </AppLayout>
 
@@ -127,7 +128,6 @@ function AnimatedRoutes() {
                 <Route element={<AppLayout />}>
                   <Route path="/plans"           element={<TrainingPlans />} />
                   <Route path="/activities"      element={<Activities />} />
-                  <Route path="/athlete-profile" element={<AthleteProfile />} />
                 </Route>
                 {/* Redirect unknown routes to home instead of flashing 404 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
