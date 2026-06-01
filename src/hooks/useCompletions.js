@@ -35,22 +35,32 @@ export function useCompletions(athleteEmail) {
   const completeMut = useMutation({
     mutationFn: async ({ workout, notes }) => {
       const existing = completions.find(c => c.planned_workout_id === workout.id);
+      let completionResult;
       if (existing) {
-        return base44.entities.WorkoutCompletion.update(existing.id, {
+        completionResult = await base44.entities.WorkoutCompletion.update(existing.id, {
           status: 'completed',
           completed_at: new Date().toISOString(),
           notes: notes || existing.notes,
         });
+      } else {
+        completionResult = await base44.entities.WorkoutCompletion.create({
+          athlete_email: athleteEmail,
+          planned_workout_id: workout.id,
+          plan_id: workout.plan_id || undefined,
+          scheduled_date: workout.scheduled_date,
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          notes: notes || undefined,
+        });
       }
-      return base44.entities.WorkoutCompletion.create({
-        athlete_email: athleteEmail,
-        planned_workout_id: workout.id,
-        plan_id: workout.plan_id || undefined,
-        scheduled_date: workout.scheduled_date,
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-        notes: notes || undefined,
-      });
+      // Mirror status onto PlannedWorkout so coaches can see it in their stats
+      try {
+        await base44.entities.PlannedWorkout.update(workout.id, { status: 'completed' });
+        console.log('[completion] PlannedWorkout status synced → completed for:', workout.id);
+      } catch (e) {
+        console.warn('[completion] Could not sync PlannedWorkout status (non-fatal):', e.message);
+      }
+      return completionResult;
     },
     onMutate: async ({ workout, notes }) => {
       await qc.cancelQueries({ queryKey: ['completions', athleteEmail] });
@@ -80,7 +90,12 @@ export function useCompletions(athleteEmail) {
     onError: (_err, _vars, ctx) => {
       if (ctx?.previous) qc.setQueryData(['completions', athleteEmail], ctx.previous);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['completions', athleteEmail] }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
+      // Invalidate coach-side planned-workouts so coach stats refresh automatically
+      qc.invalidateQueries({ queryKey: ['planned-workouts'] });
+      qc.invalidateQueries({ queryKey: ['my-plan-workouts'] });
+    },
   });
 
   /** Returns the completion record for a given workout id, or null */

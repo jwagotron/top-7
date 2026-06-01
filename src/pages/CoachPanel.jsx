@@ -71,6 +71,15 @@ export default function CoachPanel() {
   const selectedAthleteEmail = athleteFilter !== 'all' ? athleteFilter : null;
   const { completions } = useCompletions(selectedAthleteEmail);
 
+  // Real-time: when any PlannedWorkout changes (e.g. athlete marks complete), refresh coach stats
+  React.useEffect(() => {
+    const unsub = base44.entities.PlannedWorkout.subscribe(() => {
+      console.log('[CoachPanel] PlannedWorkout change detected — refreshing coach stats');
+      qc.invalidateQueries({ queryKey: ['planned-workouts'] });
+    });
+    return unsub;
+  }, [qc]);
+
   // Only fetch planned workouts for athletes on THIS team — prevents cross-team data leakage
   const { data: plannedWorkouts = [], isLoading } = useQuery({
     queryKey: ['planned-workouts', effectiveTeamId, athleteEmails],
@@ -90,7 +99,7 @@ export default function CoachPanel() {
       return merged.sort((a, b) => a.scheduled_date > b.scheduled_date ? 1 : -1);
     },
     enabled: !!effectiveTeamId,
-    staleTime: 20000,
+    staleTime: 5000,
   });
 
   const invalidatePlanned = () => {
@@ -157,8 +166,19 @@ export default function CoachPanel() {
     const d = parseDateOnly(w.scheduled_date);
     return d >= mStart && d <= mEnd;
   });
-  const completed = monthWorkouts.filter(w => w.status === 'completed').length;
-  const upcoming = monthWorkouts.filter(w => w.status === 'upcoming').length;
+  // Cross-reference completions in case PlannedWorkout.status lags
+  const completedIds = new Set(completions.filter(c => c.status === 'completed').map(c => c.planned_workout_id));
+  const completed = monthWorkouts.filter(w => w.status === 'completed' || completedIds.has(w.id)).length;
+  const upcoming = monthWorkouts.filter(w => w.status !== 'completed' && !completedIds.has(w.id)).length;
+  const rate = monthWorkouts.length > 0 ? Math.round((completed / monthWorkouts.length) * 100) : 0;
+
+  // Debug logs
+  console.log('[CoachPanel] selectedTeamId:', effectiveTeamId);
+  console.log('[CoachPanel] dateRange:', format(mStart, 'yyyy-MM-dd'), '→', format(mEnd, 'yyyy-MM-dd'));
+  console.log('[CoachPanel] athleteFilter:', athleteFilter, '| athleteEmails:', athleteEmails);
+  console.log('[CoachPanel] assignedWorkouts loaded:', filteredWorkouts.length, '| monthWorkouts:', monthWorkouts.length);
+  console.log('[CoachPanel] completions loaded:', completions.length, '| completedIds:', completedIds.size);
+  console.log('[CoachPanel] stats → upcoming:', upcoming, '| completed:', completed, '| rate:', rate + '%');
 
   return (
       <div className="min-h-screen bg-background">
@@ -243,7 +263,7 @@ export default function CoachPanel() {
                   {[
                     { icon: Calendar, color: 'text-primary', bg: 'bg-primary/10', value: upcoming, label: 'Upcoming' },
                     { icon: CheckCircle2, color: 'text-secondary', bg: 'bg-secondary/10', value: completed, label: 'Completed' },
-                    { icon: TrendingUp, color: 'text-accent', bg: 'bg-accent/10', value: `${monthWorkouts.length > 0 ? Math.round((completed / monthWorkouts.length) * 100) : 0}%`, label: 'Rate' },
+                    { icon: TrendingUp, color: 'text-accent', bg: 'bg-accent/10', value: `${rate}%`, label: 'Rate' },
                   ].map(({ icon: Icon, color, bg, value, label: lbl }) => (
                     <div key={lbl} className="bg-card border border-border rounded-xl p-3 flex items-center gap-2">
                       <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
