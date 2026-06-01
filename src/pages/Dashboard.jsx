@@ -58,12 +58,14 @@ export default function Dashboard() {
     enabled: !!athleteEmail,
   });
 
-  const { data: memberships = [] } = useQuery({
+  const { data: memberships = [], isLoading: isLoadingMemberships } = useQuery({
     queryKey: ['athlete-memberships-dash', athleteEmail],
     queryFn: () => base44.entities.TeamMembership.filter({ athlete_email: athleteEmail, status: 'active' }),
     enabled: !!athleteEmail,
+    staleTime: 5000, // short stale time — membership status must always be fresh
   });
-  const hasTeam = memberships.length > 0 || !!user?.team_id || !!user?.coach_email;
+  // Suppress JoinTeamCTA while memberships are loading to avoid flashing it for existing members
+  const hasTeam = isLoadingMemberships || memberships.length > 0 || !!user?.team_id || !!user?.coach_email;
 
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });

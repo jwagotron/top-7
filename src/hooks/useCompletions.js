@@ -92,9 +92,10 @@ export function useCompletions(athleteEmail) {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
-      // Invalidate coach-side planned-workouts so coach stats refresh automatically
+      // Invalidate all coach-side data so coach stats refresh immediately when athlete completes a workout
       qc.invalidateQueries({ queryKey: ['planned-workouts'] });
       qc.invalidateQueries({ queryKey: ['my-plan-workouts'] });
+      qc.invalidateQueries({ queryKey: ['coach-completions-direct'] });
     },
   });
 

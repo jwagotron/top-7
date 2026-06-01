@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
 import TopBar from '@/components/layout/TopBar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -24,8 +25,19 @@ export default function AccountSettings() {
   const { user } = useAuth();
   const { role } = useRole();
   const { units, setUnits } = useUnits();
+  const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleForceRefresh = async () => {
+    setRefreshing(true);
+    qc.clear();
+    await qc.refetchQueries();
+    setLastRefresh(new Date());
+    setRefreshing(false);
+  };
   const [form, setForm] = useState({
     full_name: user?.full_name || '',
   });
@@ -149,6 +161,29 @@ export default function AccountSettings() {
               </div>
               <Button variant="outline" size="sm" className="shrink-0" onClick={() => window.location.href = '/garmin'}>Manage</Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Data & Cache */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><Wifi className="w-4 h-4 shrink-0" /> Data & Cache</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="text-xs font-mono bg-muted/50 rounded-lg p-3 space-y-0.5 text-muted-foreground">
+              <div>App version: <span className="text-foreground font-semibold">2026-06-01-r1</span></div>
+              <div>Last data refresh: <span className="text-foreground font-semibold">{lastRefresh ? lastRefresh.toLocaleTimeString() : 'not yet this session'}</span></div>
+              <div>Cached queries: <span className="text-foreground font-semibold">{qc.getQueryCache().getAll().length}</span></div>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={handleForceRefresh}
+              disabled={refreshing}
+            >
+              {refreshing ? '↻ Refreshing all data…' : '↻ Force Refresh All Data'}
+            </Button>
+            <p className="text-xs text-muted-foreground">Clears all cached data and refetches everything — use if stats or team membership look out of date.</p>
           </CardContent>
         </Card>
 
