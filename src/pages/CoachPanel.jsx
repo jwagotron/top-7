@@ -73,7 +73,7 @@ export default function CoachPanel() {
   const targetEmails = selectedAthleteEmail ? [selectedAthleteEmail] : athleteEmails;
 
   // Fetch completions directly per athlete — same pattern as AthleteProfile (confirmed working)
-  const { data: coachCompletions = [] } = useQuery({
+  const { data: coachCompletions = [], isLoading: isLoadingCompletions } = useQuery({
     queryKey: ['coach-completions-direct', effectiveTeamId, targetEmails.join(',')],
     queryFn: async () => {
       if (!targetEmails.length) return [];
@@ -184,18 +184,27 @@ export default function CoachPanel() {
     const d = parseDateOnly(w.scheduled_date);
     return d >= mStart && d <= mEnd;
   });
-  // Build completed ID set from service-role fetched completions (coach can now see athlete records)
+  // Single source of truth — all derived stats computed here, used by BOTH debug panel and stat cards
   const coachCompletedIds = new Set(
-    coachCompletions.filter(c => c.status === 'completed').map(c => c.planned_workout_id)
+    coachCompletions
+      .filter(c => c.status === 'completed')
+      .flatMap(c => [c.planned_workout_id, c.workout_id, c.assignment_id].filter(Boolean))
   );
-  const completed = monthWorkouts.filter(w => w.status === 'completed' || coachCompletedIds.has(w.id)).length;
-  const upcoming = monthWorkouts.filter(w => w.status !== 'completed' && !coachCompletedIds.has(w.id)).length;
-  const rate = monthWorkouts.length > 0 ? Math.round((completed / monthWorkouts.length) * 100) : 0;
-
-  // Debug values
   const monthAssignmentIds = monthWorkouts.map(w => w.id);
-  const allCompletionWorkoutIds = coachCompletions.filter(c => c.status === 'completed').map(c => c.planned_workout_id);
+  const allCompletionWorkoutIds = coachCompletions.filter(c => c.status === 'completed').flatMap(c =>
+    [c.planned_workout_id, c.workout_id, c.assignment_id].filter(Boolean)
+  );
   const matchedCompletedIds = monthAssignmentIds.filter(id => coachCompletedIds.has(id));
+
+  const stats = {
+    assigned: monthWorkouts.length,
+    completed: matchedCompletedIds.length,
+    remaining: monthWorkouts.length - matchedCompletedIds.length,
+    rate: monthWorkouts.length > 0 ? Math.round((matchedCompletedIds.length / monthWorkouts.length) * 100) : 0,
+  };
+
+  const isStatsLoading = isLoading || isLoadingCompletions;
+
   console.log('[CoachPanel] ── STATS DEBUG ──');
   console.log('[CoachPanel] teamId:', effectiveTeamId, '| athleteFilter:', athleteFilter);
   console.log('[CoachPanel] targetEmails:', targetEmails);
@@ -205,7 +214,7 @@ export default function CoachPanel() {
   console.log('[CoachPanel] monthAssignmentIds:', monthAssignmentIds);
   console.log('[CoachPanel] completedWorkoutIds:', allCompletionWorkoutIds);
   console.log('[CoachPanel] matchedCompletedIds:', matchedCompletedIds);
-  console.log('[CoachPanel] FINAL → assigned:', monthWorkouts.length, '| completed:', completed, '| upcoming:', upcoming, '| rate:', rate + '%');
+  console.log('[CoachPanel] stats:', stats);
 
   return (
       <div className="min-h-screen bg-background">
@@ -292,21 +301,32 @@ export default function CoachPanel() {
                     <div>Team ID: <span className="font-bold">{effectiveTeamId || 'NONE'}</span></div>
                     <div>Selected athlete: <span className="font-bold">{athleteFilter}</span> | Target emails: <span className="font-bold">{targetEmails.join(', ') || 'NONE'}</span></div>
                     <div>Date range: <span className="font-bold">{format(mStart, 'yyyy-MM-dd')} → {format(mEnd, 'yyyy-MM-dd')}</span></div>
-                    <div>Assignments (all): <span className="font-bold">{filteredWorkouts.length}</span> | This month: <span className="font-bold">{monthWorkouts.length}</span></div>
+                    <div>Assignments (all): <span className="font-bold">{filteredWorkouts.length}</span> | This month: <span className="font-bold">{stats.assigned}</span></div>
                     <div>Completions loaded: <span className="font-bold">{coachCompletions.length}</span> (completed status: {coachCompletions.filter(c => c.status==='completed').length})</div>
                     <div>Month assignment IDs: [{monthAssignmentIds.map(id => id.slice(0,8)).join(', ')}]</div>
                     <div>Completed workout IDs: [{allCompletionWorkoutIds.map(id => id?.slice(0,8)).join(', ')}]</div>
                     <div>Matched: [{matchedCompletedIds.map(id => id.slice(0,8)).join(', ')}]</div>
-                    <div className="font-bold text-amber-900 dark:text-amber-200 pt-1 border-t border-amber-300 dark:border-amber-700">→ Assigned: {monthWorkouts.length} | Completed: {completed} | Rate: {rate}%</div>
+                    <div className="font-bold text-amber-900 dark:text-amber-200 pt-1 border-t border-amber-300 dark:border-amber-700">→ Assigned: {stats.assigned} | Completed: {stats.completed} | Remaining: {stats.remaining} | Rate: {stats.rate}%</div>
                   </div>
                 </details>
 
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { icon: Calendar, color: 'text-primary', bg: 'bg-primary/10', value: upcoming, label: 'Upcoming' },
-                    { icon: CheckCircle2, color: 'text-secondary', bg: 'bg-secondary/10', value: completed, label: 'Completed' },
-                    { icon: TrendingUp, color: 'text-accent', bg: 'bg-accent/10', value: `${rate}%`, label: 'Rate' },
+                {/* Stats — single source: stats object, same as debug panel */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {isStatsLoading ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="bg-card border border-border rounded-xl p-3 flex items-center gap-2 animate-pulse">
+                        <div className="w-8 h-8 rounded-lg bg-muted shrink-0" />
+                        <div className="space-y-1.5">
+                          <div className="h-5 w-8 bg-muted rounded" />
+                          <div className="h-2.5 w-14 bg-muted rounded" />
+                        </div>
+                      </div>
+                    ))
+                  ) : [
+                    { icon: Calendar, color: 'text-primary', bg: 'bg-primary/10', value: stats.assigned, label: 'Assigned' },
+                    { icon: CheckCircle2, color: 'text-secondary', bg: 'bg-secondary/10', value: stats.completed, label: 'Completed' },
+                    { icon: Users, color: 'text-muted-foreground', bg: 'bg-muted', value: stats.remaining, label: 'Remaining' },
+                    { icon: TrendingUp, color: 'text-accent', bg: 'bg-accent/10', value: `${stats.rate}%`, label: 'Rate' },
                   ].map(({ icon: Icon, color, bg, value, label: lbl }) => (
                     <div key={lbl} className="bg-card border border-border rounded-xl p-3 flex items-center gap-2">
                       <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
