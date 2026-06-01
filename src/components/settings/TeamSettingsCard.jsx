@@ -132,7 +132,7 @@ export default function TeamSettingsCard() {
                       <p className="text-sm font-semibold">{team.name}</p>
                       <p className="text-xs text-muted-foreground">{team.school_club || team.location}</p>
                     </div>
-                    <Badge variant="outline" className="text-[10px]">{team.auto_join ? 'Auto-Join' : 'Approval'}</Badge>
+                    <Badge variant="outline" className="text-[10px]">{team.auto_join ? 'Open Join' : 'Coach Approval'}</Badge>
                   </div>
                 ))
               )}
