@@ -72,13 +72,17 @@ export default function CoachPanel() {
   // Emails to fetch completions for: single athlete or all team athletes
   const targetEmails = selectedAthleteEmail ? [selectedAthleteEmail] : athleteEmails;
 
-  // Fetch completions via service-role backend function (bypasses RLS that blocks coach)
+  // Fetch completions directly per athlete — same pattern as AthleteProfile (confirmed working)
   const { data: coachCompletions = [] } = useQuery({
-    queryKey: ['coach-completions', effectiveTeamId, targetEmails.join(',')],
+    queryKey: ['coach-completions-direct', effectiveTeamId, targetEmails.join(',')],
     queryFn: async () => {
       if (!targetEmails.length) return [];
-      const res = await base44.functions.invoke('getTeamCompletions', { athlete_emails: targetEmails });
-      return res.data?.completions || [];
+      const results = await Promise.all(
+        targetEmails.map(email =>
+          base44.entities.WorkoutCompletion.filter({ athlete_email: email }, '-completed_at', 300)
+        )
+      );
+      return results.flat();
     },
     enabled: !!effectiveTeamId && targetEmails.length > 0,
     staleTime: 10000,
@@ -89,7 +93,7 @@ export default function CoachPanel() {
     const unsub = base44.entities.PlannedWorkout.subscribe(() => {
       console.log('[CoachPanel] PlannedWorkout change — invalidating planned-workouts + coach-completions');
       qc.invalidateQueries({ queryKey: ['planned-workouts'] });
-      qc.invalidateQueries({ queryKey: ['coach-completions'] });
+      qc.invalidateQueries({ queryKey: ['coach-completions-direct'] });
     });
     return unsub;
   }, [qc]);
@@ -188,16 +192,18 @@ export default function CoachPanel() {
   const upcoming = monthWorkouts.filter(w => w.status !== 'completed' && !coachCompletedIds.has(w.id)).length;
   const rate = monthWorkouts.length > 0 ? Math.round((completed / monthWorkouts.length) * 100) : 0;
 
-  // Debug logs
+  // Debug values
   const monthAssignmentIds = monthWorkouts.map(w => w.id);
-  const allCompletionIds = coachCompletions.map(c => c.planned_workout_id);
+  const allCompletionWorkoutIds = coachCompletions.filter(c => c.status === 'completed').map(c => c.planned_workout_id);
   const matchedCompletedIds = monthAssignmentIds.filter(id => coachCompletedIds.has(id));
   console.log('[CoachPanel] ── STATS DEBUG ──');
-  console.log('[CoachPanel] selectedTeamId:', effectiveTeamId);
-  console.log('[CoachPanel] month range:', format(mStart, 'yyyy-MM-dd'), '→', format(mEnd, 'yyyy-MM-dd'));
-  console.log('[CoachPanel] athleteFilter:', athleteFilter, '| targetEmails:', targetEmails);
-  console.log('[CoachPanel] assignmentIds (month):', monthAssignmentIds);
-  console.log('[CoachPanel] completionIds loaded:', allCompletionIds.length, allCompletionIds);
+  console.log('[CoachPanel] teamId:', effectiveTeamId, '| athleteFilter:', athleteFilter);
+  console.log('[CoachPanel] targetEmails:', targetEmails);
+  console.log('[CoachPanel] month:', format(mStart, 'yyyy-MM-dd'), '→', format(mEnd, 'yyyy-MM-dd'));
+  console.log('[CoachPanel] plannedWorkouts total:', plannedWorkouts.length, '| filteredWorkouts:', filteredWorkouts.length, '| monthWorkouts:', monthWorkouts.length);
+  console.log('[CoachPanel] coachCompletions loaded:', coachCompletions.length);
+  console.log('[CoachPanel] monthAssignmentIds:', monthAssignmentIds);
+  console.log('[CoachPanel] completedWorkoutIds:', allCompletionWorkoutIds);
   console.log('[CoachPanel] matchedCompletedIds:', matchedCompletedIds);
   console.log('[CoachPanel] FINAL → assigned:', monthWorkouts.length, '| completed:', completed, '| upcoming:', upcoming, '| rate:', rate + '%');
 
@@ -279,6 +285,22 @@ export default function CoachPanel() {
 
               {/* WORKOUTS TAB */}
               <TabsContent value="workouts" className="space-y-4 mt-0">
+                {/* Debug panel */}
+                <details className="text-xs bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
+                  <summary className="cursor-pointer text-amber-700 dark:text-amber-400 font-semibold text-xs">🔍 Debug Info (temporary)</summary>
+                  <div className="mt-2 space-y-0.5 font-mono text-[11px] text-amber-800 dark:text-amber-300">
+                    <div>Team ID: <span className="font-bold">{effectiveTeamId || 'NONE'}</span></div>
+                    <div>Selected athlete: <span className="font-bold">{athleteFilter}</span> | Target emails: <span className="font-bold">{targetEmails.join(', ') || 'NONE'}</span></div>
+                    <div>Date range: <span className="font-bold">{format(mStart, 'yyyy-MM-dd')} → {format(mEnd, 'yyyy-MM-dd')}</span></div>
+                    <div>Assignments (all): <span className="font-bold">{filteredWorkouts.length}</span> | This month: <span className="font-bold">{monthWorkouts.length}</span></div>
+                    <div>Completions loaded: <span className="font-bold">{coachCompletions.length}</span> (completed status: {coachCompletions.filter(c => c.status==='completed').length})</div>
+                    <div>Month assignment IDs: [{monthAssignmentIds.map(id => id.slice(0,8)).join(', ')}]</div>
+                    <div>Completed workout IDs: [{allCompletionWorkoutIds.map(id => id?.slice(0,8)).join(', ')}]</div>
+                    <div>Matched: [{matchedCompletedIds.map(id => id.slice(0,8)).join(', ')}]</div>
+                    <div className="font-bold text-amber-900 dark:text-amber-200 pt-1 border-t border-amber-300 dark:border-amber-700">→ Assigned: {monthWorkouts.length} | Completed: {completed} | Rate: {rate}%</div>
+                  </div>
+                </details>
+
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-2">
                   {[
