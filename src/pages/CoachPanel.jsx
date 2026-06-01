@@ -20,7 +20,7 @@ import AthleteFeedbackList from '@/components/coach/AthleteFeedbackList';
 import { Plus, Users, Calendar, CheckCircle2, TrendingUp, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUnits } from '@/hooks/useUnits';
-import { useCompletions } from '@/hooks/useCompletions';
+
 import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
 
@@ -69,13 +69,27 @@ export default function CoachPanel() {
   const athleteEmails = activeMembers.map(m => m.athlete_email);
   const normalizedAthletes = nonCoachMembers.map(m => ({ email: m.athlete_email, full_name: m.athlete_name }));
   const selectedAthleteEmail = athleteFilter !== 'all' ? athleteFilter : null;
-  const { completions } = useCompletions(selectedAthleteEmail);
+  // Emails to fetch completions for: single athlete or all team athletes
+  const targetEmails = selectedAthleteEmail ? [selectedAthleteEmail] : athleteEmails;
 
-  // Real-time: when any PlannedWorkout changes (e.g. athlete marks complete), refresh coach stats
+  // Fetch completions via service-role backend function (bypasses RLS that blocks coach)
+  const { data: coachCompletions = [] } = useQuery({
+    queryKey: ['coach-completions', effectiveTeamId, targetEmails.join(',')],
+    queryFn: async () => {
+      if (!targetEmails.length) return [];
+      const res = await base44.functions.invoke('getTeamCompletions', { athlete_emails: targetEmails });
+      return res.data?.completions || [];
+    },
+    enabled: !!effectiveTeamId && targetEmails.length > 0,
+    staleTime: 10000,
+  });
+
+  // Real-time: when any PlannedWorkout changes, refresh both planned workouts and completions
   React.useEffect(() => {
     const unsub = base44.entities.PlannedWorkout.subscribe(() => {
-      console.log('[CoachPanel] PlannedWorkout change detected — refreshing coach stats');
+      console.log('[CoachPanel] PlannedWorkout change — invalidating planned-workouts + coach-completions');
       qc.invalidateQueries({ queryKey: ['planned-workouts'] });
+      qc.invalidateQueries({ queryKey: ['coach-completions'] });
     });
     return unsub;
   }, [qc]);
@@ -166,19 +180,26 @@ export default function CoachPanel() {
     const d = parseDateOnly(w.scheduled_date);
     return d >= mStart && d <= mEnd;
   });
-  // Cross-reference completions in case PlannedWorkout.status lags
-  const completedIds = new Set(completions.filter(c => c.status === 'completed').map(c => c.planned_workout_id));
-  const completed = monthWorkouts.filter(w => w.status === 'completed' || completedIds.has(w.id)).length;
-  const upcoming = monthWorkouts.filter(w => w.status !== 'completed' && !completedIds.has(w.id)).length;
+  // Build completed ID set from service-role fetched completions (coach can now see athlete records)
+  const coachCompletedIds = new Set(
+    coachCompletions.filter(c => c.status === 'completed').map(c => c.planned_workout_id)
+  );
+  const completed = monthWorkouts.filter(w => w.status === 'completed' || coachCompletedIds.has(w.id)).length;
+  const upcoming = monthWorkouts.filter(w => w.status !== 'completed' && !coachCompletedIds.has(w.id)).length;
   const rate = monthWorkouts.length > 0 ? Math.round((completed / monthWorkouts.length) * 100) : 0;
 
   // Debug logs
+  const monthAssignmentIds = monthWorkouts.map(w => w.id);
+  const allCompletionIds = coachCompletions.map(c => c.planned_workout_id);
+  const matchedCompletedIds = monthAssignmentIds.filter(id => coachCompletedIds.has(id));
+  console.log('[CoachPanel] ── STATS DEBUG ──');
   console.log('[CoachPanel] selectedTeamId:', effectiveTeamId);
-  console.log('[CoachPanel] dateRange:', format(mStart, 'yyyy-MM-dd'), '→', format(mEnd, 'yyyy-MM-dd'));
-  console.log('[CoachPanel] athleteFilter:', athleteFilter, '| athleteEmails:', athleteEmails);
-  console.log('[CoachPanel] assignedWorkouts loaded:', filteredWorkouts.length, '| monthWorkouts:', monthWorkouts.length);
-  console.log('[CoachPanel] completions loaded:', completions.length, '| completedIds:', completedIds.size);
-  console.log('[CoachPanel] stats → upcoming:', upcoming, '| completed:', completed, '| rate:', rate + '%');
+  console.log('[CoachPanel] month range:', format(mStart, 'yyyy-MM-dd'), '→', format(mEnd, 'yyyy-MM-dd'));
+  console.log('[CoachPanel] athleteFilter:', athleteFilter, '| targetEmails:', targetEmails);
+  console.log('[CoachPanel] assignmentIds (month):', monthAssignmentIds);
+  console.log('[CoachPanel] completionIds loaded:', allCompletionIds.length, allCompletionIds);
+  console.log('[CoachPanel] matchedCompletedIds:', matchedCompletedIds);
+  console.log('[CoachPanel] FINAL → assigned:', monthWorkouts.length, '| completed:', completed, '| upcoming:', upcoming, '| rate:', rate + '%');
 
   return (
       <div className="min-h-screen bg-background">
@@ -293,7 +314,7 @@ export default function CoachPanel() {
                   </SelectContent>
                 </Select>
 
-                <CompletionOverview plannedWorkouts={filteredWorkouts} completions={completions} athleteFilter={athleteFilter} />
+                <CompletionOverview plannedWorkouts={filteredWorkouts} completions={coachCompletions} athleteFilter={athleteFilter} mStart={mStart} mEnd={mEnd} />
 
                 <div className="grid lg:grid-cols-3 gap-4">
                   <div className="lg:col-span-2">
@@ -306,7 +327,7 @@ export default function CoachPanel() {
                         currentMonth={currentMonth}
                         onMonthChange={handleMonthChange}
                         plannedWorkouts={filteredWorkouts}
-                        completions={completions}
+                        completions={coachCompletions}
                         selectedDate={selectedDate}
                         onSelectDate={setSelectedDate}
                         permissions={{ canAssign: true, canComplete: false }}
@@ -317,7 +338,7 @@ export default function CoachPanel() {
                   <DayWorkoutList
                     date={selectedDate}
                     workouts={dayWorkouts}
-                    completions={completions}
+                    completions={coachCompletions}
                     onEdit={setEditingWorkout}
                     onDelete={(id) => deleteMut.mutate(id)}
                   />

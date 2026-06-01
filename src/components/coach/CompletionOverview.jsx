@@ -1,5 +1,5 @@
 import React from 'react';
-import { startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
+import { format, isWithinInterval, startOfMonth, endOfMonth } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
 
@@ -9,25 +9,28 @@ function rateColor(rate) {
   return               { bar: 'bg-rose-500',      text: 'text-rose-500',    ring: 'ring-rose-500/20',   label: 'Behind' };
 }
 
-export default function CompletionOverview({ plannedWorkouts = [], completions = [], athleteFilter }) {
+export default function CompletionOverview({ plannedWorkouts = [], completions = [], athleteFilter, mStart, mEnd }) {
+  // Use passed month range (from CoachPanel calendar), fall back to current month
   const now = new Date();
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekEnd   = endOfWeek(now, { weekStartsOn: 1 });
+  const rangeStart = mStart || startOfMonth(now);
+  const rangeEnd   = mEnd   || endOfMonth(now);
+  const rangeLabel = format(rangeStart, 'MMMM yyyy');
 
-  const weekAssigned = plannedWorkouts.filter(w => {
+  const assigned = plannedWorkouts.filter(w => {
     const d = parseDateOnly(w.scheduled_date);
-    return isWithinInterval(d, { start: weekStart, end: weekEnd });
+    return isWithinInterval(d, { start: rangeStart, end: rangeEnd });
   });
 
-  const weekCompleted = weekAssigned.filter(w => {
-    if (w.status === 'completed') return true;
-    return completions.some(c => c.planned_workout_id === w.id && c.status === 'completed');
-  });
+  const completedSet = new Set(completions.filter(c => c.status === 'completed').map(c => c.planned_workout_id));
+  const weekCompleted = assigned.filter(w => w.status === 'completed' || completedSet.has(w.id));
 
-  const assigned  = weekAssigned.length;
+  const assignedCount  = assigned.length;
   const completed = weekCompleted.length;
-  const rate      = assigned > 0 ? Math.round((completed / assigned) * 100) : 0;
+  const rate      = assignedCount > 0 ? Math.round((completed / assignedCount) * 100) : 0;
   const colors    = rateColor(rate);
+
+  console.log('[CompletionOverview] range:', format(rangeStart,'yyyy-MM-dd'), '->', format(rangeEnd,'yyyy-MM-dd'));
+  console.log('[CompletionOverview] assigned:', assignedCount, '| completions prop:', completions.length, '| completed:', completed);
 
   return (
     <div className="bg-card border border-border rounded-2xl p-5 lg:p-6">
@@ -36,7 +39,7 @@ export default function CompletionOverview({ plannedWorkouts = [], completions =
         <div>
           <h3 className="font-semibold text-sm text-foreground">Completion Overview</h3>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            This week · {athleteFilter === 'all' ? 'All athletes' : athleteFilter}
+            {rangeLabel} · {athleteFilter === 'all' ? 'All athletes' : athleteFilter}
           </p>
         </div>
         {/* Status pill */}
@@ -61,7 +64,7 @@ export default function CompletionOverview({ plannedWorkouts = [], completions =
         {/* Assigned / Completed stacked */}
         <div className="flex gap-4 text-right pb-1">
           <div>
-            <p className="text-2xl font-bold leading-none text-foreground">{assigned}</p>
+            <p className="text-2xl font-bold leading-none text-foreground">{assignedCount}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">Assigned</p>
           </div>
           <div className="w-px bg-border self-stretch" />
