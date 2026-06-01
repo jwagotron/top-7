@@ -7,9 +7,9 @@ import WeeklyChart from '@/components/dashboard/WeeklyChart';
 import JoinTeamCTA from '@/components/dashboard/JoinTeamCTA';
 import WorkoutDetailDrawer from '@/components/dashboard/WorkoutDetailDrawer.jsx';
 import {
-  Activity, MapPin, Clock, Flame, CheckCircle2, ChevronRight,
+  Activity, MapPin, Clock, CheckCircle2, ChevronRight,
   Footprints, Bike, Waves, Dumbbell, CircleDot,
-  Moon, Zap, Play
+  Moon, Play
 } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
@@ -83,15 +83,7 @@ export default function Dashboard() {
     : 0;
   const totalWorkouts = thisWeekWorkouts.length;
 
-  const runWorkoutsWithCadence = thisWeekWorkouts.filter(w => w.sport === 'run' && w.cadence);
-  const avgCadence = runWorkoutsWithCadence.length > 0
-    ? Math.round(runWorkoutsWithCadence.reduce((s, w) => s + w.cadence, 0) / runWorkoutsWithCadence.length)
-    : null;
 
-  const workoutsWithSleep = thisWeekWorkouts.filter(w => w.sleep_hours);
-  const avgSleep = workoutsWithSleep.length > 0
-    ? (workoutsWithSleep.reduce((s, w) => s + w.sleep_hours, 0) / workoutsWithSleep.length).toFixed(1)
-    : null;
 
   const isCompleted = (w) =>
     w.status === 'completed' ||
@@ -240,13 +232,10 @@ export default function Dashboard() {
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2">
             This Week · {format(weekStart, 'MMM d')} – {format(weekEnd, 'MMM d')}
           </p>
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             <StatCard title="Workouts" value={totalWorkouts} icon={Activity} color="primary" />
             <StatCard title="Distance" value={totalDistance.toFixed(1)} unit={label} icon={MapPin} color="secondary" />
             <StatCard title="Time" value={totalDuration} unit="min" icon={Clock} color="accent" />
-            <StatCard title="Avg Calories" value={totalCalories} unit="kcal/day" icon={Flame} color="destructive" />
-            <StatCard title="Avg Cadence" value={avgCadence ?? '—'} unit={avgCadence ? 'spm' : ''} icon={Zap} color="primary" />
-            <StatCard title="Avg Sleep" value={avgSleep ?? '—'} unit={avgSleep ? 'hrs' : ''} icon={Moon} color="secondary" />
           </div>
         </div>
 

@@ -26,5 +26,12 @@
       "type": "string",
       "description": "Legacy field - kept for compatibility"
     }
-  }
+  },
+  "required": [
+    "user_type",
+    "bio",
+    "phone",
+    "team_code",
+    "coach_email"
+  ]
 }
