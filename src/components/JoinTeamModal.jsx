@@ -76,10 +76,10 @@ export default function JoinTeamModal({ open, onOpenChange, onSuccess }) {
             <div className="flex flex-col items-center gap-3 py-4 text-center">
               <CheckCircle2 className="w-10 h-10 text-secondary" />
               <div>
-                <p className="font-semibold text-foreground">Request Pending</p>
+                <p className="font-semibold text-foreground">Request Sent!</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Waiting for your coach to approve your request to join{' '}
-                  <span className="font-medium">{pendingTeamName}</span>.
+                  Your request to join <span className="font-medium">{pendingTeamName}</span> is pending coach approval.
+                  You'll be approved once your coach reviews it.
                 </p>
               </div>
               <Button
