@@ -114,7 +114,8 @@ function AnimatedRoutes() {
             animate="animate"
             exit="exit"
             transition={{ duration: 0.18, ease: 'easeInOut' }}
-            className="min-h-screen"
+            className="min-h-screen relative"
+            style={{ zIndex: 10 }}
           >
             <Suspense fallback={
               <div className="fixed inset-0 flex items-center justify-center">

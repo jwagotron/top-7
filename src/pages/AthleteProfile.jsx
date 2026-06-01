@@ -86,13 +86,17 @@ export default function AthleteProfile() {
   const { user } = useAuth();
   const { toDisplay, label } = useUnits();
 
-  const { data: raceGoals = [] } = useQuery({
+  // Debug logs for coach viewing athlete profile
+  console.log('[AthleteProfile] athleteEmail from URL:', athleteEmail);
+  console.log('[AthleteProfile] current viewer (coach):', user?.email, 'role:', user?.role);
+
+  const { data: raceGoals = [], isLoading: loadingGoals } = useQuery({
     queryKey: ['race-goals', athleteEmail],
     queryFn: () => base44.entities.RaceGoal.filter({ athlete_email: athleteEmail }),
     enabled: !!athleteEmail,
   });
 
-  const { data: plannedWorkouts = [] } = useQuery({
+  const { data: plannedWorkouts = [], isLoading: loadingWorkouts } = useQuery({
     queryKey: ['planned-athlete', athleteEmail],
     queryFn: () => base44.entities.PlannedWorkout.filter({ assigned_to: athleteEmail }, 'scheduled_date', 300),
     enabled: !!athleteEmail,
@@ -141,6 +145,9 @@ export default function AthleteProfile() {
   });
 
   // ── Derived stats ──────────────────────────────────────────────
+  // Debug: log loaded data state
+  console.log('[AthleteProfile] plannedWorkouts loaded:', plannedWorkouts.length, 'completions:', completions.length, 'feedback:', feedback.length);
+
   const completedIds = new Set(completions.filter(c => c.status === 'completed').map(c => c.planned_workout_id));
   const today = new Date();
   const pastWorkouts = plannedWorkouts.filter(w => parseDateOnly(w.scheduled_date) <= today);
@@ -194,11 +201,25 @@ export default function AthleteProfile() {
 
   const initials = (athleteName || athleteEmail || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
+  const isLoading = loadingGoals || loadingWorkouts;
+
   if (!athleteEmail) {
+    console.warn('[AthleteProfile] No athleteEmail in URL — rendering empty state');
     return (
       <div className="min-h-screen bg-background">
         <TopBar title="Athlete Profile" />
         <div className="p-8 text-center text-muted-foreground">No athlete selected.</div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopBar title={athleteName || 'Athlete Profile'} />
+        <div className="p-8 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
@@ -305,7 +326,7 @@ export default function AthleteProfile() {
               </CardHeader>
               <CardContent className="p-0">
                 {pastWorkouts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">No workouts yet.</p>
+                  <p className="text-sm text-muted-foreground text-center py-6">No recent activity.</p>
                 ) : [...pastWorkouts].sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date)).slice(0, 5).map(w => {
                   const done = completedIds.has(w.id);
                   return (
