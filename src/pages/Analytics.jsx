@@ -13,7 +13,7 @@ import { format, subDays, endOfWeek, eachWeekOfInterval } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';
 import { useAuth } from '@/lib/AuthContext';
-import { Zap, TrendingUp, Activity, Flame, Flag } from 'lucide-react';
+import { Zap, TrendingUp, Activity, Flag } from 'lucide-react';
 import PersonalRecords from '@/components/analytics/PersonalRecords';
 import RacePredictor from '@/components/predictor/RacePredictor';
 import { cn } from '@/lib/utils';
@@ -88,7 +88,10 @@ export default function Analytics() {
 
   const totalDist = toDisplay(filtered.reduce((s, w) => s + (w.distance_km || 0), 0));
   const totalHrs = Math.round(filtered.reduce((s, w) => s + (w.duration_minutes || 0), 0) / 60 * 10) / 10;
-  const totalCalories = Math.round(filtered.reduce((s, w) => s + (w.calories || 0), 0));
+  const rpeWorkouts = filtered.filter(w => w.perceived_effort);
+  const avgRpe = rpeWorkouts.length > 0
+    ? Math.round(rpeWorkouts.reduce((s, w) => s + w.perceived_effort, 0) / rpeWorkouts.length * 10) / 10
+    : null;
   const longestRun = filtered.filter(w => w.distance_km).reduce((max, w) =>
     w.distance_km > (max || 0) ? w.distance_km : max, null);
 
@@ -139,7 +142,7 @@ export default function Analytics() {
               <MetricCard icon={Activity} label="Workouts" value={filtered.length} color="text-primary" bg="bg-primary/10" />
               <MetricCard icon={TrendingUp} label="Distance" value={totalDist.toFixed(1)} unit={label} color="text-secondary" bg="bg-secondary/10" />
               <MetricCard icon={Zap} label="Total Hours" value={totalHrs} unit="hrs" color="text-accent" bg="bg-accent/10" />
-              <MetricCard icon={Flame} label="Calories" value={totalCalories > 0 ? totalCalories.toLocaleString() : null} unit="kcal" color="text-destructive" bg="bg-destructive/10" sub="Manually logged" />
+              <MetricCard icon={Zap} label="Avg Effort (RPE)" value={avgRpe} unit="/ 10" color="text-destructive" bg="bg-destructive/10" sub={rpeWorkouts.length > 0 ? `${rpeWorkouts.length} workouts rated` : 'No effort data yet'} />
             </div>
 
             {/* Best effort */}

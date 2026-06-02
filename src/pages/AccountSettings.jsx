@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+
 import { useAuth } from '@/lib/AuthContext';
 import TopBar from '@/components/layout/TopBar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
-import { User, Shield, Wifi, LogOut, Ruler, Trash2 } from 'lucide-react';
+import { User, Shield, LogOut, Ruler, Trash2 } from 'lucide-react';
 import AppearanceCard from '@/components/settings/AppearanceCard';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -25,19 +25,8 @@ export default function AccountSettings() {
   const { user } = useAuth();
   const { role } = useRole();
   const { units, setUnits } = useUnits();
-  const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleForceRefresh = async () => {
-    setRefreshing(true);
-    qc.clear();
-    await qc.refetchQueries();
-    setLastRefresh(new Date());
-    setRefreshing(false);
-  };
   const [form, setForm] = useState({
     full_name: user?.full_name || '',
   });
@@ -90,7 +79,7 @@ export default function AccountSettings() {
               <div>
                 <p className="text-sm font-semibold capitalize">{role || 'Not set'}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {role === 'athlete' && 'View workouts, log activities, connect Garmin.'}
+                  {role === 'athlete' && 'View workouts, log runs, track your progress.'}
                   {role === 'coach' && 'Manage athletes, assign workouts, build plans.'}
                   {role === 'admin' && 'Full access including admin panel and all tools.'}
                 </p>
@@ -144,48 +133,6 @@ export default function AccountSettings() {
 
         {/* Policies */}
         <PoliciesCard />
-
-        {/* Garmin quick status */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><Wifi className="w-4 h-4 shrink-0" /> Integrations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-3 justify-between">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-lg shrink-0">⌚</div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">Garmin Connect</p>
-                  <p className="text-xs text-muted-foreground leading-tight">Sync activities and push structured workouts</p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm" className="shrink-0" onClick={() => window.location.href = '/garmin'}>Manage</Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Data & Cache */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><Wifi className="w-4 h-4 shrink-0" /> Data & Cache</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="text-xs font-mono bg-muted/50 rounded-lg p-3 space-y-0.5 text-muted-foreground">
-              <div>App version: <span className="text-foreground font-semibold">2026-06-01-r1</span></div>
-              <div>Last data refresh: <span className="text-foreground font-semibold">{lastRefresh ? lastRefresh.toLocaleTimeString() : 'not yet this session'}</span></div>
-              <div>Cached queries: <span className="text-foreground font-semibold">{qc.getQueryCache().getAll().length}</span></div>
-            </div>
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={handleForceRefresh}
-              disabled={refreshing}
-            >
-              {refreshing ? '↻ Refreshing all data…' : '↻ Force Refresh All Data'}
-            </Button>
-            <p className="text-xs text-muted-foreground">Clears all cached data and refetches everything — use if stats or team membership look out of date.</p>
-          </CardContent>
-        </Card>
 
         {/* Logout */}
         <Card>

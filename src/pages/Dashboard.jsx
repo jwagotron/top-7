@@ -81,9 +81,7 @@ export default function Dashboard() {
   const totalDistanceKm = thisWeekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0);
   const totalDistance = toDisplay(totalDistanceKm);
   const totalDuration = thisWeekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0);
-  const totalCalories = thisWeekWorkouts.length > 0
-    ? Math.round(thisWeekWorkouts.reduce((s, w) => s + (w.calories || 0), 0) / thisWeekWorkouts.length)
-    : 0;
+
   const totalWorkouts = thisWeekWorkouts.length;
 
 
