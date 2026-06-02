@@ -3,10 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { format } from 'date-fns';
 import { useUnits } from '@/hooks/useUnits';
 import {
-  Heart, Clock, MapPin, Zap, Activity, TrendingUp, Footprints, Wind, ArrowUpDown, Target
+  Heart, Clock, MapPin, Zap, Activity, TrendingUp, Footprints
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import WorkoutComments from '@/components/workouts/WorkoutComments';
 import { useRole } from '@/lib/RoleContext';
 
@@ -95,25 +95,13 @@ export default function WorkoutDetailDrawer({ workout, onClose }) {
             <MetricTile icon={Zap} label="Best Pace" value={displayPace(workout.best_pace)} unit={paceLabel} color="text-chart-5" bg="bg-chart-5/10" />
             <MetricTile icon={Heart} label="Avg HR" value={workout.avg_heart_rate} unit="bpm" color="text-destructive" bg="bg-destructive/10" />
             <MetricTile icon={Heart} label="Max HR" value={workout.max_heart_rate} unit="bpm" color="text-chart-5" bg="bg-chart-5/10" />
-            <MetricTile icon={Activity} label="Cadence" value={workout.cadence} unit="spm" color="text-chart-4" bg="bg-chart-4/10" />
+
             <MetricTile icon={TrendingUp} label="Elevation Gain" value={workout.elevation_gain ? toDisplayElevation(workout.elevation_gain) : null} unit={elevationLabel} color="text-secondary" bg="bg-secondary/10" />
             <MetricTile icon={Footprints} label="Calories" value={workout.calories} unit="kcal" color="text-accent" bg="bg-accent/10" />
             {workout.perceived_effort && (
               <MetricTile icon={Activity} label="Effort (RPE)" value={`${workout.perceived_effort}/10`} unit="" color="text-destructive" bg="bg-destructive/10" />
             )}
-            {/* Advanced running dynamics */}
-            {workout.stride_length_cm && (
-              <MetricTile icon={Footprints} label="Stride Length" value={workout.stride_length_cm.toFixed(1)} unit="cm" color="text-chart-3" bg="bg-chart-3/10" />
-            )}
-            {workout.vertical_oscillation_mm && (
-              <MetricTile icon={ArrowUpDown} label="Vert. Oscillation" value={workout.vertical_oscillation_mm.toFixed(1)} unit="mm" color="text-chart-4" bg="bg-chart-4/10" />
-            )}
-            {workout.ground_contact_ms && (
-              <MetricTile icon={Target} label="Ground Contact" value={Math.round(workout.ground_contact_ms)} unit="ms" color="text-chart-2" bg="bg-chart-2/10" />
-            )}
-            {workout.vertical_ratio && (
-              <MetricTile icon={Wind} label="Vertical Ratio" value={workout.vertical_ratio.toFixed(1)} unit="%" color="text-primary" bg="bg-primary/10" />
-            )}
+
           </div>
 
           {/* Planned vs Actual */}
@@ -239,23 +227,7 @@ export default function WorkoutDetailDrawer({ workout, onClose }) {
             </div>
           )}
 
-          {/* Cadence per interval chart */}
-          {splitData.some(s => s.cadence) && (
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2">Cadence by Lap</p>
-              <div className="bg-card border border-border/30 rounded-xl p-3 h-[120px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={splitData.map((s, i) => ({ lap: `${i+1}`, cadence: s.cadence || 0 }))}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis dataKey="lap" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} width={30} />
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v} spm`, 'Cadence']} />
-                    <Bar dataKey="cadence" fill="hsl(var(--chart-4))" radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )}
+
 
           {/* Notes */}
           {(workout.notes || workout.feeling || workout.shoes) && (

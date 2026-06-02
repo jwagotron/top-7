@@ -11,7 +11,6 @@ export const NAV_ITEMS = {
     { path: '/analytics',  label: 'Analytics',       icon: BarChart3 },
     { path: '/goals',      label: 'Goals',           icon: Target },
     { path: '/shoes',      label: 'Shoe Tracker',    icon: Activity },
-    { path: '/garmin',     label: 'Garmin Connect',  icon: Wifi },
     { path: '/settings',   label: 'Settings',        icon: Settings },
   ],
   coach: [
@@ -56,7 +55,6 @@ export const SIDEBAR_MENU = {
         { path: '/analytics',  label: 'Analytics',      icon: BarChart3 },
         { path: '/goals',      label: 'Goals',          icon: Target },
         { path: '/shoes',          label: 'Shoe Tracker',   icon: Activity },
-        { path: '/garmin',         label: 'Garmin Connect', icon: Wifi },
         { path: '/settings',       label: 'Settings',       icon: Settings },
       ],
     },
