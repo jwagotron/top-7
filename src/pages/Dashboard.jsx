@@ -72,15 +72,56 @@ export default function Dashboard() {
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
 
+  // Manually-logged workouts this week (Workout entity)
   const thisWeekWorkouts = workouts.filter(w => {
     const d = parseDateOnly(w.date);
     return isWithinInterval(d, { start: weekStart, end: weekEnd });
   });
 
+  // Completed planned workouts this week — these are the primary source of weekly stats
+  // when athletes complete coach-assigned workouts (no Workout entity record is created)
+  const completedPlannedThisWeek = completions.filter(c => {
+    if (c.status !== 'completed') return false;
+    const d = parseDateOnly(c.scheduled_date);
+    return isWithinInterval(d, { start: weekStart, end: weekEnd });
+  });
+
+  // Map completion IDs to their planned workout details for distance/duration
+  const completedPlannedWorkoutDetails = completedPlannedThisWeek.map(c =>
+    plannedWorkouts.find(pw => pw.id === c.planned_workout_id)
+  ).filter(Boolean);
+
+  // Merge: use planned workout stats if no manual log exists for the same planned workout
+  const manualWorkoutPlannedIds = new Set(
+    thisWeekWorkouts.map(w => w.planned_workout_id).filter(Boolean)
+  );
+  const unloggedCompletions = completedPlannedWorkoutDetails.filter(
+    pw => !manualWorkoutPlannedIds.has(pw.id)
+  );
+
   const { toDisplay, label, convertPaceLabel, paceLabel } = useUnits();
+
+  const totalWorkouts = thisWeekWorkouts.length + unloggedCompletions.length;
+  const totalDistanceKm =
+    thisWeekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0) +
+    unloggedCompletions.reduce((s, pw) => s + (pw.target_distance_km || 0), 0);
+  const totalDistance = toDisplay(totalDistanceKm);
+  const totalDuration =
+    thisWeekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0) +
+    unloggedCompletions.reduce((s, pw) => s + (pw.target_duration_minutes || 0), 0);
 
   // ── Console diagnostics ───────────────────────────────────────────────────
   React.useEffect(() => {
+    console.log('[Dashboard:weekly-stats]', {
+      athleteEmail,
+      thisWeekManualWorkouts: thisWeekWorkouts.length,
+      completionsThisWeek: completedPlannedThisWeek.length,
+      completedPlannedDetails: completedPlannedWorkoutDetails.length,
+      unloggedCompletions: unloggedCompletions.length,
+      totalWorkouts,
+      totalDistanceKm,
+      totalDuration,
+    });
     console.log('[Dashboard:state]', {
       userEmail: user?.email ?? 'not loaded',
       role,
@@ -89,15 +130,9 @@ export default function Dashboard() {
       hasTeam,
       plannedWorkoutsCount: plannedWorkouts.length,
       completionsCount: completions.length,
-      thisWeekWorkoutsCount: thisWeekWorkouts.length,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.email, role, memberships.length, plannedWorkouts.length, completions.length, hasTeam]);
-  const totalDistanceKm = thisWeekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0);
-  const totalDistance = toDisplay(totalDistanceKm);
-  const totalDuration = thisWeekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0);
-
-  const totalWorkouts = thisWeekWorkouts.length;
+  }, [user?.email, role, memberships.length, plannedWorkouts.length, completions.length, hasTeam, totalWorkouts]);
 
 
 
