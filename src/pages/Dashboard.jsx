@@ -62,7 +62,8 @@ export default function Dashboard() {
     queryKey: ['athlete-memberships-dash', athleteEmail],
     queryFn: () => base44.entities.TeamMembership.filter({ athlete_email: athleteEmail, status: 'active' }),
     enabled: !!athleteEmail,
-    staleTime: 5000, // short stale time — membership status must always be fresh
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
   // Suppress JoinTeamCTA while memberships are loading to avoid flashing it for existing members
   const hasTeam = isLoadingMemberships || memberships.length > 0 || !!user?.team_id || !!user?.coach_email;

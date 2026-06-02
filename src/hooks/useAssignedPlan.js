@@ -14,10 +14,13 @@ export function useAssignedPlan() {
   const qc = useQueryClient();
 
   // ── 1. Find which teams this athlete belongs to ─────────────────────────
+  // Always fresh — RLS on TeamMembership allows reads where athlete_email == user.email
   const { data: memberships = [] } = useQuery({
     queryKey: ['athlete-memberships', athleteEmail],
     queryFn: () => base44.entities.TeamMembership.filter({ athlete_email: athleteEmail, status: 'active' }),
     enabled: !!athleteEmail,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const coachEmails = [...new Set(memberships.map(m => m.coach_email).filter(Boolean))];
