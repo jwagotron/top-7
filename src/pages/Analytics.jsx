@@ -1,22 +1,20 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  BarChart, Bar, AreaChart, Area,
+  BarChart, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   ComposedChart, Line
 } from 'recharts';
-import { format, subDays, endOfWeek, eachWeekOfInterval } from 'date-fns';
-import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';
 import { useAuth } from '@/lib/AuthContext';
+import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 import { Zap, TrendingUp, Activity, Flag } from 'lucide-react';
 import PersonalRecords from '@/components/analytics/PersonalRecords';
 import RacePredictor from '@/components/predictor/RacePredictor';
 import { cn } from '@/lib/utils';
+import { useAthleteStats } from '@/hooks/useAthleteStats';
 
 const tooltipStyle = {
   background: 'hsl(var(--card))',
@@ -48,52 +46,22 @@ export default function Analytics() {
   const [period, setPeriod] = useState('30');
   const { toDisplay, label } = useUnits();
   const { user } = useAuth();
+  const { athleteEmail } = useAssignedPlan();
 
-  const { data: workouts = [] } = useQuery({
-    queryKey: ['workouts-analytics', user?.email],
-    queryFn: () => base44.entities.Workout.filter({ created_by: user?.email }, '-date', 500),
-    enabled: !!user?.email,
-  });
-
-  const cutoff = subDays(new Date(), Number(period));
-  const filtered = workouts.filter(w => w.date && parseDateOnly(w.date) >= cutoff);
+  // ── Same shared data source as Dashboard ──────────────────────────────────
+  const { buildVolumeSeries } = useAthleteStats(athleteEmail);
 
   const isDaily = period === '7';
+  const { series: volumeData, filtered, totalDistKm, totalDurMins, longestRunKm } =
+    buildVolumeSeries(Number(period));
 
-  const volumeData = isDaily
-    ? Array.from({ length: 7 }, (_, i) => {
-        const day = subDays(new Date(), 6 - i);
-        const dayStr = format(day, 'yyyy-MM-dd');
-        const ww = filtered.filter(w => w.date && w.date.slice(0, 10) === dayStr);
-        return {
-          week: format(day, 'EEE'),
-          distance: Number(toDisplay(ww.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)),
-          duration: Math.round(ww.reduce((s, w) => s + (w.duration_minutes || 0), 0)),
-          count: ww.length,
-        };
-      })
-    : eachWeekOfInterval({ start: cutoff, end: new Date() }, { weekStartsOn: 1 }).map(weekStart => {
-        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-        const ww = filtered.filter(w => {
-          const d = parseDateOnly(w.date);
-          return d >= weekStart && d <= weekEnd;
-        });
-        return {
-          week: format(weekStart, 'MMM d'),
-          distance: Number(toDisplay(ww.reduce((s, w) => s + (w.distance_km || 0), 0)).toFixed(1)),
-          duration: Math.round(ww.reduce((s, w) => s + (w.duration_minutes || 0), 0)),
-          count: ww.length,
-        };
-      });
-
-  const totalDist = toDisplay(filtered.reduce((s, w) => s + (w.distance_km || 0), 0));
-  const totalHrs = Math.round(filtered.reduce((s, w) => s + (w.duration_minutes || 0), 0) / 60 * 10) / 10;
+  const totalDist = toDisplay(totalDistKm);
+  const totalHrs  = Math.round(totalDurMins / 60 * 10) / 10;
   const rpeWorkouts = filtered.filter(w => w.perceived_effort);
   const avgRpe = rpeWorkouts.length > 0
     ? Math.round(rpeWorkouts.reduce((s, w) => s + w.perceived_effort, 0) / rpeWorkouts.length * 10) / 10
     : null;
-  const longestRun = filtered.filter(w => w.distance_km).reduce((max, w) =>
-    w.distance_km > (max || 0) ? w.distance_km : max, null);
+  const longestRun = longestRunKm;
 
   return (
     <div>

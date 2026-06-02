@@ -16,13 +16,14 @@ import { useRole } from '@/lib/RoleContext';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 import { useCompletions } from '@/hooks/useCompletions';
 import {
-  startOfWeek, endOfWeek, isWithinInterval, format, isToday,
-  isTomorrow, isSameDay, addDays
+  startOfWeek, endOfWeek, format, isToday,
+  isTomorrow, isSameDay
 } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useAuth } from '@/lib/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useAthleteStats } from '@/hooks/useAthleteStats';
 
 const sportIcons = {
   run: Footprints, bike: Bike, swim: Waves, strength: Dumbbell, other: CircleDot,
@@ -51,12 +52,20 @@ export default function Dashboard() {
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [showTodayWorkout, setShowTodayWorkout] = useState(false);
 
+  const { toDisplay, label, convertPaceLabel, paceLabel } = useUnits();
 
-  const { data: workouts = [] } = useQuery({
-    queryKey: ['workouts', athleteEmail],
-    queryFn: () => base44.entities.Workout.filter({ created_by: athleteEmail }, '-date', 100),
-    enabled: !!athleteEmail,
-  });
+  // ── Single shared data source ─────────────────────────────────────────────
+  const {
+    weeklyWorkouts,
+    weeklyDistKm,
+    weeklyDuration,
+    thisWeekItems: completedWorkoutItems,
+    recentCompletedWorkouts: recentWorkouts,
+  } = useAthleteStats(athleteEmail);
+
+  const totalWorkouts   = weeklyWorkouts;
+  const totalDistance   = toDisplay(weeklyDistKm);
+  const totalDuration   = weeklyDuration;
 
   const { data: memberships = [], isLoading: isLoadingMemberships } = useQuery({
     queryKey: ['athlete-memberships-dash', athleteEmail],
@@ -70,71 +79,7 @@ export default function Dashboard() {
 
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
-
-  // Manually-logged workouts this week (Workout entity)
-  const thisWeekWorkouts = workouts.filter(w => {
-    const d = parseDateOnly(w.date);
-    return isWithinInterval(d, { start: weekStart, end: weekEnd });
-  });
-
-  // Completed planned workouts this week — these are the primary source of weekly stats
-  // when athletes complete coach-assigned workouts (no Workout entity record is created)
-  const completedPlannedThisWeek = completions.filter(c => {
-    if (c.status !== 'completed') return false;
-    const d = parseDateOnly(c.scheduled_date);
-    return isWithinInterval(d, { start: weekStart, end: weekEnd });
-  });
-
-  // Map completion IDs to their planned workout details for distance/duration
-  const completedPlannedWorkoutDetails = completedPlannedThisWeek.map(c =>
-    plannedWorkouts.find(pw => pw.id === c.planned_workout_id)
-  ).filter(Boolean);
-
-  // Merge: use planned workout stats if no manual log exists for the same planned workout
-  const manualWorkoutPlannedIds = new Set(
-    thisWeekWorkouts.map(w => w.planned_workout_id).filter(Boolean)
-  );
-  const unloggedCompletions = completedPlannedWorkoutDetails.filter(
-    pw => !manualWorkoutPlannedIds.has(pw.id)
-  );
-
-  const { toDisplay, label, convertPaceLabel, paceLabel } = useUnits();
-
-  const totalWorkouts = thisWeekWorkouts.length + unloggedCompletions.length;
-  const totalDistanceKm =
-    thisWeekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0) +
-    unloggedCompletions.reduce((s, pw) => s + (pw.target_distance_km || 0), 0);
-  const totalDistance = toDisplay(totalDistanceKm);
-  const totalDuration =
-    thisWeekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0) +
-    unloggedCompletions.reduce((s, pw) => s + (pw.target_duration_minutes || 0), 0);
-
-  // ── Console diagnostics ───────────────────────────────────────────────────
-  React.useEffect(() => {
-    console.log('[Dashboard:weekly-stats]', {
-      athleteEmail,
-      thisWeekManualWorkouts: thisWeekWorkouts.length,
-      completionsThisWeek: completedPlannedThisWeek.length,
-      completedPlannedDetails: completedPlannedWorkoutDetails.length,
-      unloggedCompletions: unloggedCompletions.length,
-      totalWorkouts,
-      totalDistanceKm,
-      totalDuration,
-    });
-    console.log('[Dashboard:state]', {
-      userEmail: user?.email ?? 'not loaded',
-      role,
-      isLoadingAuth,
-      membershipsCount: memberships.length,
-      hasTeam,
-      plannedWorkoutsCount: plannedWorkouts.length,
-      completionsCount: completions.length,
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.email, role, memberships.length, plannedWorkouts.length, completions.length, hasTeam, totalWorkouts]);
-
-
+  const weekEnd   = endOfWeek(now,   { weekStartsOn: 1 });
 
   const isCompleted = (w) =>
     w.status === 'completed' ||
@@ -145,53 +90,6 @@ export default function Dashboard() {
   const todayWorkout = plannedWorkouts.find(w => isSameDay(parseDateOnly(w.scheduled_date), today));
   const todayCompletion = todayWorkout ? completions.find(c => c.planned_workout_id === todayWorkout.id) : null;
   const todayDone = !!todayCompletion;
-
-  // Build a unified list of workout-like objects from completions (same source as stat cards)
-  // This is used by WeeklyChart and Recent Activity so all widgets share one data source.
-  const completedWorkoutItems = [
-    // Manual Workout entity records this week
-    ...thisWeekWorkouts,
-    // Unlogged completions represented as workout-like objects using planned workout details
-    ...unloggedCompletions.map(pw => {
-      const completion = completedPlannedThisWeek.find(c => c.planned_workout_id === pw.id);
-      return {
-        id: pw.id,
-        title: pw.title,
-        sport: pw.sport,
-        date: completion?.scheduled_date || pw.scheduled_date,
-        distance_km: pw.target_distance_km || 0,
-        duration_minutes: pw.target_duration_minutes || 0,
-        intensity: pw.intensity,
-        planned_workout_id: pw.id,
-        _fromCompletion: true,
-      };
-    }),
-  ];
-
-  // Recent activity: all-time manual workouts + recently completed planned workouts (not just this week)
-  const recentCompletedPlanned = completions
-    .filter(c => c.status === 'completed')
-    .map(c => {
-      const pw = plannedWorkouts.find(p => p.id === c.planned_workout_id);
-      if (!pw) return null;
-      // Skip if a manual workout already covers this planned workout
-      if (workouts.some(w => w.planned_workout_id === pw.id)) return null;
-      return {
-        id: pw.id,
-        title: pw.title,
-        sport: pw.sport,
-        date: c.scheduled_date || pw.scheduled_date,
-        distance_km: pw.target_distance_km || 0,
-        duration_minutes: pw.target_duration_minutes || 0,
-        intensity: pw.intensity,
-        _fromCompletion: true,
-      };
-    })
-    .filter(Boolean);
-
-  const recentWorkouts = [...workouts, ...recentCompletedPlanned]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 6);
 
   if (isLoading) {
     return (
