@@ -255,7 +255,7 @@ export default function Dashboard() {
               <p className="text-sm text-muted-foreground text-center py-6">No workouts logged yet</p>
             ) : recentWorkouts.map(w => {
               const SportIcon = sportIcons[w.sport] || CircleDot;
-              const hasDetail = !!(w.avg_heart_rate || w.distance_km || w.splits?.length);
+              const hasDetail = !!(w.distance_km || w.duration_minutes);
               return (
                 <button key={w.id} type="button" onClick={() => setSelectedWorkout(w)}
                   className="w-full flex items-start gap-3 p-3 rounded-xl bg-background/60 border border-border/30 hover:bg-background/90 active:scale-[0.99] transition-all duration-150 text-left">
@@ -272,7 +272,6 @@ export default function Dashboard() {
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
                       {w.duration_minutes && <span className="text-[11px] text-muted-foreground/70 flex items-center gap-1"><Clock className="w-3 h-3" />{w.duration_minutes}m</span>}
                       {w.distance_km && <span className="text-[11px] text-muted-foreground/70 flex items-center gap-1"><MapPin className="w-3 h-3" />{toDisplay(w.distance_km).toFixed(2)} {label}</span>}
-                      {w.avg_heart_rate && <span className="text-[11px] text-destructive/70 flex items-center gap-1"><span className="w-3 h-3 text-center">♥</span>{w.avg_heart_rate}bpm</span>}
                       {w.avg_pace && <span className="text-[11px] text-muted-foreground/70">{convertPaceLabel(w.avg_pace)} {paceLabel}</span>}
                     </div>
                   </div>

@@ -24,20 +24,19 @@ const RUN_TYPES = [
 const defaults = {
   title: '', sport: 'run', run_type: 'easy',
   date: new Date().toISOString().split('T')[0],
-  duration_minutes: '', distance_km: '', avg_pace: '', best_pace: '',
-  avg_heart_rate: '', max_heart_rate: '', cadence: '', calories: '',
-  elevation_gain: '', perceived_effort: '', shoes: '', notes: '', feeling: '',
-  splits: [], planned_workout_id: ''
+  duration_minutes: '', distance_km: '', avg_pace: '',
+  calories: '', perceived_effort: '', shoes: '', notes: '', feeling: '',
+  planned_workout_id: ''
 };
 
 export default function RunLogForm({ open, onClose, onSubmit, workout, plannedWorkout }) {
   const [form, setForm] = useState(defaults);
-  const [activeTab, setActiveTab] = useState('basic');
+
 
   useEffect(() => {
     if (open) {
       if (workout) {
-        setForm({ ...defaults, ...workout, splits: workout.splits || [] });
+        setForm({ ...defaults, ...workout });
       } else if (plannedWorkout) {
         setForm({
           ...defaults,
@@ -52,36 +51,24 @@ export default function RunLogForm({ open, onClose, onSubmit, workout, plannedWo
       } else {
         setForm(defaults);
       }
-      setActiveTab('basic');
+
     }
   }, [open, workout, plannedWorkout]);
 
   const set = (f, v) => setForm(p => ({ ...p, [f]: v }));
 
-  const addSplit = () => setForm(p => ({ ...p, splits: [...(p.splits || []), { km: (p.splits?.length || 0) + 1, pace: '', heart_rate: '' }] }));
-  const removeSplit = (i) => setForm(p => ({ ...p, splits: p.splits.filter((_, idx) => idx !== i) }));
-  const updateSplit = (i, field, val) => setForm(p => {
-    const splits = [...p.splits];
-    splits[i] = { ...splits[i], [field]: val };
-    return { ...p, splits };
-  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = { ...form };
-    ['duration_minutes', 'distance_km', 'avg_heart_rate', 'max_heart_rate', 'cadence', 'calories', 'elevation_gain', 'perceived_effort'].forEach(f => {
+    ['duration_minutes', 'distance_km', 'calories', 'perceived_effort'].forEach(f => {
       if (data[f] !== '' && data[f] !== undefined) data[f] = Number(data[f]);
       else delete data[f];
     });
-    if (!data.splits || data.splits.length === 0) delete data.splits;
     onSubmit(data);
   };
 
-  const tabs = [
-    { id: 'basic', label: 'Basic' },
-    { id: 'metrics', label: 'Metrics' },
-    { id: 'splits', label: 'Splits' },
-  ];
+
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -90,23 +77,8 @@ export default function RunLogForm({ open, onClose, onSubmit, workout, plannedWo
           <DialogTitle>{workout ? 'Edit Run' : 'Log Run'}</DialogTitle>
         </DialogHeader>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-muted rounded-lg p-1">
-          {tabs.map(t => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setActiveTab(t.id)}
-              className={cn('flex-1 text-sm py-1.5 rounded-md font-medium transition-all', activeTab === t.id ? 'bg-card shadow text-foreground' : 'text-muted-foreground hover:text-foreground')}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-4 pr-1">
-          {activeTab === 'basic' && (
-            <div className="space-y-4">
+          <div className="space-y-4">
               <div>
                 <Label>Title</Label>
                 <Input value={form.title} onChange={e => set('title', e.target.value)} placeholder="Morning Easy Run" required />
@@ -164,10 +136,14 @@ export default function RunLogForm({ open, onClose, onSubmit, workout, plannedWo
                   <Input value={form.avg_pace} onChange={e => set('avg_pace', e.target.value)} placeholder="5:15" />
                 </div>
                 <div>
-                  <Label>Best Pace (/km)</Label>
-                  <Input value={form.best_pace} onChange={e => set('best_pace', e.target.value)} placeholder="4:45" />
+                  <Label>Calories (kcal)</Label>
+                  <Input type="number" value={form.calories} onChange={e => set('calories', e.target.value)} placeholder="520" />
                 </div>
-              </div>
+                <div>
+                  <Label>Effort (RPE 1–10)</Label>
+                  <Input type="number" min="1" max="10" value={form.perceived_effort} onChange={e => set('perceived_effort', e.target.value)} placeholder="6" />
+                </div>
+                </div>
 
               <div>
                 <Label>Shoes</Label>
@@ -178,73 +154,10 @@ export default function RunLogForm({ open, onClose, onSubmit, workout, plannedWo
                 <Label>Notes</Label>
                 <Textarea value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="How did the run feel? Any highlights..." rows={3} />
               </div>
-            </div>
-          )}
-
-          {activeTab === 'metrics' && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Avg Heart Rate (bpm)</Label>
-                <Input type="number" value={form.avg_heart_rate} onChange={e => set('avg_heart_rate', e.target.value)} placeholder="145" />
-              </div>
-              <div>
-                <Label>Max Heart Rate (bpm)</Label>
-                <Input type="number" value={form.max_heart_rate} onChange={e => set('max_heart_rate', e.target.value)} placeholder="178" />
-              </div>
-              <div>
-                <Label>Cadence (spm)</Label>
-                <Input type="number" value={form.cadence} onChange={e => set('cadence', e.target.value)} placeholder="172" />
-              </div>
-              <div>
-                <Label>Elevation Gain (m)</Label>
-                <Input type="number" value={form.elevation_gain} onChange={e => set('elevation_gain', e.target.value)} placeholder="85" />
-              </div>
-              <div>
-                <Label>Calories</Label>
-                <Input type="number" value={form.calories} onChange={e => set('calories', e.target.value)} placeholder="520" />
-              </div>
-              <div>
-                <Label>Effort (RPE 1-10)</Label>
-                <Input type="number" min="1" max="10" value={form.perceived_effort} onChange={e => set('perceived_effort', e.target.value)} placeholder="6" />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'splits' && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">Record your per-km splits</p>
-                <Button type="button" size="sm" variant="outline" onClick={addSplit} className="gap-1">
-                  <Plus className="w-3 h-3" /> Add Split
-                </Button>
-              </div>
-              {(form.splits || []).length === 0 ? (
-                <div className="text-center py-8 text-sm text-muted-foreground border-2 border-dashed border-border rounded-xl">
-                  No splits added yet
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="grid grid-cols-4 gap-2 text-xs text-muted-foreground font-medium px-1">
-                    <span>KM</span><span>Pace</span><span>HR (bpm)</span><span></span>
-                  </div>
-                  {(form.splits || []).map((split, i) => (
-                    <div key={i} className="grid grid-cols-4 gap-2 items-center">
-                      <Input type="number" value={split.km} onChange={e => updateSplit(i, 'km', Number(e.target.value))} className="h-8 text-sm" />
-                      <Input value={split.pace} onChange={e => updateSplit(i, 'pace', e.target.value)} placeholder="5:15" className="h-8 text-sm" />
-                      <Input type="number" value={split.heart_rate || ''} onChange={e => updateSplit(i, 'heart_rate', Number(e.target.value))} placeholder="148" className="h-8 text-sm" />
-                      <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeSplit(i)}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
           <div className="flex justify-end gap-3 pt-2 border-t">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit">{workout ? 'Update Run' : 'Log Run'}</Button>
+          </div>
           </div>
         </form>
       </DialogContent>

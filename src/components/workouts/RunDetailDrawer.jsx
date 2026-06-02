@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
-import { Clock, MapPin, Heart, Mountain, Zap, Footprints, Pencil, Trash2, Activity } from 'lucide-react';
+import { Clock, MapPin, Zap, Footprints, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
 import WorkoutComments from '@/components/workouts/WorkoutComments';
@@ -29,19 +29,13 @@ const RUN_TYPE_LABELS = {
 const feelingEmojis = { great: '🔥', good: '💪', okay: '👌', tired: '😓', exhausted: '😵' };
 
 export default function RunDetailDrawer({ workout, open, onClose, onEdit, onDelete }) {
-  const { toDisplay, label, paceLabel, convertPaceLabel, toDisplayElevation, elevationLabel } = useUnits();
+  const { toDisplay, label, paceLabel, convertPaceLabel } = useUnits();
   if (!workout) return null;
 
   const metrics = [
     { icon: MapPin, label: 'Distance', value: workout.distance_km ? `${toDisplay(workout.distance_km)} ${label}` : null },
     { icon: Clock, label: 'Duration', value: workout.duration_minutes ? `${workout.duration_minutes} min` : null },
     { icon: Zap, label: 'Avg Pace', value: workout.avg_pace ? `${convertPaceLabel(workout.avg_pace)} ${paceLabel}` : null },
-    { icon: Zap, label: 'Best Pace', value: workout.best_pace ? `${convertPaceLabel(workout.best_pace)} ${paceLabel}` : null },
-    { icon: Heart, label: 'Avg HR', value: workout.avg_heart_rate ? `${workout.avg_heart_rate} bpm` : null },
-    { icon: Heart, label: 'Max HR', value: workout.max_heart_rate ? `${workout.max_heart_rate} bpm` : null },
-    { icon: Activity, label: 'Cadence', value: workout.cadence ? `${workout.cadence} spm` : null },
-    { icon: Mountain, label: 'Elevation', value: workout.elevation_gain ? `${toDisplayElevation(workout.elevation_gain)} ${elevationLabel}` : null },
-    { icon: Zap, label: 'Calories', value: workout.calories ? `${workout.calories} kcal` : null },
     { icon: Footprints, label: 'RPE', value: workout.perceived_effort ? `${workout.perceived_effort}/10` : null },
   ].filter(m => m.value);
 
@@ -97,25 +91,6 @@ export default function RunDetailDrawer({ workout, open, onClose, onEdit, onDele
             <div>
               <p className="text-xs text-muted-foreground mb-1">Shoes</p>
               <p className="text-sm font-medium">{workout.shoes}</p>
-            </div>
-          )}
-
-          {/* Splits */}
-          {workout.splits && workout.splits.length > 0 && (
-            <div>
-              <p className="text-sm font-semibold mb-2">Splits</p>
-              <div className="rounded-xl border overflow-hidden">
-                <div className="grid grid-cols-3 gap-0 bg-muted px-3 py-2 text-xs text-muted-foreground font-medium">
-                  <span>{label.toUpperCase()}</span><span>Pace</span><span>HR</span>
-                </div>
-                {workout.splits.map((s, i) => (
-                  <div key={i} className={cn('grid grid-cols-3 gap-0 px-3 py-2 text-sm', i % 2 === 0 ? 'bg-card' : 'bg-muted/30')}>
-                    <span className="font-medium">{toDisplay(s.km)}</span>
-                    <span>{s.pace ? convertPaceLabel(s.pace) : '—'}</span>
-                    <span className="text-muted-foreground">{s.heart_rate || '—'}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
 
