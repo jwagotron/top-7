@@ -45,7 +45,7 @@ function dayLabel(dateObj) {
 
 export default function Dashboard() {
   const { role, canPreview } = useRole();
-  const { user, refetchUser } = useAuth();
+  const { user, refetchUser, isLoadingAuth } = useAuth();
   const { athleteEmail, plannedWorkouts, activePlan, isLoading } = useAssignedPlan();
   const { completions, completeMut } = useCompletions(athleteEmail);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
@@ -65,8 +65,8 @@ export default function Dashboard() {
     staleTime: 0,
     refetchOnMount: 'always',
   });
-  // Suppress JoinTeamCTA while memberships are loading to avoid flashing it for existing members
-  const hasTeam = isLoadingMemberships || memberships.length > 0 || !!user?.team_id || !!user?.coach_email;
+  // Suppress JoinTeamCTA while auth or memberships are still loading to avoid false "no team" flash
+  const hasTeam = isLoadingAuth || isLoadingMemberships || memberships.length > 0 || !!user?.team_id || !!user?.coach_email;
 
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
@@ -78,6 +78,21 @@ export default function Dashboard() {
   });
 
   const { toDisplay, label, convertPaceLabel, paceLabel } = useUnits();
+
+  // ── Console diagnostics ───────────────────────────────────────────────────
+  React.useEffect(() => {
+    console.log('[Dashboard:state]', {
+      userEmail: user?.email ?? 'not loaded',
+      role,
+      isLoadingAuth,
+      membershipsCount: memberships.length,
+      hasTeam,
+      plannedWorkoutsCount: plannedWorkouts.length,
+      completionsCount: completions.length,
+      thisWeekWorkoutsCount: thisWeekWorkouts.length,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email, role, memberships.length, plannedWorkouts.length, completions.length, hasTeam]);
   const totalDistanceKm = thisWeekWorkouts.reduce((s, w) => s + (w.distance_km || 0), 0);
   const totalDistance = toDisplay(totalDistanceKm);
   const totalDuration = thisWeekWorkouts.reduce((s, w) => s + (w.duration_minutes || 0), 0);

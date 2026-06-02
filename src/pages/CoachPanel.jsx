@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -86,30 +86,48 @@ export default function CoachPanel() {
   // Emails to fetch completions for: single athlete or all team athletes
   const targetEmails = selectedAthleteEmail ? [selectedAthleteEmail] : athleteEmails;
 
-  // Fetch completions directly per athlete — same pattern as AthleteProfile (confirmed working)
+  // Fetch completions via service-role backend function — bypasses RLS (athletes can't be read by coaches directly)
+  // Key starts with 'coach-completions' so useCompletions.onSettled invalidation hits it automatically
   const { data: coachCompletions = [], isLoading: isLoadingCompletions } = useQuery({
-    queryKey: ['coach-completions-direct', effectiveTeamId, targetEmails.join(',')],
+    queryKey: ['coach-completions', effectiveTeamId, targetEmails.join(',')],
     queryFn: async () => {
       if (!targetEmails.length) return [];
-      const results = await Promise.all(
-        targetEmails.map(email =>
-          base44.entities.WorkoutCompletion.filter({ athlete_email: email }, '-completed_at', 300)
-        )
-      );
-      return results.flat();
+      const res = await base44.functions.invoke('getTeamCompletions', { athlete_emails: targetEmails });
+      const completions = res.data?.completions || [];
+      console.log('[CoachPanel] fetched completions via service-role:', completions.length, 'for team:', effectiveTeamId);
+      return completions;
     },
     enabled: !!effectiveTeamId && targetEmails.length > 0,
-    staleTime: 10000,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
-  // Real-time: when any PlannedWorkout changes, refresh both planned workouts and completions
-  React.useEffect(() => {
-    const unsub = base44.entities.PlannedWorkout.subscribe(() => {
-      qc.invalidateQueries({ queryKey: ['planned-workouts'] });
-      qc.invalidateQueries({ queryKey: ['coach-completions-direct'] });
+  // ── Console diagnostics ───────────────────────────────────────────────────
+  useEffect(() => {
+    console.log('[CoachPanel:state]', {
+      coachEmail: user?.email ?? 'not loaded',
+      selectedTeamId: effectiveTeamId ?? 'none',
+      rosterCount: activeMembers.length,
+      assignmentCount: plannedWorkouts.length,
+      completionCount: coachCompletions.length,
+      stats,
     });
-    return unsub;
-  }, [qc]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email, effectiveTeamId, activeMembers.length, plannedWorkouts.length, coachCompletions.length]);
+
+  // Real-time: re-fetch when any PlannedWorkout or WorkoutCompletion changes
+  useEffect(() => {
+    const unsubPW = base44.entities.PlannedWorkout.subscribe(() => {
+      console.log('[CoachPanel] PlannedWorkout change → invalidating');
+      qc.invalidateQueries({ queryKey: ['planned-workouts'] });
+      qc.invalidateQueries({ queryKey: ['coach-completions'] });
+    });
+    const unsubWC = base44.entities.WorkoutCompletion.subscribe(() => {
+      console.log('[CoachPanel] WorkoutCompletion change → invalidating coach-completions');
+      qc.invalidateQueries({ queryKey: ['coach-completions'] });
+    });
+    return () => { unsubPW(); unsubWC(); };
+  }, [qc]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Only fetch planned workouts for athletes on THIS team — prevents cross-team data leakage
   const { data: plannedWorkouts = [], isLoading } = useQuery({

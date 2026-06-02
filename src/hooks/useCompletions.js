@@ -23,13 +23,15 @@ export function useCompletions(athleteEmail) {
     enabled: true, // Always enabled—fetch all or filter by athlete
   });
 
-  // Real-time updates
+  // Real-time updates — invalidate own completions and coach-side queries
   useEffect(() => {
     if (!athleteEmail) return;
-    const unsubscribe = base44.entities.WorkoutCompletion.subscribe(() => {
+    const unsub = base44.entities.WorkoutCompletion.subscribe((event) => {
+      console.log('[useCompletions:realtime]', event.type, 'for athlete:', athleteEmail);
       qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
+      qc.invalidateQueries({ queryKey: ['coach-completions'] });
     });
-    return unsubscribe;
+    return unsub;
   }, [athleteEmail, qc]);
 
   const completeMut = useMutation({
@@ -95,7 +97,9 @@ export function useCompletions(athleteEmail) {
       // Invalidate all coach-side data so coach stats refresh immediately when athlete completes a workout
       qc.invalidateQueries({ queryKey: ['planned-workouts'] });
       qc.invalidateQueries({ queryKey: ['my-plan-workouts'] });
-      qc.invalidateQueries({ queryKey: ['coach-completions-direct'] });
+      // 'coach-completions' prefix matches the coach panel query regardless of trailing teamId/emails segments
+      qc.invalidateQueries({ queryKey: ['coach-completions'] });
+      console.log('[useCompletions] onSettled: invalidated coach-completions for athlete:', athleteEmail);
     },
   });
 
