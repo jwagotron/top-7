@@ -102,19 +102,6 @@ export default function CoachPanel() {
     refetchOnWindowFocus: true,
   });
 
-  // ── Console diagnostics ───────────────────────────────────────────────────
-  useEffect(() => {
-    console.log('[CoachPanel:state]', {
-      coachEmail: user?.email ?? 'not loaded',
-      selectedTeamId: effectiveTeamId ?? 'none',
-      rosterCount: activeMembers.length,
-      assignmentCount: plannedWorkouts.length,
-      completionCount: coachCompletions.length,
-      stats,
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.email, effectiveTeamId, activeMembers.length, plannedWorkouts.length, coachCompletions.length]);
-
   // Real-time: re-fetch when any PlannedWorkout or WorkoutCompletion changes
   useEffect(() => {
     const unsubPW = base44.entities.PlannedWorkout.subscribe(() => {
@@ -220,6 +207,19 @@ export default function CoachPanel() {
   };
 
   const isStatsLoading = isLoading || isLoadingCompletions;
+
+  // ── Console diagnostics (after all variables are declared) ───────────────
+  useEffect(() => {
+    console.log('[CoachPanel:state]', {
+      coachEmail: user?.email ?? 'not loaded',
+      selectedTeamId: effectiveTeamId ?? 'none',
+      rosterCount: activeMembers.length,
+      assignmentCount: plannedWorkouts.length,
+      completionCount: coachCompletions.length,
+      stats,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email, effectiveTeamId, activeMembers.length, plannedWorkouts.length, coachCompletions.length]);
 
   return (
       <div className="min-h-screen bg-background">
