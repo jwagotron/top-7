@@ -45,9 +45,7 @@ export default function CoachPanel() {
   const { data: myTeams = [], refetch: refetchTeams } = useQuery({
     queryKey: ['my-teams', user?.email],
     queryFn: async () => {
-      console.log('[CoachPanel] fetching teams for email:', user?.email, 'id:', user?.id);
       const teams = await base44.entities.Team.filter({ coach_email: user?.email });
-      console.log('[CoachPanel] teams found by coach_email:', teams.length, teams.map(t => t.id));
       return teams.filter(t => t.status !== 'archived');
     },
     enabled: !!user?.email,
@@ -63,10 +61,8 @@ export default function CoachPanel() {
   const { data: rosterData = {}, isLoading: isLoadingMembers } = useQuery({
     queryKey: ['team-roster', effectiveTeamId],
     queryFn: async () => {
-      console.log('[CoachPanel] fetching roster for team:', effectiveTeamId, 'coach:', user?.email);
       const res = await base44.functions.invoke('getTeamRoster', { team_id: effectiveTeamId });
       const memberships = res.data?.memberships || [];
-      console.log('[CoachPanel] roster loaded:', memberships.length, '| active:', memberships.filter(m => m.status === 'active').length);
       return { memberships };
     },
     enabled: !!effectiveTeamId,
@@ -109,7 +105,6 @@ export default function CoachPanel() {
   // Real-time: when any PlannedWorkout changes, refresh both planned workouts and completions
   React.useEffect(() => {
     const unsub = base44.entities.PlannedWorkout.subscribe(() => {
-      console.log('[CoachPanel] PlannedWorkout change — invalidating planned-workouts + coach-completions');
       qc.invalidateQueries({ queryKey: ['planned-workouts'] });
       qc.invalidateQueries({ queryKey: ['coach-completions-direct'] });
     });
@@ -145,39 +140,25 @@ export default function CoachPanel() {
   };
 
   const createMut = useMutation({
-    mutationFn: (d) => {
-      console.log('[assign] saving workout(s)', d);
-      return Array.isArray(d)
-        ? base44.entities.PlannedWorkout.bulkCreate(d)
-        : base44.entities.PlannedWorkout.create(d);
-    },
-    onSuccess: (result) => {
-      console.log('[assign] success', result);
+    mutationFn: (d) => Array.isArray(d)
+      ? base44.entities.PlannedWorkout.bulkCreate(d)
+      : base44.entities.PlannedWorkout.create(d),
+    onSuccess: () => {
       invalidatePlanned();
       setShowForm(false);
       toast.success('Workout assigned!');
     },
-    onError: (err) => {
-      console.error('[assign] failed', err);
-      toast.error('Could not assign workout. Try again.');
-    },
+    onError: () => toast.error('Could not assign workout. Try again.'),
   });
 
   const updateMut = useMutation({
-    mutationFn: ({ id, data }) => {
-      console.log('[assign] updating workout', id, data);
-      return base44.entities.PlannedWorkout.update(id, data);
-    },
+    mutationFn: ({ id, data }) => base44.entities.PlannedWorkout.update(id, data),
     onSuccess: () => {
-      console.log('[assign] update success');
       invalidatePlanned();
       setEditingWorkout(null);
       toast.success('Workout updated!');
     },
-    onError: (err) => {
-      console.error('[assign] update failed', err);
-      toast.error('Could not update workout. Try again.');
-    },
+    onError: () => toast.error('Could not update workout. Try again.'),
   });
 
   const deleteMut = useMutation({
@@ -202,7 +183,6 @@ export default function CoachPanel() {
     const d = parseDateOnly(w.scheduled_date);
     return d >= mStart && d <= mEnd;
   });
-  // Single source of truth — all derived stats computed here, used by BOTH debug panel and stat cards
   const coachCompletedIds = new Set(
     coachCompletions
       .filter(c => c.status === 'completed')
@@ -222,17 +202,6 @@ export default function CoachPanel() {
   };
 
   const isStatsLoading = isLoading || isLoadingCompletions;
-
-  console.log('[CoachPanel] ── STATS DEBUG ──');
-  console.log('[CoachPanel] teamId:', effectiveTeamId, '| athleteFilter:', athleteFilter);
-  console.log('[CoachPanel] targetEmails:', targetEmails);
-  console.log('[CoachPanel] month:', format(mStart, 'yyyy-MM-dd'), '→', format(mEnd, 'yyyy-MM-dd'));
-  console.log('[CoachPanel] plannedWorkouts total:', plannedWorkouts.length, '| filteredWorkouts:', filteredWorkouts.length, '| monthWorkouts:', monthWorkouts.length);
-  console.log('[CoachPanel] coachCompletions loaded:', coachCompletions.length);
-  console.log('[CoachPanel] monthAssignmentIds:', monthAssignmentIds);
-  console.log('[CoachPanel] completedWorkoutIds:', allCompletionWorkoutIds);
-  console.log('[CoachPanel] matchedCompletedIds:', matchedCompletedIds);
-  console.log('[CoachPanel] stats:', stats);
 
   return (
       <div className="min-h-screen bg-background">
@@ -312,30 +281,7 @@ export default function CoachPanel() {
 
               {/* WORKOUTS TAB */}
               <TabsContent value="workouts" className="space-y-4 mt-0">
-                {/* Debug panel */}
-                <details className="text-xs bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3" open>
-                  <summary className="cursor-pointer text-amber-700 dark:text-amber-400 font-semibold text-xs">🔍 Roster Debug (temporary)</summary>
-                  <div className="mt-2 space-y-0.5 font-mono text-[11px] text-amber-800 dark:text-amber-300">
-                    <div className="font-bold border-b border-amber-300 dark:border-amber-700 pb-1 mb-1">Identity</div>
-                    <div>user.id: <span className="font-bold">{user?.id || 'NONE'}</span></div>
-                    <div>user.email: <span className="font-bold">{user?.email || 'NONE'}</span></div>
-                    <div className="font-bold border-b border-amber-300 dark:border-amber-700 pb-1 mb-1 mt-2">Team</div>
-                    <div>selectedTeam.id: <span className="font-bold">{effectiveTeamId || 'NONE'}</span></div>
-                    <div>Team name: <span className="font-bold">{selectedTeam?.name || 'NONE'}</span></div>
-                    <div>Teams found: <span className="font-bold">{myTeams.length}</span> ({myTeams.map(t => t.name).join(', ') || 'none'})</div>
-                    <div className="font-bold border-b border-amber-300 dark:border-amber-700 pb-1 mb-1 mt-2">Roster (via getTeamRoster backend fn)</div>
-                    <div>TeamMembership records loaded: <span className="font-bold">{isLoadingMembers ? 'loading…' : members.length}</span></div>
-                    <div>Approved memberships count: <span className="font-bold">{activeMembers.length}</span></div>
-                    <div>Pending memberships: <span className="font-bold">{nonCoachMembers.filter(m => m.status === 'pending').length}</span></div>
-                    <div>Approved athlete emails: <span className="font-bold">{athleteEmails.length > 0 ? athleteEmails.join(', ') : 'NONE'}</span></div>
-                    <div>Resolved athlete rows: <span className="font-bold">{normalizedAthletes.length}</span> ({normalizedAthletes.map(a => a.full_name || a.email).join(', ') || 'none'})</div>
-                    <div className="font-bold border-b border-amber-300 dark:border-amber-700 pb-1 mb-1 mt-2">Workout Stats ({format(mStart, 'MMM yyyy')})</div>
-                    <div>Target emails: <span className="font-bold">{targetEmails.join(', ') || 'NONE'}</span></div>
-                    <div>Assigned: <span className="font-bold">{stats.assigned}</span> | Completed: <span className="font-bold">{stats.completed}</span> | Rate: <span className="font-bold">{stats.rate}%</span></div>
-                  </div>
-                </details>
-
-                {/* Stats — single source: stats object, same as debug panel */}
+                {/* Stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {isStatsLoading ? (
                     Array.from({ length: 4 }).map((_, i) => (
