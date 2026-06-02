@@ -54,12 +54,14 @@ export default function CoachPanel() {
   const selectedTeam = myTeams.find(t => t.id === selectedTeamId) || myTeams[0] || null;
   const effectiveTeamId = selectedTeam?.id;
 
-  // Fetch ALL members of selected team (including pending) — single source of truth
-  const { data: members = [] } = useQuery({
+  // Fetch ALL members of selected team (including pending) — always fresh, no stale cache
+  const { data: members = [], isLoading: isLoadingMembers } = useQuery({
     queryKey: ['memberships', effectiveTeamId],
     queryFn: () => base44.entities.TeamMembership.filter({ team_id: effectiveTeamId }),
     enabled: !!effectiveTeamId,
-    staleTime: 15000,
+    staleTime: 0,          // always consider stale — re-fetch on every mount
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Exclude the coach themselves
@@ -295,18 +297,20 @@ export default function CoachPanel() {
               {/* WORKOUTS TAB */}
               <TabsContent value="workouts" className="space-y-4 mt-0">
                 {/* Debug panel */}
-                <details className="text-xs bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
+                <details className="text-xs bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3" open>
                   <summary className="cursor-pointer text-amber-700 dark:text-amber-400 font-semibold text-xs">🔍 Debug Info (temporary)</summary>
                   <div className="mt-2 space-y-0.5 font-mono text-[11px] text-amber-800 dark:text-amber-300">
+                    <div>Source entity: <span className="font-bold">TeamMembership</span></div>
                     <div>Team ID: <span className="font-bold">{effectiveTeamId || 'NONE'}</span></div>
-                    <div>Selected athlete: <span className="font-bold">{athleteFilter}</span> | Target emails: <span className="font-bold">{targetEmails.join(', ') || 'NONE'}</span></div>
+                    <div>Members loaded: <span className="font-bold">{isLoadingMembers ? 'loading…' : members.length}</span> (all statuses)</div>
+                    <div>Approved athletes: <span className="font-bold">{activeMembers.length}</span></div>
+                    <div>Approved emails: <span className="font-bold">{athleteEmails.length > 0 ? athleteEmails.join(', ') : 'NONE'}</span></div>
+                    <div>Selected athlete filter: <span className="font-bold">{athleteFilter}</span> | Target emails: <span className="font-bold">{targetEmails.join(', ') || 'NONE'}</span></div>
                     <div>Date range: <span className="font-bold">{format(mStart, 'yyyy-MM-dd')} → {format(mEnd, 'yyyy-MM-dd')}</span></div>
                     <div>Assignments (all): <span className="font-bold">{filteredWorkouts.length}</span> | This month: <span className="font-bold">{stats.assigned}</span></div>
-                    <div>Completions loaded: <span className="font-bold">{coachCompletions.length}</span> (completed status: {coachCompletions.filter(c => c.status==='completed').length})</div>
-                    <div>Month assignment IDs: [{monthAssignmentIds.map(id => id.slice(0,8)).join(', ')}]</div>
-                    <div>Completed workout IDs: [{allCompletionWorkoutIds.map(id => id?.slice(0,8)).join(', ')}]</div>
-                    <div>Matched: [{matchedCompletedIds.map(id => id.slice(0,8)).join(', ')}]</div>
-                    <div className="font-bold text-amber-900 dark:text-amber-200 pt-1 border-t border-amber-300 dark:border-amber-700">→ Assigned: {stats.assigned} | Completed: {stats.completed} | Remaining: {stats.remaining} | Rate: {stats.rate}%</div>
+                    <div>Completions loaded: <span className="font-bold">{coachCompletions.length}</span> (completed: {coachCompletions.filter(c => c.status==='completed').length})</div>
+                    <div>Matched completed IDs: [{matchedCompletedIds.map(id => id.slice(0,8)).join(', ')}]</div>
+                    <div className="font-bold text-amber-900 dark:text-amber-200 pt-1 border-t border-amber-300 dark:border-amber-700">→ Assigned: {stats.assigned} | Completed: {stats.completed} | Rate: {stats.rate}%</div>
                   </div>
                 </details>
 
