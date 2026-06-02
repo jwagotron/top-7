@@ -13,10 +13,9 @@
         "800m",
         "1600m",
         "1mile",
+        "3200m",
         "5k",
-        "8k",
         "10k",
-        "10mile",
         "half_marathon",
         "marathon"
       ],
@@ -42,7 +41,7 @@
     },
     "notes": {
       "type": "string",
-      "description": "Optional notes (race name, conditions, etc.)"
+      "description": "Optional notes (race name, location, conditions, etc.)"
     },
     "is_override": {
       "type": "boolean",
