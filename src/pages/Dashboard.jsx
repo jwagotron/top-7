@@ -146,8 +146,50 @@ export default function Dashboard() {
   const todayCompletion = todayWorkout ? completions.find(c => c.planned_workout_id === todayWorkout.id) : null;
   const todayDone = !!todayCompletion;
 
-  // Recent completed workouts
-  const recentWorkouts = [...workouts]
+  // Build a unified list of workout-like objects from completions (same source as stat cards)
+  // This is used by WeeklyChart and Recent Activity so all widgets share one data source.
+  const completedWorkoutItems = [
+    // Manual Workout entity records this week
+    ...thisWeekWorkouts,
+    // Unlogged completions represented as workout-like objects using planned workout details
+    ...unloggedCompletions.map(pw => {
+      const completion = completedPlannedThisWeek.find(c => c.planned_workout_id === pw.id);
+      return {
+        id: pw.id,
+        title: pw.title,
+        sport: pw.sport,
+        date: completion?.scheduled_date || pw.scheduled_date,
+        distance_km: pw.target_distance_km || 0,
+        duration_minutes: pw.target_duration_minutes || 0,
+        intensity: pw.intensity,
+        planned_workout_id: pw.id,
+        _fromCompletion: true,
+      };
+    }),
+  ];
+
+  // Recent activity: all-time manual workouts + recently completed planned workouts (not just this week)
+  const recentCompletedPlanned = completions
+    .filter(c => c.status === 'completed')
+    .map(c => {
+      const pw = plannedWorkouts.find(p => p.id === c.planned_workout_id);
+      if (!pw) return null;
+      // Skip if a manual workout already covers this planned workout
+      if (workouts.some(w => w.planned_workout_id === pw.id)) return null;
+      return {
+        id: pw.id,
+        title: pw.title,
+        sport: pw.sport,
+        date: c.scheduled_date || pw.scheduled_date,
+        distance_km: pw.target_distance_km || 0,
+        duration_minutes: pw.target_duration_minutes || 0,
+        intensity: pw.intensity,
+        _fromCompletion: true,
+      };
+    })
+    .filter(Boolean);
+
+  const recentWorkouts = [...workouts, ...recentCompletedPlanned]
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 6);
 
@@ -290,7 +332,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <WeeklyChart workouts={thisWeekWorkouts} />
+        <WeeklyChart workouts={completedWorkoutItems} />
 
         {/* Recent Activity */}
         <div className="rounded-2xl bg-muted/40 border border-border/30 shadow-sm">
