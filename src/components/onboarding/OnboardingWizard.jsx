@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LOGO_URL, APP_NAME } from '@/lib/branding';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dumbbell, Users } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -62,11 +63,7 @@ export default function OnboardingWizard() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg">
-            <img
-              src="https://media.base44.com/images/public/69c32a03dfe10b4cd6245abe/cbf2fa9c6_image.png"
-              alt="Logo"
-              className="w-full h-full object-cover"
-            />
+            <img src={LOGO_URL} alt={APP_NAME} className="w-full h-full object-cover" />
           </div>
         </div>
 

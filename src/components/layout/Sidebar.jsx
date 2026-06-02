@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LOGO_URL, APP_NAME } from '@/lib/branding';
 import { ChevronLeft, ChevronRight, Repeat2, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/lib/RoleContext';
@@ -98,14 +99,10 @@ export default function Sidebar({ collapsed, onToggle }) {
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
         <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
-          <img
-            src="https://media.base44.com/images/public/69c32a03dfe10b4cd6245abe/cbf2fa9c6_image.png"
-            alt="Top 7"
-            className="w-full h-full object-cover"
-          />
+          <img src={LOGO_URL} alt={APP_NAME} className="w-full h-full object-cover" />
         </div>
         {!collapsed && (
-          <span className="font-bold text-lg text-sidebar-primary-foreground tracking-tight">Top 7</span>
+          <span className="font-bold text-lg text-sidebar-primary-foreground tracking-tight">{APP_NAME}</span>
         )}
       </div>
 
