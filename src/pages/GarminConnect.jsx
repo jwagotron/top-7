@@ -85,8 +85,7 @@ export default function GarminConnect() {
       });
       qc.invalidateQueries({ queryKey: ['device-connections'] });
     }
-    // TODO: Redirect to Garmin OAuth — requires backend service
-    alert('Garmin OAuth requires backend credentials (GARMIN_CLIENT_ID, GARMIN_CLIENT_SECRET).\n\nUpgrade to Builder+ to enable backend functions and complete this flow.');
+    // OAuth redirect will be enabled once Garmin credentials are configured
   };
 
   const statusConfig = {

@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { Activity, Wifi, AlertCircle, Clock, RefreshCw, Shield, Pencil, Plus, Check, X } from 'lucide-react';
-import ReviewTestAccounts from '@/components/admin/ReviewTestAccounts';
+
 
 const statusDot = { success: 'bg-secondary', failed: 'bg-destructive', pending: 'bg-accent', duplicate: 'bg-muted-foreground' };
 
@@ -148,21 +148,7 @@ export default function AdminPanel() {
           ))}
         </div>
 
-        {/* Env config notice */}
-        <Card className="border-accent/30 bg-accent/5">
-          <CardContent className="p-4">
-            <p className="text-sm font-semibold text-accent mb-2">⚙️ Garmin Integration Config</p>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 text-xs font-mono text-muted-foreground">
-              {['GARMIN_CLIENT_ID', 'GARMIN_CLIENT_SECRET', 'GARMIN_WEBHOOK_SECRET', 'GARMIN_API_BASE_URL', 'GARMIN_REDIRECT_URI'].map(k => (
-                <div key={k} className="flex items-center justify-between bg-background rounded px-3 py-1.5 border border-border">
-                  <span>{k}</span>
-                  <Badge variant="outline" className="text-[10px]">NOT SET</Badge>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground mt-3">Set these as secrets/env vars once Garmin developer approval is obtained. Backend functions (Builder+) required.</p>
-          </CardContent>
-        </Card>
+
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full">
@@ -175,7 +161,6 @@ export default function AdminPanel() {
 
           {/* USERS TAB */}
           <TabsContent value="users" className="mt-4 space-y-4">
-            <ReviewTestAccounts />
             <p className="text-xs text-muted-foreground">{allUsers.length} total users</p>
             {allUsers.map(u => (
               <Card key={u.id}>
