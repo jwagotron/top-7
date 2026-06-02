@@ -59,28 +59,33 @@ export default function CoachPanel() {
   const selectedTeam = myTeams.find(t => t.id === selectedTeamId) || myTeams[0] || null;
   const effectiveTeamId = selectedTeam?.id;
 
-  // Fetch ALL members of selected team — always fresh
-  // RLS on TeamMembership allows reads where coach_email == user.email
-  const { data: members = [], isLoading: isLoadingMembers } = useQuery({
-    queryKey: ['memberships', effectiveTeamId],
+  // Fetch ALL members via backend function (service role) to bypass RLS gaps on old records
+  const { data: rosterData = {}, isLoading: isLoadingMembers } = useQuery({
+    queryKey: ['team-roster', effectiveTeamId],
     queryFn: async () => {
-      console.log('[CoachPanel] fetching memberships for team:', effectiveTeamId, 'coach:', user?.email);
-      const result = await base44.entities.TeamMembership.filter({ team_id: effectiveTeamId });
-      console.log('[CoachPanel] memberships found:', result.length, '| active:', result.filter(m => m.status === 'active').length);
-      return result;
+      console.log('[CoachPanel] fetching roster for team:', effectiveTeamId, 'coach:', user?.email);
+      const res = await base44.functions.invoke('getTeamRoster', { team_id: effectiveTeamId });
+      const memberships = res.data?.memberships || [];
+      console.log('[CoachPanel] roster loaded:', memberships.length, '| active:', memberships.filter(m => m.status === 'active').length);
+      return { memberships };
     },
     enabled: !!effectiveTeamId,
     staleTime: 0,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
   });
+  const members = rosterData.memberships || [];
 
-  // Exclude the coach themselves
-  const nonCoachMembers = members.filter(m => m.athlete_email !== user?.email);
+  // Exclude the coach themselves — support athlete_email, email, or athlete_id fields on older records
+  const resolveEmail = (m) => m.athlete_email || m.email || null;
+  const nonCoachMembers = members.filter(m => resolveEmail(m) !== user?.email);
   // Only active members are used for workout assignment
   const activeMembers = nonCoachMembers.filter(m => m.status === 'active');
-  const athleteEmails = activeMembers.map(m => m.athlete_email);
-  const normalizedAthletes = nonCoachMembers.map(m => ({ email: m.athlete_email, full_name: m.athlete_name }));
+  const athleteEmails = activeMembers.map(resolveEmail).filter(Boolean);
+  const normalizedAthletes = activeMembers.map(m => ({
+    email: resolveEmail(m),
+    full_name: m.athlete_name || m.full_name || resolveEmail(m),
+  }));
   const selectedAthleteEmail = athleteFilter !== 'all' ? athleteFilter : null;
   // Emails to fetch completions for: single athlete or all team athletes
   const targetEmails = selectedAthleteEmail ? [selectedAthleteEmail] : athleteEmails;
@@ -309,23 +314,24 @@ export default function CoachPanel() {
               <TabsContent value="workouts" className="space-y-4 mt-0">
                 {/* Debug panel */}
                 <details className="text-xs bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3" open>
-                  <summary className="cursor-pointer text-amber-700 dark:text-amber-400 font-semibold text-xs">🔍 Debug Info (temporary)</summary>
+                  <summary className="cursor-pointer text-amber-700 dark:text-amber-400 font-semibold text-xs">🔍 Roster Debug (temporary)</summary>
                   <div className="mt-2 space-y-0.5 font-mono text-[11px] text-amber-800 dark:text-amber-300">
                     <div className="font-bold border-b border-amber-300 dark:border-amber-700 pb-1 mb-1">Identity</div>
                     <div>user.id: <span className="font-bold">{user?.id || 'NONE'}</span></div>
                     <div>user.email: <span className="font-bold">{user?.email || 'NONE'}</span></div>
-                    <div className="font-bold border-b border-amber-300 dark:border-amber-700 pb-1 mb-1 mt-2">Team Lookup (source: Team entity, field: coach_email)</div>
-                    <div>Selected team ID: <span className="font-bold">{effectiveTeamId || 'NONE'}</span></div>
-                    <div>Teams found by coach_email: <span className="font-bold">{myTeams.length}</span> ({myTeams.map(t => t.name).join(', ') || 'none'})</div>
-                    <div className="font-bold border-b border-amber-300 dark:border-amber-700 pb-1 mb-1 mt-2">Membership Lookup (source: TeamMembership entity, field: team_id + coach_email RLS)</div>
-                    <div>Memberships loaded: <span className="font-bold">{isLoadingMembers ? 'loading…' : members.length}</span> (all statuses)</div>
-                    <div>Approved athletes: <span className="font-bold">{activeMembers.length}</span></div>
-                    <div>Approved emails: <span className="font-bold">{athleteEmails.length > 0 ? athleteEmails.join(', ') : 'NONE — check coach_email on membership records'}</span></div>
-                    <div>Pending members: <span className="font-bold">{nonCoachMembers.filter(m => m.status === 'pending').length}</span></div>
-                    <div className="font-bold border-b border-amber-300 dark:border-amber-700 pb-1 mb-1 mt-2">Workout Stats</div>
-                    <div>Target emails for completions: <span className="font-bold">{targetEmails.join(', ') || 'NONE'}</span></div>
-                    <div>Date range: <span className="font-bold">{format(mStart, 'yyyy-MM-dd')} → {format(mEnd, 'yyyy-MM-dd')}</span></div>
-                    <div>Assignments this month: <span className="font-bold">{stats.assigned}</span> | Completions: <span className="font-bold">{stats.completed}</span> | Rate: <span className="font-bold">{stats.rate}%</span></div>
+                    <div className="font-bold border-b border-amber-300 dark:border-amber-700 pb-1 mb-1 mt-2">Team</div>
+                    <div>selectedTeam.id: <span className="font-bold">{effectiveTeamId || 'NONE'}</span></div>
+                    <div>Team name: <span className="font-bold">{selectedTeam?.name || 'NONE'}</span></div>
+                    <div>Teams found: <span className="font-bold">{myTeams.length}</span> ({myTeams.map(t => t.name).join(', ') || 'none'})</div>
+                    <div className="font-bold border-b border-amber-300 dark:border-amber-700 pb-1 mb-1 mt-2">Roster (via getTeamRoster backend fn)</div>
+                    <div>TeamMembership records loaded: <span className="font-bold">{isLoadingMembers ? 'loading…' : members.length}</span></div>
+                    <div>Approved memberships count: <span className="font-bold">{activeMembers.length}</span></div>
+                    <div>Pending memberships: <span className="font-bold">{nonCoachMembers.filter(m => m.status === 'pending').length}</span></div>
+                    <div>Approved athlete emails: <span className="font-bold">{athleteEmails.length > 0 ? athleteEmails.join(', ') : 'NONE'}</span></div>
+                    <div>Resolved athlete rows: <span className="font-bold">{normalizedAthletes.length}</span> ({normalizedAthletes.map(a => a.full_name || a.email).join(', ') || 'none'})</div>
+                    <div className="font-bold border-b border-amber-300 dark:border-amber-700 pb-1 mb-1 mt-2">Workout Stats ({format(mStart, 'MMM yyyy')})</div>
+                    <div>Target emails: <span className="font-bold">{targetEmails.join(', ') || 'NONE'}</span></div>
+                    <div>Assigned: <span className="font-bold">{stats.assigned}</span> | Completed: <span className="font-bold">{stats.completed}</span> | Rate: <span className="font-bold">{stats.rate}%</span></div>
                   </div>
                 </details>
 
