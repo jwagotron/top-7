@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LOGO_URL, APP_NAME } from '@/lib/branding';
+import { APP_NAME } from '@/lib/branding';
+import AppLogo from '@/components/ui/AppLogo';
 import { ChevronLeft, ChevronRight, Repeat2, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/lib/RoleContext';
@@ -98,9 +99,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     )}>
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
-        <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
-          <img src={LOGO_URL} alt={APP_NAME} className="w-full h-full object-cover" />
-        </div>
+        <AppLogo className="w-9 h-9" rounded="rounded-xl" />
         {!collapsed && (
           <span className="font-bold text-lg text-sidebar-primary-foreground tracking-tight">{APP_NAME}</span>
         )}

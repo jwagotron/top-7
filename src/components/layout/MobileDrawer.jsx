@@ -1,5 +1,6 @@
 import React from 'react';
-import { LOGO_URL, APP_NAME } from '@/lib/branding';
+import { APP_NAME } from '@/lib/branding';
+import AppLogo from '@/components/ui/AppLogo';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { X, LogOut, HelpCircle, ChevronRight, Repeat2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -82,9 +83,7 @@ export default function MobileDrawer() {
           style={{ paddingTop: 'env(safe-area-inset-top)', minHeight: '4rem' }}
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-md">
-              <img src={LOGO_URL} alt={APP_NAME} className="w-full h-full object-cover" />
-            </div>
+            <AppLogo className="w-8 h-8" rounded="rounded-xl" />
             <div>
               <span className="font-bold text-[15px] text-sidebar-foreground tracking-tight block leading-tight">{APP_NAME}</span>
               <span className="text-[10px] text-sidebar-foreground/40 uppercase tracking-widest capitalize">{user?.role === 'admin' ? 'admin' : (user?.user_type || role || 'athlete')} mode</span>
