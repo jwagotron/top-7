@@ -1,12 +1,10 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
-import { Suspense, lazy, useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import PageNotFound from './lib/PageNotFound';
-import { Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from '@/components/layout/AppLayout';
@@ -17,6 +15,11 @@ import JoinTeam from '@/pages/JoinTeam';
 import ErrorBoundary from '@/lib/ErrorBoundary';
 import { base44 } from '@/api/base44Client';
 import { UserImpersonationProvider } from '@/lib/UserImpersonationContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
 
 import Dashboard from '@/pages/Dashboard';
 const Workouts        = lazy(() => import('@/pages/Workouts'));
@@ -124,7 +127,6 @@ function AnimatedRoutes() {
               </div>
             }>
               <Routes location={location}>
-                <Route path="/join" element={<JoinTeam />} />
                 <Route element={<AppLayout />}>
                   <Route path="/plans"           element={<TrainingPlans />} />
                   <Route path="/activities"      element={<Activities />} />
@@ -141,7 +143,7 @@ function AnimatedRoutes() {
 }
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, isAuthenticated } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
   const { role } = useRole();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -152,21 +154,27 @@ const AuthenticatedApp = () => {
     );
   }
 
-  if (authError) {
-    if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
-    if (authError.type === 'auth_required') {
-      base44.auth.redirectToLogin();
-      return null;
-    }
-  }
+  if (authError?.type === 'user_not_registered') return <UserNotRegisteredError />;
 
-  // Block the entire app until a valid role exists (covers local dev + unauthenticated preview)
-  if (!role) {
-    return <OnboardingWizard />;
-  }
+  return (
+    <Routes>
+      {/* Public auth routes */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/join" element={<JoinTeam />} />
 
-  // Not authenticated or no role — show routes (join page is public)
-  return <AnimatedRoutes />;
+      {/* All app routes — gated by ProtectedRoute */}
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        {role ? (
+          <Route path="*" element={<AnimatedRoutes />} />
+        ) : (
+          <Route path="*" element={<OnboardingWizard />} />
+        )}
+      </Route>
+    </Routes>
+  );
 };
 
 function App() {
@@ -179,8 +187,8 @@ function App() {
               <QueryClientProvider client={queryClientInstance}>
                 <Router>
                   <AuthenticatedApp />
+                  <Toaster />
                 </Router>
-                <Toaster />
               </QueryClientProvider>
             </RoleProvider>
           </AuthProvider>
