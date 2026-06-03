@@ -57,10 +57,6 @@ export default function Analytics() {
 
   const totalDist = toDisplay(totalDistKm);
   const totalHrs  = Math.round(totalDurMins / 60 * 10) / 10;
-  const rpeWorkouts = filtered.filter(w => w.perceived_effort);
-  const avgRpe = rpeWorkouts.length > 0
-    ? Math.round(rpeWorkouts.reduce((s, w) => s + w.perceived_effort, 0) / rpeWorkouts.length * 10) / 10
-    : null;
   const longestRun = longestRunKm;
 
   return (
@@ -110,7 +106,7 @@ export default function Analytics() {
               <MetricCard icon={Activity} label="Workouts" value={filtered.length} color="text-primary" bg="bg-primary/10" />
               <MetricCard icon={TrendingUp} label="Distance" value={totalDist.toFixed(1)} unit={label} color="text-secondary" bg="bg-secondary/10" />
               <MetricCard icon={Zap} label="Total Hours" value={totalHrs} unit="hrs" color="text-accent" bg="bg-accent/10" />
-              <MetricCard icon={Zap} label="Avg Effort (RPE)" value={avgRpe} unit="/ 10" color="text-destructive" bg="bg-destructive/10" sub={rpeWorkouts.length > 0 ? `${rpeWorkouts.length} workouts rated` : 'No effort data yet'} />
+
             </div>
 
             {/* Best effort */}
@@ -143,46 +139,6 @@ export default function Analytics() {
 
           {/* === TRENDS TAB === */}
           <TabsContent value="trends" className="space-y-5 mt-0">
-            {/* Effort distribution */}
-            <Card className="rounded-2xl bg-muted/40 border border-border/30">
-              <CardHeader className="pb-2 px-5 pt-5">
-                <CardTitle className="text-base font-bold">How Hard Were Your Workouts?</CardTitle>
-                <p className="text-xs text-muted-foreground mt-1">Based on Perceived Effort (RPE) — how hard each workout felt on a scale of 1–10</p>
-              </CardHeader>
-              <CardContent className="space-y-2 pb-5">
-                {(() => {
-                  const zones = [
-                    { label: 'Very Easy', range: [1, 2], color: 'bg-secondary', textColor: 'text-secondary', emoji: '😴' },
-                    { label: 'Easy', range: [3, 4], color: 'bg-primary', textColor: 'text-primary', emoji: '🚶' },
-                    { label: 'Moderate', range: [5, 6], color: 'bg-accent', textColor: 'text-accent', emoji: '🏃' },
-                    { label: 'Hard', range: [7, 8], color: 'bg-orange-500', textColor: 'text-orange-500', emoji: '💪' },
-                    { label: 'Maximum', range: [9, 10], color: 'bg-destructive', textColor: 'text-destructive', emoji: '🔥' },
-                  ];
-                  const total = filtered.filter(w => w.perceived_effort).length;
-                  return zones.map(({ label: zoneLabel, range, color, textColor, emoji }) => {
-                    const count = filtered.filter(w => w.perceived_effort >= range[0] && w.perceived_effort <= range[1]).length;
-                    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-                    return (
-                      <div key={zoneLabel} className="flex items-center gap-3">
-                        <span className="text-base w-6 text-center shrink-0">{emoji}</span>
-                        <span className="text-xs font-medium w-20 shrink-0">{zoneLabel}</span>
-                        <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                          <div className={cn('h-2 rounded-full transition-all duration-500', color)} style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className={cn('text-xs font-bold w-10 text-right shrink-0', count > 0 ? textColor : 'text-muted-foreground/40')}>
-                          {count > 0 ? `${count}` : '—'}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground/50 w-8 text-right shrink-0">{count > 0 ? `${pct}%` : ''}</span>
-                      </div>
-                    );
-                  });
-                })()}
-                {filtered.filter(w => w.perceived_effort).length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">No effort data logged yet. Log RPE when completing workouts.</p>
-                )}
-              </CardContent>
-            </Card>
-
             {/* Weekly duration */}
             <Card className="rounded-2xl bg-muted/40 border border-border/30">
               <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">{isDaily ? 'Daily Training Time' : 'Weekly Training Time'}</CardTitle></CardHeader>
