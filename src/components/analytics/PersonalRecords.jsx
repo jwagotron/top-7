@@ -67,7 +67,7 @@ function PRDialog({ record, distanceKey, athleteEmail, onClose }) {
   });
 
   const deleteMut = useMutation({
-    mutationFn: () => base44.entities.PersonalRecord.delete(record.id),
+    mutationFn: (id) => base44.entities.PersonalRecord.delete(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['personal-records', athleteEmail] });
       onClose();
@@ -147,7 +147,7 @@ function PRDialog({ record, distanceKey, athleteEmail, onClose }) {
                 variant="ghost"
                 size="sm"
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={() => deleteMut.mutate()}
+                onClick={() => deleteMut.mutate(record.id)}
                 disabled={deleteMut.isPending}
               >
                 <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
