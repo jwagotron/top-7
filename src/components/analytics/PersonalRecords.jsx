@@ -16,7 +16,6 @@ import { format } from 'date-fns';
 export const DISTANCES = [
   { key: '400m',          label: '400m' },
   { key: '800m',          label: '800m' },
-  { key: '1600m',         label: '1,600m' },
   { key: '1mile',         label: '1 Mile' },
   { key: '3200m',         label: '3,200m / 2 Mile' },
   { key: '5k',            label: '5K' },
