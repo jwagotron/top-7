@@ -10,7 +10,7 @@ import {
 import { useUnits } from '@/hooks/useUnits';
 import { useAuth } from '@/lib/AuthContext';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
-import { Zap, TrendingUp, Activity, Flag } from 'lucide-react';
+import { Zap, TrendingUp, Activity, Flag } from 'lucide-react'; // TrendingUp still used in MetricCard
 import PersonalRecords from '@/components/analytics/PersonalRecords';
 import RacePredictor from '@/components/predictor/RacePredictor';
 import { cn } from '@/lib/utils';
@@ -93,7 +93,6 @@ export default function Analytics() {
           <div className="[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] overflow-x-auto mb-1">
             <TabsList className="flex w-max h-9">
               <TabsTrigger value="performance" className="text-xs px-4 whitespace-nowrap"><Zap className="w-3 h-3 mr-1" />Performance</TabsTrigger>
-              <TabsTrigger value="trends" className="text-xs px-4 whitespace-nowrap"><TrendingUp className="w-3 h-3 mr-1" />Trends</TabsTrigger>
               <TabsTrigger value="records" className="text-xs px-4 whitespace-nowrap"><Activity className="w-3 h-3 mr-1" />Records</TabsTrigger>
               <TabsTrigger value="predictor" className="text-xs px-4 whitespace-nowrap"><Flag className="w-3 h-3 mr-1" />Race Predictor</TabsTrigger>
             </TabsList>
@@ -135,11 +134,7 @@ export default function Analytics() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* === TRENDS TAB === */}
-          <TabsContent value="trends" className="space-y-5 mt-0">
-            {/* Weekly duration */}
+            {/* Weekly training time chart */}
             <Card className="rounded-2xl bg-muted/40 border border-border/30">
               <CardHeader className="pb-2 px-5 pt-5"><CardTitle className="text-base font-bold">{isDaily ? 'Daily Training Time' : 'Weekly Training Time'}</CardTitle></CardHeader>
               <CardContent>
