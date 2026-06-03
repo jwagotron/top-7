@@ -72,6 +72,11 @@ function PRDialog({ record, distanceKey, athleteEmail, onClose }) {
       qc.invalidateQueries({ queryKey: ['personal-records', athleteEmail] });
       onClose();
     },
+    onError: () => {
+      // Record may already be gone — refresh and close anyway
+      qc.invalidateQueries({ queryKey: ['personal-records', athleteEmail] });
+      onClose();
+    },
   });
 
   const handleSave = () => {
