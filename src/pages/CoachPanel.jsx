@@ -188,15 +188,17 @@ export default function CoachPanel() {
     const d = parseDateOnly(w.scheduled_date);
     return d >= mStart && d <= mEnd;
   });
+  // Only count completions for workouts that belong to THIS team
+  const teamWorkoutIds = new Set(plannedWorkouts.map(w => w.id));
+  const teamCompletions = coachCompletions.filter(c =>
+    c.planned_workout_id && teamWorkoutIds.has(c.planned_workout_id)
+  );
   const coachCompletedIds = new Set(
-    coachCompletions
+    teamCompletions
       .filter(c => c.status === 'completed')
-      .flatMap(c => [c.planned_workout_id, c.workout_id, c.assignment_id].filter(Boolean))
+      .map(c => c.planned_workout_id)
   );
   const monthAssignmentIds = monthWorkouts.map(w => w.id);
-  const allCompletionWorkoutIds = coachCompletions.filter(c => c.status === 'completed').flatMap(c =>
-    [c.planned_workout_id, c.workout_id, c.assignment_id].filter(Boolean)
-  );
   const matchedCompletedIds = monthAssignmentIds.filter(id => coachCompletedIds.has(id));
 
   const stats = {
@@ -345,7 +347,7 @@ export default function CoachPanel() {
                   </SelectContent>
                 </Select>
 
-                <CompletionOverview plannedWorkouts={filteredWorkouts} completions={coachCompletions} athleteFilter={athleteFilter} mStart={mStart} mEnd={mEnd} />
+                <CompletionOverview plannedWorkouts={filteredWorkouts} completions={teamCompletions} athleteFilter={athleteFilter} mStart={mStart} mEnd={mEnd} />
 
                 <div className="grid lg:grid-cols-3 gap-4">
                   <div className="lg:col-span-2">
@@ -358,7 +360,7 @@ export default function CoachPanel() {
                         currentMonth={currentMonth}
                         onMonthChange={handleMonthChange}
                         plannedWorkouts={filteredWorkouts}
-                        completions={coachCompletions}
+                        completions={teamCompletions}
                         selectedDate={selectedDate}
                         onSelectDate={setSelectedDate}
                         permissions={{ canAssign: true, canComplete: false }}
@@ -369,7 +371,7 @@ export default function CoachPanel() {
                   <DayWorkoutList
                     date={selectedDate}
                     workouts={dayWorkouts}
-                    completions={coachCompletions}
+                    completions={teamCompletions}
                     onEdit={setEditingWorkout}
                     onDelete={(id) => deleteMut.mutate(id)}
                   />
