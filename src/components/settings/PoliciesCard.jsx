@@ -66,33 +66,6 @@ We may update these terms from time to time. Continued use of the App constitute
 legal@top7.app`,
   },
   {
-    id: 'garmin',
-    title: 'Garmin API Compliance Policy',
-    lastUpdated: 'April 2025',
-    content: `Top7 integrates with the Garmin Health API. This policy describes how we comply with Garmin's developer requirements.
-
-**Data Use**
-We access only the Garmin data scopes necessary to operate the App: activity summaries, heart rate, GPS/distance data, and workout delivery. We do not request scopes beyond what is required.
-
-**Data Storage**
-Garmin activity data is stored securely and associated only with the authenticated user who authorized the connection. Data is not shared with third parties, sold, or used for advertising.
-
-**User Control**
-Users can disconnect their Garmin account at any time from the Garmin Connect page. Upon disconnection, we stop receiving new data. Users may request deletion of previously synced data via Account Settings.
-
-**Security**
-All data is transmitted over HTTPS. Garmin OAuth tokens are stored securely server-side and never exposed to the client. Webhook payloads are validated using Garmin's HMAC signature verification.
-
-**No Reverse Engineering**
-We do not attempt to reverse-engineer, scrape, or access Garmin systems outside of the documented Garmin Health API.
-
-**Compliance Updates**
-We monitor Garmin developer policy updates and update our practices accordingly. Last reviewed: April 2025.
-
-**Contact**
-For Garmin-related data requests: privacy@top7.app`,
-  },
-  {
     id: 'data-deletion',
     title: 'Data Deletion Policy',
     lastUpdated: 'April 2025',
@@ -155,7 +128,7 @@ export default function PoliciesCard() {
       </CardHeader>
       <CardContent className="space-y-2">
         <p className="text-xs text-muted-foreground mb-3">
-          Review our privacy, terms, and compliance policies — including Garmin API requirements.
+          Review our privacy policy, terms of service, and data deletion rights.
         </p>
         {POLICIES.map(p => (
           <PolicySection key={p.id} policy={p} />
