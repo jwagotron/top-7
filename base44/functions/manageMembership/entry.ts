@@ -20,6 +20,16 @@ Deno.serve(async (req) => {
     const membership = memberships[0];
     console.log('[manageMembership] membership found', { coach_email: membership.coach_email, team_id: membership.team_id, athlete_email: membership.athlete_email });
 
+    // Allow athlete to leave their own membership
+    if (action === 'leave') {
+      if (membership.athlete_email !== user.email) {
+        return Response.json({ error: 'You can only leave your own membership' }, { status: 403 });
+      }
+      await base44.asServiceRole.entities.TeamMembership.update(membership_id, { status: 'removed' });
+      console.log('[manageMembership] athlete left', { membership_id, athlete_email: user.email });
+      return Response.json({ success: true, status: 'removed' });
+    }
+
     // Verify the requesting user is the coach of this team OR an admin
     if (user.role !== 'admin' && membership.coach_email !== user.email) {
       console.log('[manageMembership] forbidden', { user_email: user.email, coach_email: membership.coach_email, user_role: user.role });

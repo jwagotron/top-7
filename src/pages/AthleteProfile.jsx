@@ -260,29 +260,31 @@ export default function AthleteProfile() {
           </div>
         </div>
 
-        {/* Stat cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard
-            icon={CalendarCheck} label="Completed" value={completedIds.size}
-            sub={`of ${pastWorkouts.length} workouts`}
-            color="text-secondary" bg="bg-secondary/10"
-          />
-          <StatCard
-            icon={MapPin} label="Total Distance" value={totalDistance > 0 ? `${totalDistance.toFixed(1)} ${label}` : '—'}
-            sub={`logged ${label}`}
-            color="text-primary" bg="bg-primary/10"
-          />
-          <StatCard
-            icon={Flame} label="Streak" value={streak}
-            sub={streak === 1 ? 'workout in a row' : 'workouts in a row'}
-            color="text-accent" bg="bg-accent/10"
-          />
-          <StatCard
-            icon={Heart} label="Avg RPE" value={avgRpe}
-            sub="rate of perceived effort"
-            color="text-destructive" bg="bg-destructive/10"
-          />
-        </div>
+        {/* Stat cards — only show when athlete has real workout data */}
+        {pastWorkouts.length > 0 && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <StatCard
+              icon={CalendarCheck} label="Completed" value={completedIds.size}
+              sub={`of ${pastWorkouts.length} workouts`}
+              color="text-secondary" bg="bg-secondary/10"
+            />
+            <StatCard
+              icon={MapPin} label="Total Distance" value={totalDistance > 0 ? `${totalDistance.toFixed(1)} ${label}` : '—'}
+              sub={`logged ${label}`}
+              color="text-primary" bg="bg-primary/10"
+            />
+            <StatCard
+              icon={Flame} label="Streak" value={streak}
+              sub={streak === 1 ? 'workout in a row' : 'workouts in a row'}
+              color="text-accent" bg="bg-accent/10"
+            />
+            <StatCard
+              icon={Heart} label="Avg RPE" value={avgRpe}
+              sub="rate of perceived effort"
+              color="text-destructive" bg="bg-destructive/10"
+            />
+          </div>
+        )}
 
         <Tabs defaultValue="overview">
           <TabsList className="flex-wrap h-auto">
@@ -297,7 +299,15 @@ export default function AthleteProfile() {
 
           {/* Overview tab */}
           <TabsContent value="overview" className="space-y-4 mt-4">
+            {pastWorkouts.length === 0 && (
+              <div className="text-center py-10 text-muted-foreground">
+                <Target className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm font-medium">No workouts assigned yet</p>
+                <p className="text-xs mt-1">Assign workouts from the Coach Panel to start tracking progress.</p>
+              </div>
+            )}
             {/* Weekly completion chart */}
+            {pastWorkouts.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -316,6 +326,7 @@ export default function AthleteProfile() {
                 </ResponsiveContainer>
               </CardContent>
             </Card>
+            )}
 
             {/* Recent workouts quick view */}
             <Card>

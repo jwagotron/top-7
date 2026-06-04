@@ -54,7 +54,7 @@ export default function TeamSettingsCard() {
 
   const leaveMutation = useMutation({
     mutationFn: (membershipId) =>
-      base44.entities.TeamMembership.update(membershipId, { status: 'removed' }),
+      base44.functions.invoke('manageMembership', { membership_id: membershipId, action: 'leave' }),
     onSuccess: () => {
       refetchMyTeams();
       qc.invalidateQueries({ queryKey: ['my-memberships'] });
