@@ -16,7 +16,13 @@ Deno.serve(async (req) => {
       return Response.json({ completions: [] });
     }
 
-    // Fetch in parallel for each athlete email via service role (bypasses RLS)
+    // If no workout IDs provided for this team, there's nothing to match — return empty
+    if (!planned_workout_ids.length) {
+      return Response.json({ completions: [] });
+    }
+
+    // Only fetch completions that match this team's assigned workout IDs
+    const idSet = new Set(planned_workout_ids);
     const results = await Promise.all(
       athlete_emails.map(email =>
         base44.asServiceRole.entities.WorkoutCompletion.filter(
@@ -27,13 +33,7 @@ Deno.serve(async (req) => {
       )
     );
 
-    let completions = results.flat();
-
-    // If a set of planned_workout_ids was provided, scope completions to this team only
-    if (planned_workout_ids.length > 0) {
-      const idSet = new Set(planned_workout_ids);
-      completions = completions.filter(c => c.planned_workout_id && idSet.has(c.planned_workout_id));
-    }
+    const completions = results.flat().filter(c => c.planned_workout_id && idSet.has(c.planned_workout_id));
 
     console.log(
       `[getTeamCompletions] coach: ${user.email} | athletes: ${athlete_emails.length} | completions: ${completions.length}`
