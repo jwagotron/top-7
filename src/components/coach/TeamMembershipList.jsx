@@ -27,6 +27,7 @@ export default function TeamMembershipList({ teamId, coachEmail, members }) {
     qc.invalidateQueries({ queryKey: ['team-memberships'] });
     qc.invalidateQueries({ queryKey: ['athlete-memberships'] });
     qc.invalidateQueries({ queryKey: ['athlete-memberships-dash'] });
+    qc.invalidateQueries({ queryKey: ['team-roster', teamId] });
   };
 
   const handleAction = async (membershipId, action) => {
