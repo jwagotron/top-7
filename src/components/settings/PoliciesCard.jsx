@@ -1,93 +1,55 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, ChevronDown, ChevronUp } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 const POLICIES = [
   {
     id: 'privacy',
     title: 'Privacy Policy',
     lastUpdated: 'April 2025',
-    content: `This Privacy Policy describes how Top7 ("we", "us", or "our") collects, uses, and shares information about you when you use our mobile and web application ("App").
+    content: `This Privacy Policy describes how Top 7 ("we", "us", or "our") collects, uses, and shares information about you when you use our mobile and web application ("App").
 
-**Information We Collect**
-• Account information: name, email address, and role (athlete or coach).
-• Workout and activity data: distances, pace, heart rate, cadence, elevation, splits, and related training metrics.
-• Device integration data: when you connect a Garmin device, we receive activity data pushed via the Garmin Health API, including GPS coordinates, biometric sensor readings, and activity summaries.
-• Usage data: how you interact with the App, pages visited, and features used.
+Information We Collect
+• Account information: name and email address.
+• Training data: workouts, distances, pace, duration, and related metrics you log in the App.
+• Coach-athlete data: training plans, planned workouts, feedback, and messages exchanged between coaches and athletes.
+• Usage data: how you interact with the App.
 
-**How We Use Your Information**
-• To provide and operate the App, including syncing Garmin activity data.
+How We Use Your Information
+• To provide and operate the App.
 • To enable coach-athlete communication and training plan assignment.
-• To generate performance analytics and race predictions.
-• To improve the App through aggregated, anonymized usage analysis.
+• To generate performance analytics.
+• To improve the App through anonymized, aggregated usage analysis.
 • We do not sell your personal information to third parties.
 
-**Garmin Data**
-We access Garmin Connect data solely to display and analyze your activity data within the App. Data obtained through the Garmin Health API is used only for the purposes disclosed to you and is not shared with advertisers or sold to third parties. You may disconnect your Garmin account at any time from the Garmin Connect page within the App.
-
-**Data Retention**
+Data Retention
 We retain your data for as long as your account is active. You may request deletion of your account and all associated data at any time from Account Settings.
 
-**Your Rights**
+Your Rights
 You have the right to access, correct, or delete your personal data. Contact us at privacy@top7.app for any privacy-related requests.
 
-**Contact**
+Contact
 privacy@top7.app`,
   },
   {
-    id: 'terms',
-    title: 'Terms of Service',
-    lastUpdated: 'April 2025',
-    content: `By using Top7, you agree to the following terms.
-
-**Eligibility**
-You must be at least 13 years old to use the App. If you are under 18, you should have parental or guardian consent.
-
-**Your Account**
-You are responsible for maintaining the security of your account credentials. You agree to provide accurate information and keep it up to date.
-
-**Acceptable Use**
-You agree not to misuse the App, including attempting to access other users' data, reverse-engineer the platform, or upload harmful content.
-
-**Garmin Integration**
-When you connect your Garmin account, you authorize us to receive activity data on your behalf via the Garmin Health API. You can revoke this authorization at any time. We comply with Garmin's API Terms of Service and use your data only as described in our Privacy Policy.
-
-**Intellectual Property**
-All App content, design, and code are owned by Top7. Your personal workout data remains yours.
-
-**Disclaimer**
-The App provides fitness tracking and coaching tools for informational purposes. It is not a substitute for professional medical advice. Consult a physician before starting any exercise program.
-
-**Changes**
-We may update these terms from time to time. Continued use of the App constitutes acceptance of updated terms.
-
-**Contact**
-legal@top7.app`,
-  },
-  {
     id: 'data-deletion',
-    title: 'Data Deletion Policy',
+    title: 'Account & Data Deletion Policy',
     lastUpdated: 'April 2025',
-    content: `**Requesting Deletion**
+    content: `Requesting Deletion
 You may delete your account and all associated data at any time by going to Account Settings → Delete Account. This action is permanent and cannot be undone.
 
-**What Gets Deleted**
+What Gets Deleted
 Upon account deletion, we remove:
 • Your profile and authentication credentials
 • All workout logs and planned workouts
-• All activity data including Garmin-synced activities
 • Training plans, goals, and race targets
 • Coach-athlete relationships and team memberships
 • All messages and comments
 
-**Garmin Data Deletion**
-We will also cease all data collection from your Garmin account. If you wish to revoke Garmin's authorization entirely, you should also disconnect Top7 from your Garmin Connect account at connect.garmin.com.
-
-**Retention Period**
+Retention Period
 Deletion requests are processed within 30 days. Some anonymized, aggregated data (not linked to you personally) may be retained for service improvement.
 
-**Contact**
+Contact
 To submit a manual deletion request: privacy@top7.app`,
   },
 ];
@@ -123,12 +85,12 @@ export default function PoliciesCard() {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <FileText className="w-4 h-4 text-primary" /> Policies
+          <FileText className="w-4 h-4 text-primary" /> Legal
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         <p className="text-xs text-muted-foreground mb-3">
-          Review our privacy policy, terms of service, and data deletion rights.
+          Review our privacy policy and data deletion rights.
         </p>
         {POLICIES.map(p => (
           <PolicySection key={p.id} policy={p} />
