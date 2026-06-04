@@ -2,8 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 /**
  * Fetches WorkoutCompletion records for a list of athlete emails using service-role,
- * bypassing the RLS that restricts coaches from reading athlete completion records.
- * Called by CoachPanel to power accurate stats.
+ * scoped to a specific set of planned_workout_ids (this team's assignments only).
  */
 Deno.serve(async (req) => {
   try {
@@ -11,7 +10,7 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { athlete_emails = [] } = await req.json();
+    const { athlete_emails = [], planned_workout_ids = [] } = await req.json();
 
     if (!athlete_emails.length) {
       return Response.json({ completions: [] });
@@ -28,7 +27,13 @@ Deno.serve(async (req) => {
       )
     );
 
-    const completions = results.flat();
+    let completions = results.flat();
+
+    // If a set of planned_workout_ids was provided, scope completions to this team only
+    if (planned_workout_ids.length > 0) {
+      const idSet = new Set(planned_workout_ids);
+      completions = completions.filter(c => c.planned_workout_id && idSet.has(c.planned_workout_id));
+    }
 
     console.log(
       `[getTeamCompletions] coach: ${user.email} | athletes: ${athlete_emails.length} | completions: ${completions.length}`

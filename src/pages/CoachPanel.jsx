@@ -89,15 +89,18 @@ export default function CoachPanel() {
   // Fetch completions via service-role backend function — bypasses RLS (athletes can't be read by coaches directly)
   // Key starts with 'coach-completions' so useCompletions.onSettled invalidation hits it automatically
   const { data: coachCompletions = [], isLoading: isLoadingCompletions } = useQuery({
-    queryKey: ['coach-completions', effectiveTeamId, targetEmails.join(',')],
+    queryKey: ['coach-completions', effectiveTeamId, targetEmails.join(','), plannedWorkouts.map(w=>w.id).join(',')],
     queryFn: async () => {
       if (!targetEmails.length) return [];
-      const res = await base44.functions.invoke('getTeamCompletions', { athlete_emails: targetEmails });
+      const res = await base44.functions.invoke('getTeamCompletions', {
+        athlete_emails: targetEmails,
+        planned_workout_ids: plannedWorkouts.map(w => w.id),
+      });
       const completions = res.data?.completions || [];
       console.log('[CoachPanel] fetched completions via service-role:', completions.length, 'for team:', effectiveTeamId);
       return completions;
     },
-    enabled: !!effectiveTeamId && targetEmails.length > 0,
+    enabled: !!effectiveTeamId && targetEmails.length > 0 && !isLoading,
     staleTime: 0,
     refetchOnWindowFocus: true,
   });
