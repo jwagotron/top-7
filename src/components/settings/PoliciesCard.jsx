@@ -6,7 +6,7 @@ const POLICIES = [
   {
     id: 'privacy',
     title: 'Privacy Policy',
-    lastUpdated: 'April 2025',
+    lastUpdated: 'June 2026',
     content: `This Privacy Policy describes how Top 7 ("we", "us", or "our") collects, uses, and shares information about you when you use our mobile and web application ("App").
 
 Information We Collect
@@ -29,12 +29,12 @@ Your Rights
 You have the right to access, correct, or delete your personal data. Contact us at privacy@top7.app for any privacy-related requests.
 
 Contact
-privacy@top7.app`,
+dan@stratagemims.com`,
   },
   {
     id: 'data-deletion',
     title: 'Account & Data Deletion Policy',
-    lastUpdated: 'April 2025',
+    lastUpdated: 'June 2026',
     content: `Requesting Deletion
 You may delete your account and all associated data at any time by going to Account Settings → Delete Account. This action is permanent and cannot be undone.
 
@@ -50,7 +50,7 @@ Retention Period
 Deletion requests are processed within 30 days. Some anonymized, aggregated data (not linked to you personally) may be retained for service improvement.
 
 Contact
-To submit a manual deletion request: privacy@top7.app`,
+To submit a manual deletion request: dan@stratagemims.com`,
   },
 ];
 
