@@ -292,9 +292,9 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
     if (base.target_distance_km) base.target_distance_km = toKm(Number(base.target_distance_km));
 
     if (selectedAthletes.length > 1) {
-      onSubmit(selectedAthletes.map(email => ({ ...base, assigned_to: email })));
+      onSubmit(selectedAthletes.map(email => ({ ...base, assigned_to: email, ...(teamId ? { team_id: teamId } : {}) })));
     } else {
-      onSubmit({ ...base, assigned_to: selectedAthletes[0] });
+      onSubmit({ ...base, assigned_to: selectedAthletes[0], ...(teamId ? { team_id: teamId } : {}) });
     }
   };
 

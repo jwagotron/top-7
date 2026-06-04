@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Reference to TrainingPlan"
     },
+    "team_id": {
+      "type": "string",
+      "description": "Reference to Team \u2014 used to scope workouts to a specific team"
+    },
     "title": {
       "type": "string",
       "description": "Workout title"

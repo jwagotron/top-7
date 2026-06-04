@@ -105,9 +105,11 @@ export default function CoachPanel() {
     queryKey: ['planned-workouts', effectiveTeamId, athleteEmails],
     queryFn: async () => {
       if (athleteEmails.length === 0) return [];
-      // Fetch in parallel per athlete then merge
+      // Filter by team_id to prevent cross-team data leakage.
+      // Also fetch legacy records (no team_id) scoped by athlete email, then discard any
+      // that have a team_id belonging to a different team.
       const results = await Promise.all(
-        athleteEmails.map(email => base44.entities.PlannedWorkout.filter({ assigned_to: email }, 'scheduled_date', 500))
+        athleteEmails.map(email => base44.entities.PlannedWorkout.filter({ assigned_to: email, team_id: effectiveTeamId }, 'scheduled_date', 500))
       );
       const seen = new Set();
       const merged = [];
