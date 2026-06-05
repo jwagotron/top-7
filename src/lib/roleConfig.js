@@ -2,7 +2,7 @@ import {
   LayoutDashboard, BarChart3,
   Target, ShieldCheck,
   Wifi, Hammer, Settings, Shield, Activity,
-  HelpCircle, LogOut, Users, UserCircle, ClipboardList
+  LogOut, Users, UserCircle, ClipboardList
 } from 'lucide-react';
 
 export const NAV_ITEMS = {
@@ -61,9 +61,8 @@ export const SIDEBAR_MENU = {
     {
       section: 'ACCOUNT',
       items: [
-        { path: '/profile', label: 'My Profile',     icon: UserCircle },
-        { path: '#help',    label: 'Help & Support', icon: HelpCircle, action: 'help' },
-        { path: '#logout',  label: 'Log Out',         icon: LogOut, action: 'logout' },
+        { path: '/profile', label: 'My Profile', icon: UserCircle },
+        { path: '#logout',  label: 'Log Out',   icon: LogOut, action: 'logout' },
       ],
     },
   ],
@@ -79,9 +78,8 @@ export const SIDEBAR_MENU = {
     {
       section: 'ACCOUNT',
       items: [
-        { path: '/profile', label: 'My Profile',     icon: UserCircle },
-        { path: '#help',    label: 'Help & Support', icon: HelpCircle, action: 'help' },
-        { path: '#logout',  label: 'Log Out',         icon: LogOut, action: 'logout' },
+        { path: '/profile', label: 'My Profile', icon: UserCircle },
+        { path: '#logout',  label: 'Log Out',   icon: LogOut, action: 'logout' },
       ],
     },
   ],
@@ -98,9 +96,8 @@ export const SIDEBAR_MENU = {
     {
       section: 'ACCOUNT',
       items: [
-        { path: '/profile', label: 'My Profile',     icon: UserCircle },
-        { path: '#help',    label: 'Help & Support', icon: HelpCircle, action: 'help' },
-        { path: '#logout',  label: 'Log Out',         icon: LogOut, action: 'logout' },
+        { path: '/profile', label: 'My Profile', icon: UserCircle },
+        { path: '#logout',  label: 'Log Out',   icon: LogOut, action: 'logout' },
       ],
     },
   ],

@@ -87,8 +87,6 @@ export default function Sidebar({ collapsed, onToggle }) {
   const handleAction = (action) => {
     if (action === 'logout') {
       logout();
-    } else if (action === 'help') {
-      window.open('mailto:support@example.com', '_blank');
     }
   };
 
