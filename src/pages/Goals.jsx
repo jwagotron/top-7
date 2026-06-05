@@ -82,6 +82,7 @@ export default function Goals() {
                   // For time goals, faster = better, so progress is inverse
                   const target = timeToSec(goal.target_value);
                   const current = timeToSec(goal.current_value);
+                  if (!current) return 0;
                   return Math.min(100, Math.max(0, (target / current) * 100));
                 }
                 return Math.min(100, ((parseFloat(goal.current_value) || 0) / parseFloat(goal.target_value)) * 100);
@@ -101,7 +102,16 @@ export default function Goals() {
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditing(goal)}>
                               <Pencil className="w-3 h-3" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteMut.mutate(goal.id)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-destructive"
+                              onClick={() => {
+                                if (window.confirm(`Delete "${goal.title}"? This cannot be undone.`)) {
+                                  deleteMut.mutate(goal.id);
+                                }
+                              }}
+                            >
                               <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>

@@ -2,7 +2,7 @@ import {
   LayoutDashboard, BarChart3,
   Target, ShieldCheck,
   Wifi, Hammer, Settings, Shield, Activity,
-  LogOut, Users, UserCircle, ClipboardList
+  LogOut, Users, UserCircle, ClipboardList, MessageSquare
 } from 'lucide-react';
 
 export const NAV_ITEMS = {
@@ -36,6 +36,7 @@ export const MOBILE_NAV_TABS = {
   coach: [
     { path: '/coach',           label: 'Coach',    icon: ShieldCheck },
     { path: '/workout-builder', label: 'Builder',  icon: Hammer },
+    { path: '/messages',        label: 'Messages', icon: MessageSquare },
     { path: '/settings',        label: 'Settings', icon: Settings },
   ],
   admin: [
@@ -72,6 +73,7 @@ export const SIDEBAR_MENU = {
       items: [
         { path: '/coach',           label: 'Coach Panel',     icon: ShieldCheck },
         { path: '/workout-builder', label: 'Workout Builder', icon: Hammer },
+        { path: '/messages',        label: 'Messages',        icon: MessageSquare },
         { path: '/settings',        label: 'Settings',        icon: Settings },
       ],
     },

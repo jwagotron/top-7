@@ -33,10 +33,15 @@ export default function AccountSettings() {
 
   const handleSave = async () => {
     setSaving(true);
-    await base44.auth.updateMe(form);
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      await base44.auth.updateMe(form);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      // error is non-fatal — user sees button return to normal state
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

@@ -42,7 +42,7 @@ export default function CoachPanel() {
 
   // Fetch coach's teams — always fresh, no stale cache
   // RLS on Team entity allows reads where coach_email == user.email
-  const { data: myTeams = [], refetch: refetchTeams } = useQuery({
+  const { data: myTeams = [], isLoading: isLoadingTeams, refetch: refetchTeams } = useQuery({
     queryKey: ['my-teams', user?.email],
     queryFn: async () => {
       const teams = await base44.entities.Team.filter({ coach_email: user?.email });
@@ -237,7 +237,11 @@ export default function CoachPanel() {
         <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-5 pb-24 lg:pb-8">
 
           {/* No teams yet */}
-          {myTeams.length === 0 ? (
+          {isLoadingTeams ? (
+            <div className="flex justify-center py-24">
+              <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+          ) : myTeams.length === 0 ? (
             <div className="text-center py-16">
               <div className="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-secondary" />
@@ -250,7 +254,7 @@ export default function CoachPanel() {
                 <Plus className="w-4 h-4 mr-2" /> Create Your First Team
               </Button>
             </div>
-          ) : (
+          ) : !isLoadingTeams && (
             <>
               {/* Team header + Invite card */}
               <div className="flex items-center justify-between mb-4">
@@ -421,7 +425,13 @@ export default function CoachPanel() {
             <div className="bg-card rounded-2xl shadow-xl max-w-md w-full">
               <div className="flex items-center justify-between p-6 border-b border-border">
                 <h2 className="text-lg font-bold">Invite Athlete</h2>
-                <button onClick={() => setShowInvite(false)} className="text-muted-foreground hover:text-foreground">✕</button>
+                <button
+                  onClick={() => setShowInvite(false)}
+                  aria-label="Close invite modal"
+                  className="text-muted-foreground hover:text-foreground w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors"
+                >
+                  ✕
+                </button>
               </div>
               <div className="p-6">
                 <TeamInviteCard team={selectedTeam} onTeamUpdated={() => { refetchTeams(); setShowInvite(false); }} />

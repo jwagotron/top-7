@@ -2,11 +2,17 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Dumbbell, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
+import { base44 } from '@/api/base44Client';
 
 export default function AthleteOnboarding() {
   const { refetchUser } = useAuth();
 
   const handleDone = async () => {
+    try {
+      await base44.auth.updateMe({ user_type: 'athlete' });
+    } catch {
+      // non-fatal — localStorage role already set by OnboardingWizard
+    }
     await refetchUser();
   };
 

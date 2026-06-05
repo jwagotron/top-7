@@ -427,7 +427,7 @@ export default function MyPlan() {
                                     setCompletingId(w.id);
                                     completeMut.mutate({ workout: w, notes: notesMap[w.id] });
                                   }}
-                                  disabled={completingId === w.id && completeMut.isPending}
+                                  disabled={completeMut.isPending}
                                   className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary/10 hover:bg-secondary/20 text-secondary text-[11px] font-semibold transition-colors"
                                 >
                                   {completingId === w.id && completeMut.isPending

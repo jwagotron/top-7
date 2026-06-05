@@ -48,7 +48,6 @@ export default function CoachOnboarding({ userType = 'coach' }) {
   const handleCreate = async () => {
     if (!form.name.trim()) { setError('Team name is required'); return; }
     const coachEmail = user?.email || 'local-coach@test.local';
-    console.log('[CoachOnboarding] create team started', { coachEmail, teamName: form.name });
     setError(null);
     setSaving(true);
 
@@ -59,28 +58,25 @@ export default function CoachOnboarding({ userType = 'coach' }) {
     }, 15000);
 
     try {
-      // Avoid duplicate teams
+      // Avoid duplicate active teams
       const existing = await base44.entities.Team.filter({ coach_email: coachEmail });
-      if (existing?.length > 0) {
-        console.log('[CoachOnboarding] existing team found, skipping create', existing[0].id);
-      } else {
-        const team = await base44.entities.Team.create({
+      const hasActive = existing?.some(t => t.status !== 'archived');
+      if (!hasActive) {
+        await base44.entities.Team.create({
           ...form,
           coach_email: coachEmail,
           invite_code: generateInviteCode(),
           status: 'active',
         });
-        console.log('[CoachOnboarding] team save success', team?.id);
       }
       if (user) {
-        await base44.auth.updateMe({ user_type: 'coach' }).catch(e => console.warn('[CoachOnboarding] updateMe failed (non-fatal)', e));
+        await base44.auth.updateMe({ user_type: 'coach' }).catch(() => {});
       }
       setLocalRole('coach');
       clearTimeout(timeout);
       navigate('/coach');
     } catch (err) {
       clearTimeout(timeout);
-      console.error('[CoachOnboarding] team save failure', err);
       setError('Failed to create team: ' + (err?.message || 'Unknown error'));
       setSaving(false);
     }
