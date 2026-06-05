@@ -59,8 +59,14 @@ function AthleteProfileContent({ user }) {
   });
 
   const { data: teams = [] } = useQuery({
-    queryKey: ['all-teams-profile'],
-    queryFn: () => base44.entities.Team.list(),
+    queryKey: ['my-teams-for-profile', memberships.map(m => m.team_id).join(',')],
+    queryFn: async () => {
+      if (memberships.length === 0) return [];
+      // Use service-role backend function — athletes can't read Team records directly via RLS
+      const res = await base44.functions.invoke('getMyTeams', {});
+      return res.data?.teams || [];
+    },
+    enabled: memberships.length > 0,
   });
 
   const { data: activities = [] } = useQuery({
@@ -101,13 +107,19 @@ function AthleteProfileContent({ user }) {
             <EmptyState message="No teams joined yet" />
           ) : activeTeams.map(m => {
             const team = teams.find(t => t.id === m.team_id);
+            const teamName = team?.name || m.athlete_name || 'Team';
+            const teamLocation = team?.location || team?.school_club || null;
             return (
               <div key={m.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border">
-                <div>
-                  <p className="font-medium text-sm">{team?.name || m.team_id}</p>
-                  <p className="text-xs text-muted-foreground">{team?.school_club || team?.location || 'No location'}</p>
+                <div className="min-w-0">
+                  <p className="font-medium text-sm">{teamName}</p>
+                  {teamLocation && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <MapPin className="w-3 h-3 shrink-0" />{teamLocation}
+                    </p>
+                  )}
                 </div>
-                <Badge variant="outline" className="text-[10px]">Active</Badge>
+                <Badge variant="outline" className="text-[10px] text-secondary border-secondary/30 shrink-0">Active</Badge>
               </div>
             );
           })}
