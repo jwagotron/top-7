@@ -185,9 +185,9 @@ export default function WorkoutBuilder() {
           </Button>
         </TopBar>
 
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <div className="flex-1 overflow-y-auto p-3 lg:p-6 overflow-x-hidden">
           <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-5 gap-6 items-start">
+            <div className="grid lg:grid-cols-5 gap-4 lg:gap-6 items-start">
               {/* Workout list */}
               <div className="lg:col-span-2 space-y-3">
                 <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Saved Workouts</h2>
@@ -211,9 +211,9 @@ export default function WorkoutBuilder() {
                               {wSteps.length > 0 && <Badge variant="outline" className="text-[10px]">{wSteps.length} steps</Badge>}
                             </div>
                           </div>
-                          <div className="flex gap-1 shrink-0">
+                          <div className="flex gap-1 shrink-0 flex-wrap justify-end">
                             <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1 text-primary border-primary/30" onClick={() => setAssignTarget(w)}>
-                              <UserPlus className="w-3 h-3" /> Assign
+                              <UserPlus className="w-3 h-3" /><span className="hidden sm:inline">Assign</span>
                             </Button>
                             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleEdit(w)}><Pencil className="w-3.5 h-3.5" /></Button>
                             <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteMut.mutate(w.id)}><Trash2 className="w-3.5 h-3.5" /></Button>

@@ -51,12 +51,12 @@ export default function WorkoutStepEditor({ steps = [], onChange }) {
 
       {steps.map((step, idx) => (
         <div key={step.id} className={`border rounded-xl p-3 ${stepTypeColors[step.step_type] || 'bg-muted border-border'}`}>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <GripVertical className="w-4 h-4 opacity-40 shrink-0" />
             <span className="text-xs font-semibold uppercase tracking-wide w-5 opacity-60">{idx + 1}</span>
 
             <Select value={step.step_type} onValueChange={v => updateStep(step.id, 'step_type', v)}>
-              <SelectTrigger className="h-7 w-28 text-xs bg-background/60"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-7 w-24 text-xs bg-background/60"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="warmup">Warmup</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
@@ -67,7 +67,7 @@ export default function WorkoutStepEditor({ steps = [], onChange }) {
             </Select>
 
             <Input
-              className="h-7 text-xs flex-1 bg-background/60"
+              className="h-7 text-xs min-w-0 flex-1 bg-background/60"
               placeholder="Step name (optional)"
               value={step.name}
               onChange={e => updateStep(step.id, 'name', e.target.value)}
@@ -78,7 +78,7 @@ export default function WorkoutStepEditor({ steps = [], onChange }) {
             </Button>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 pl-9">
+          <div className="grid grid-cols-2 gap-2">
             <div>
               <p className="text-[10px] opacity-70 mb-1">Duration type</p>
               <Select value={step.duration_type} onValueChange={v => updateStep(step.id, 'duration_type', v)}>
