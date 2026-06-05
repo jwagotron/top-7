@@ -2,7 +2,7 @@ import React from 'react';
 import { APP_NAME } from '@/lib/branding';
 import AppLogo from '@/components/ui/AppLogo';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { X, LogOut, HelpCircle, ChevronRight, Repeat2 } from 'lucide-react';
+import { X, LogOut, ChevronRight, Repeat2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
 import { useDrawer } from '@/lib/DrawerContext';
@@ -154,16 +154,6 @@ export default function MobileDrawer() {
           className="px-3 pt-2 border-t border-sidebar-border/60 shrink-0"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}
         >
-          <a
-            href="mailto:support@top7.app"
-            onClick={close}
-            className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-sidebar-foreground/55 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-150"
-          >
-            <div className="w-8 h-8 rounded-lg bg-sidebar-accent/60 flex items-center justify-center shrink-0">
-              <HelpCircle className="w-4 h-4" />
-            </div>
-            Help & Support
-          </a>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-all duration-150"
