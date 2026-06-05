@@ -9,7 +9,9 @@ const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 test.use({ storageState: COACH_AUTH || { cookies: [], origins: [] } });
 
 test.describe('Coach — Coach Panel', () => {
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'coach'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('coach'), 'Coach auth state not available — set E2E_COACH_EMAIL / E2E_COACH_PASSWORD and re-run');
+  });
 
   test('Coach Panel loads without crashing', async ({ page }) => {
     await page.goto(BASE_URL + '/coach');
@@ -144,7 +146,9 @@ test.describe('Coach — Coach Panel', () => {
 });
 
 test.describe('Coach — Workout Builder', () => {
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'coach'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('coach'), 'Coach auth state not available — set E2E_COACH_EMAIL / E2E_COACH_PASSWORD and re-run');
+  });
 
   test('Workout Builder page loads', async ({ page }) => {
     await page.goto(BASE_URL + '/workout-builder');
@@ -171,7 +175,9 @@ test.describe('Coach — Workout Builder', () => {
 });
 
 test.describe('Coach — Mobile Navigation', () => {
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'coach'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('coach'), 'Coach auth state not available — set E2E_COACH_EMAIL / E2E_COACH_PASSWORD and re-run');
+  });
 
   test.use({ viewport: { width: 390, height: 844 } });
 

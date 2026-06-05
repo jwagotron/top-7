@@ -18,20 +18,17 @@ const ATHLETE_AUTH = fs.existsSync(PATHS.athlete) ? PATHS.athlete : undefined;
 const COACH_AUTH   = fs.existsSync(PATHS.coach)   ? PATHS.coach   : undefined;
 
 /**
- * Call inside test.beforeEach to skip the test if the auth-state file is missing.
+ * Returns true if the auth-state file exists for the given role.
+ * Use with test.skip() inside beforeEach:
+ *   test.beforeEach(async () => {
+ *     test.skip(!requireAuthState('athlete'), 'Athlete auth state not available');
+ *   });
  *
- * @param {Function} skip  — the `skip` function from the Playwright test fixture
  * @param {'athlete'|'coach'} role
+ * @returns {boolean}
  */
-function requireAuthState(skip, role) {
-  const filePath = PATHS[role];
-  if (!fs.existsSync(filePath)) {
-    skip(
-      `Auth state for "${role}" not found (${filePath}).\n` +
-      `  Set E2E_${role.toUpperCase()}_EMAIL and E2E_${role.toUpperCase()}_PASSWORD ` +
-      `env vars and re-run to enable these tests.`
-    );
-  }
+function requireAuthState(role) {
+  return fs.existsSync(PATHS[role]);
 }
 
 module.exports = { requireAuthState, ATHLETE_AUTH, COACH_AUTH };

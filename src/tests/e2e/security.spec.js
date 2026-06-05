@@ -70,7 +70,9 @@ test.describe('Security — Route Access Control', () => {
 test.describe('Security — Athlete cannot access Admin', () => {
   const { requireAuthState, ATHLETE_AUTH } = require('./helpers/requireAuthState');
   test.use({ storageState: ATHLETE_AUTH || { cookies: [], origins: [] } });
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('athlete'), 'Athlete auth state not available — set E2E_ATHLETE_EMAIL / E2E_ATHLETE_PASSWORD and re-run');
+  });
 
   test('Athlete visiting /admin is redirected or shown access denied', async ({ page }) => {
     await page.goto(BASE_URL + '/admin');

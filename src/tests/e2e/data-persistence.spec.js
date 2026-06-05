@@ -9,7 +9,9 @@ const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 test.use({ storageState: ATHLETE_AUTH || { cookies: [], origins: [] } });
 
 test.describe('Data Persistence — Reload Verification', () => {
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('athlete'), 'Athlete auth state not available — set E2E_ATHLETE_EMAIL / E2E_ATHLETE_PASSWORD and re-run');
+  });
 
   test('Goals persist across page reload', async ({ page }) => {
     await page.goto(BASE_URL + '/goals');
@@ -94,7 +96,9 @@ test.describe('Data Persistence — Reload Verification', () => {
 });
 
 test.describe('Data Persistence — Optimistic Updates', () => {
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('athlete'), 'Athlete auth state not available — set E2E_ATHLETE_EMAIL / E2E_ATHLETE_PASSWORD and re-run');
+  });
 
   test('Today workout completion reflects immediately without full reload', async ({ page }) => {
     await page.goto(BASE_URL + '/');

@@ -9,7 +9,9 @@ const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 test.use({ storageState: ATHLETE_AUTH || { cookies: [], origins: [] } });
 
 test.describe('Athlete — Dashboard', () => {
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('athlete'), 'Athlete auth state not available — set E2E_ATHLETE_EMAIL / E2E_ATHLETE_PASSWORD and re-run');
+  });
 
   test('Dashboard loads without crashing', async ({ page }) => {
     await page.goto(BASE_URL + '/');
@@ -80,7 +82,9 @@ test.describe('Athlete — Dashboard', () => {
 });
 
 test.describe('Athlete — My Plan', () => {
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('athlete'), 'Athlete auth state not available — set E2E_ATHLETE_EMAIL / E2E_ATHLETE_PASSWORD and re-run');
+  });
 
   test('My Plan page loads without crashing', async ({ page }) => {
     await page.goto(BASE_URL + '/my-plan');
@@ -170,7 +174,9 @@ test.describe('Athlete — My Plan', () => {
 });
 
 test.describe('Athlete — Goals', () => {
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('athlete'), 'Athlete auth state not available — set E2E_ATHLETE_EMAIL / E2E_ATHLETE_PASSWORD and re-run');
+  });
 
   test('Goals page loads', async ({ page }) => {
     await page.goto(BASE_URL + '/goals');
@@ -281,7 +287,9 @@ test.describe('Athlete — Goals', () => {
 });
 
 test.describe('Athlete — Settings', () => {
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('athlete'), 'Athlete auth state not available — set E2E_ATHLETE_EMAIL / E2E_ATHLETE_PASSWORD and re-run');
+  });
 
   test('Settings page loads', async ({ page }) => {
     await page.goto(BASE_URL + '/settings');
@@ -334,7 +342,9 @@ test.describe('Athlete — Settings', () => {
 });
 
 test.describe('Athlete — Join Team', () => {
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('athlete'), 'Athlete auth state not available — set E2E_ATHLETE_EMAIL / E2E_ATHLETE_PASSWORD and re-run');
+  });
 
   test('/join renders code input', async ({ page }) => {
     await page.goto(BASE_URL + '/join');
@@ -362,7 +372,9 @@ test.describe('Athlete — Join Team', () => {
 });
 
 test.describe('Athlete — Mobile Navigation', () => {
-  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
+  test.beforeEach(async () => {
+    test.skip(!requireAuthState('athlete'), 'Athlete auth state not available — set E2E_ATHLETE_EMAIL / E2E_ATHLETE_PASSWORD and re-run');
+  });
 
   test.use({ viewport: { width: 390, height: 844 } }); // iPhone 14
 
