@@ -1,14 +1,16 @@
-// @ts-check
 /* eslint-env node */
+// @ts-check
 const { defineConfig, devices } = require('@playwright/test');
+const path = require('path');
 
 module.exports = defineConfig({
   testDir: './',
+  globalSetup: require.resolve('./global-setup'),
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [['html', { outputFolder: '../../playwright-report' }], ['list']],
+  reporter: [['html', { outputFolder: path.join(__dirname, '../../playwright-report') }], ['list']],
 
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:5173',

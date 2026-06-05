@@ -1,12 +1,14 @@
-// @ts-check
 /* eslint-env node */
+// @ts-check
 const { test, expect } = require('@playwright/test');
+const { requireAuthState, ATHLETE_AUTH } = require('./helpers/requireAuthState');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 
-test.use({ storageState: 'tests/e2e/auth-state/athlete.json' });
+test.use({ storageState: ATHLETE_AUTH });
 
 test.describe('Data Persistence — Reload Verification', () => {
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
 
   test('Goals persist across page reload', async ({ page }) => {
     await page.goto(BASE_URL + '/goals');
@@ -91,6 +93,7 @@ test.describe('Data Persistence — Reload Verification', () => {
 });
 
 test.describe('Data Persistence — Optimistic Updates', () => {
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
 
   test('Today workout completion reflects immediately without full reload', async ({ page }) => {
     await page.goto(BASE_URL + '/');

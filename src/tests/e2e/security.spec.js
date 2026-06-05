@@ -1,5 +1,5 @@
-// @ts-check
 /* eslint-env node */
+// @ts-check
 const { test, expect } = require('@playwright/test');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
@@ -67,8 +67,9 @@ test.describe('Security — Route Access Control', () => {
 });
 
 test.describe('Security — Athlete cannot access Admin', () => {
-
-  test.use({ storageState: 'tests/e2e/auth-state/athlete.json' });
+  const { requireAuthState, ATHLETE_AUTH } = require('./helpers/requireAuthState');
+  test.use({ storageState: ATHLETE_AUTH });
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
 
   test('Athlete visiting /admin is redirected or shown access denied', async ({ page }) => {
     await page.goto(BASE_URL + '/admin');

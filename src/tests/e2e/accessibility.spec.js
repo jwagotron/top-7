@@ -1,5 +1,5 @@
-// @ts-check
 /* eslint-env node */
+// @ts-check
 const { test, expect } = require('@playwright/test');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
@@ -55,8 +55,9 @@ test.describe('Accessibility — Public Pages', () => {
 });
 
 test.describe('Accessibility — Authenticated Pages', () => {
-
-  test.use({ storageState: 'tests/e2e/auth-state/athlete.json' });
+  const { requireAuthState, ATHLETE_AUTH } = require('./helpers/requireAuthState');
+  test.use({ storageState: ATHLETE_AUTH });
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
 
   test('Goals delete button has no aria-label but is in a group context', async ({ page }) => {
     await page.goto(BASE_URL + '/goals');

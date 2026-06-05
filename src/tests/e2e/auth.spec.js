@@ -1,5 +1,5 @@
-// @ts-check
 /* eslint-env node */
+// @ts-check
 const { test, expect } = require('@playwright/test');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';

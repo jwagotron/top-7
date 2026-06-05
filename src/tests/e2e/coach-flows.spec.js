@@ -1,13 +1,14 @@
-// @ts-check
 /* eslint-env node */
+// @ts-check
 const { test, expect } = require('@playwright/test');
+const { requireAuthState, COACH_AUTH } = require('./helpers/requireAuthState');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 
-// Requires coach session saved to auth-state/coach.json
-test.use({ storageState: 'tests/e2e/auth-state/coach.json' });
+test.use({ storageState: COACH_AUTH });
 
 test.describe('Coach — Coach Panel', () => {
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'coach'));
 
   test('Coach Panel loads without crashing', async ({ page }) => {
     await page.goto(BASE_URL + '/coach');
@@ -142,6 +143,7 @@ test.describe('Coach — Coach Panel', () => {
 });
 
 test.describe('Coach — Workout Builder', () => {
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'coach'));
 
   test('Workout Builder page loads', async ({ page }) => {
     await page.goto(BASE_URL + '/workout-builder');
@@ -168,6 +170,7 @@ test.describe('Coach — Workout Builder', () => {
 });
 
 test.describe('Coach — Mobile Navigation', () => {
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'coach'));
 
   test.use({ viewport: { width: 390, height: 844 } });
 

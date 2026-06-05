@@ -1,14 +1,14 @@
-// @ts-check
 /* eslint-env node */
+// @ts-check
 const { test, expect } = require('@playwright/test');
+const { requireAuthState, ATHLETE_AUTH } = require('./helpers/requireAuthState');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 
-// This fixture assumes an athlete session is stored in tests/e2e/auth-state/athlete.json
-// Run: npx playwright test tests/e2e/setup/athlete-login.setup.js first to create it.
-test.use({ storageState: 'tests/e2e/auth-state/athlete.json' });
+test.use({ storageState: ATHLETE_AUTH });
 
 test.describe('Athlete — Dashboard', () => {
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
 
   test('Dashboard loads without crashing', async ({ page }) => {
     await page.goto(BASE_URL + '/');
@@ -79,6 +79,7 @@ test.describe('Athlete — Dashboard', () => {
 });
 
 test.describe('Athlete — My Plan', () => {
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
 
   test('My Plan page loads without crashing', async ({ page }) => {
     await page.goto(BASE_URL + '/my-plan');
@@ -168,6 +169,7 @@ test.describe('Athlete — My Plan', () => {
 });
 
 test.describe('Athlete — Goals', () => {
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
 
   test('Goals page loads', async ({ page }) => {
     await page.goto(BASE_URL + '/goals');
@@ -278,6 +280,7 @@ test.describe('Athlete — Goals', () => {
 });
 
 test.describe('Athlete — Settings', () => {
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
 
   test('Settings page loads', async ({ page }) => {
     await page.goto(BASE_URL + '/settings');
@@ -330,6 +333,7 @@ test.describe('Athlete — Settings', () => {
 });
 
 test.describe('Athlete — Join Team', () => {
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
 
   test('/join renders code input', async ({ page }) => {
     await page.goto(BASE_URL + '/join');
@@ -357,6 +361,7 @@ test.describe('Athlete — Join Team', () => {
 });
 
 test.describe('Athlete — Mobile Navigation', () => {
+  test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
 
   test.use({ viewport: { width: 390, height: 844 } }); // iPhone 14
 
