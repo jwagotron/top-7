@@ -51,11 +51,7 @@ export function RoleProvider({ children }) {
     return localRole;
   }, [user, canPreview, previewRole, localRole]);
 
-  // Debug visibility
-  useEffect(() => {
-    const source = !user ? 'localStorage' : user.role === 'admin' ? 'database(admin)' : VALID_ROLES.includes(user?.user_type) ? 'database(user_type)' : localRole ? 'localStorage(fallback)' : 'none';
-    console.log('[RoleContext]', { currentUser: user?.email ?? 'unauthenticated', resolvedRole: role, isRoleMissing: !role, source });
-  }, [role, user]);
+
 
   const togglePreviewRole = (navigate) => {
     setPreviewRole(r => {

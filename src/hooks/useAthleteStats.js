@@ -21,7 +21,7 @@ export function useAthleteStats(athleteEmail) {
   // Manual Workout entity records (used as a fallback / supplemental source)
   const { data: manualWorkouts = [] } = useQuery({
     queryKey: ['workouts', athleteEmail],
-    queryFn: () => base44.entities.Workout.filter({ created_by: athleteEmail }, '-date', 500),
+    queryFn: () => base44.entities.Workout.list('-date', 500),
     enabled: !!athleteEmail,
     staleTime: 0,
   });
@@ -86,24 +86,8 @@ export function useAthleteStats(athleteEmail) {
     const longestRunKm = filtered.filter(w => w.distance_km).reduce((max, w) =>
       w.distance_km > (max || 0) ? w.distance_km : max, null);
 
-    console.log('[useAthleteStats:analytics]', {
-      period: periodDays,
-      completedCount: filtered.length,
-      totalDistKm,
-      totalDurMins,
-      seriesPoints: series.length,
-    });
-
     return { series, filtered, totalDistKm, totalDurMins, longestRunKm };
   }
-
-  console.log('[useAthleteStats:weekly]', {
-    athleteEmail,
-    weeklyWorkouts,
-    weeklyDistKm,
-    weeklyDuration,
-    totalCompletions: completedWorkoutItems.length,
-  });
 
   return {
     // This-week summary (Dashboard stat cards)

@@ -37,14 +37,11 @@ export default function TeamMembershipList({ teamId, coachEmail, members }) {
     }
     if (action === 'approve') {
       setApprovingId(membershipId);
-      console.log('[approve] started', { membershipId, teamId });
       try {
-        const res = await base44.functions.invoke('manageMembership', { membership_id: membershipId, action: 'approve' });
-        console.log('[approve] success', res.data);
+        await base44.functions.invoke('manageMembership', { membership_id: membershipId, action: 'approve' });
         invalidateAll();
         toast.success('Athlete approved!');
       } catch (err) {
-        console.error('[approve] failed', err.response?.data || err.message);
         toast.error(err.response?.data?.error || 'Could not approve athlete. Try again.');
       } finally {
         setApprovingId(null);
@@ -61,14 +58,11 @@ export default function TeamMembershipList({ teamId, coachEmail, members }) {
 
   const confirmRemove = async () => {
     if (!removingId) return;
-    console.log('[remove] started', { removingId });
     try {
       await base44.functions.invoke('manageMembership', { membership_id: removingId, action: 'remove' });
-      console.log('[remove] success');
       invalidateAll();
       toast.success('Athlete removed');
     } catch (err) {
-      console.error('[remove] failed', err.message);
       toast.error('Could not remove athlete. Try again.');
     } finally {
       setRemovingId(null);

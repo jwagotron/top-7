@@ -89,12 +89,10 @@ export default function CoachPanel() {
   // Real-time: re-fetch when any PlannedWorkout or WorkoutCompletion changes
   useEffect(() => {
     const unsubPW = base44.entities.PlannedWorkout.subscribe(() => {
-      console.log('[CoachPanel] PlannedWorkout change → invalidating');
       qc.invalidateQueries({ queryKey: ['planned-workouts'] });
       qc.invalidateQueries({ queryKey: ['coach-completions'] });
     });
     const unsubWC = base44.entities.WorkoutCompletion.subscribe(() => {
-      console.log('[CoachPanel] WorkoutCompletion change → invalidating coach-completions');
       qc.invalidateQueries({ queryKey: ['coach-completions'] });
     });
     return () => { unsubPW(); unsubWC(); };
@@ -133,9 +131,7 @@ export default function CoachPanel() {
         athlete_emails: targetEmails,
         planned_workout_ids: plannedWorkouts.map(w => w.id),
       });
-      const completions = res.data?.completions || [];
-      console.log('[CoachPanel] fetched completions via service-role:', completions.length, 'for team:', effectiveTeamId);
-      return completions;
+      return res.data?.completions || [];
     },
     enabled: !!effectiveTeamId && targetEmails.length > 0 && !isLoading,
     staleTime: 0,
@@ -214,18 +210,7 @@ export default function CoachPanel() {
 
   const isStatsLoading = isLoading || isLoadingCompletions;
 
-  // ── Console diagnostics (after all variables are declared) ───────────────
-  useEffect(() => {
-    console.log('[CoachPanel:state]', {
-      coachEmail: user?.email ?? 'not loaded',
-      selectedTeamId: effectiveTeamId ?? 'none',
-      rosterCount: activeMembers.length,
-      assignmentCount: plannedWorkouts.length,
-      completionCount: coachCompletions.length,
-      stats,
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.email, effectiveTeamId, activeMembers.length, plannedWorkouts.length, coachCompletions.length]);
+
 
   return (
       <div className="min-h-screen bg-background">
