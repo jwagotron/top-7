@@ -1,4 +1,5 @@
 /* eslint-env node */
+/* eslint-disable no-undef */
 // @ts-check
 const { chromium } = require('@playwright/test');
 const path = require('path');

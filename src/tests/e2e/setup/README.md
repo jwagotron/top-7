@@ -1,68 +1,45 @@
-# E2E Test Setup
+# E2E Auth State Setup
 
-## Prerequisites
+Authenticated tests require pre-generated session files stored in:
 
-```bash
-npx playwright install
+```
+src/tests/e2e/auth-state/athlete.json
+src/tests/e2e/auth-state/coach.json
 ```
 
-## Auth State Setup
+These files are **not committed to version control** (`.gitignore`d). They are generated automatically by `global-setup.js` when the required environment variables are present.
 
-Before running tests that require authentication, create the auth state files:
+## How to generate auth state
 
-### Athlete session
-```bash
-npx playwright codegen --save-storage=tests/e2e/auth-state/athlete.json http://localhost:5173/login
-# Log in as an athlete account, then close the browser
-```
-
-### Coach session  
-```bash
-npx playwright codegen --save-storage=tests/e2e/auth-state/coach.json http://localhost:5173/login
-# Log in as a coach account, then close the browser
-```
-
-## Running Tests
+1. Set the following environment variables:
 
 ```bash
-# All tests
-npx playwright test tests/e2e/
+export E2E_ATHLETE_EMAIL=athlete@example.com
+export E2E_ATHLETE_PASSWORD=yourpassword
 
-# Single file
-npx playwright test tests/e2e/auth.spec.js
+export E2E_COACH_EMAIL=coach@example.com
+export E2E_COACH_PASSWORD=yourpassword
 
-# With UI (headed mode)
-npx playwright test tests/e2e/ --headed
-
-# Generate HTML report
-npx playwright test tests/e2e/ --reporter=html && npx playwright show-report
+# Optional — defaults to http://localhost:5173
+export BASE_URL=http://localhost:5173
 ```
 
-## Environment Variables
+2. Start the dev server (if not already running):
 
 ```bash
-BASE_URL=http://localhost:5173      # App URL
-ATHLETE_EMAIL=athlete@test.com
-ATHLETE_PASS=Test1234!
-COACH_EMAIL=coach@test.com
-COACH_PASS=Test1234!
+npm run dev
 ```
 
-## Test Files
+3. Run Playwright — `global-setup.js` will log in as each user and write the JSON files:
 
-| File | Coverage |
-|------|----------|
-| `auth.spec.js` | Login, register, forgot password, reset password, route protection |
-| `onboarding.spec.js` | Role selection, athlete setup, coach team creation |
-| `athlete-flows.spec.js` | Dashboard, My Plan, Goals, Settings, Join Team, Mobile nav |
-| `coach-flows.spec.js` | Coach Panel, Workout Builder, Mobile nav |
-| `join-team.spec.js` | Join team page (unauthenticated + authenticated) |
-| `accessibility.spec.js` | Keyboard navigation, ARIA, autocomplete, modals |
-| `security.spec.js` | Route access control, unauthenticated redirects |
-| `data-persistence.spec.js` | Create/reload persistence, optimistic updates |
+```bash
+npx playwright test --config src/tests/e2e/playwright.config.js
+```
 
-## Known Limitations
+The files will be created at:
+- `src/tests/e2e/auth-state/athlete.json`
+- `src/tests/e2e/auth-state/coach.json`
 
-- Auth-dependent tests require saved sessions (`auth-state/*.json`)
-- Some tests are conditional on data existing (e.g., "if workout exists today")
-- Real-time subscription tests require a live backend
+## Missing credentials behaviour
+
+If any env vars are missing, `global-setup.js` prints a warning and exits without error. Tests that require authentication are automatically **skipped** (via `requireAuthState` helper). All unauthenticated tests continue to run normally.

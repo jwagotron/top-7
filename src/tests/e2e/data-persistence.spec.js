@@ -1,4 +1,5 @@
 /* eslint-env node */
+/* eslint-disable no-undef */
 // @ts-check
 const { test, expect } = require('@playwright/test');
 const { requireAuthState, ATHLETE_AUTH } = require('./helpers/requireAuthState');
