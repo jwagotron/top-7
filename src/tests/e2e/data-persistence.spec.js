@@ -5,7 +5,7 @@ const { requireAuthState, ATHLETE_AUTH } = require('./helpers/requireAuthState')
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 
-test.use({ storageState: ATHLETE_AUTH });
+test.use({ storageState: ATHLETE_AUTH || { cookies: [], origins: [] } });
 
 test.describe('Data Persistence — Reload Verification', () => {
   test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));

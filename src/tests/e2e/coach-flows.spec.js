@@ -5,7 +5,7 @@ const { requireAuthState, COACH_AUTH } = require('./helpers/requireAuthState');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 
-test.use({ storageState: COACH_AUTH });
+test.use({ storageState: COACH_AUTH || { cookies: [], origins: [] } });
 
 test.describe('Coach — Coach Panel', () => {
   test.beforeEach(({ skip }) => requireAuthState(skip, 'coach'));

@@ -1,16 +1,5 @@
 /* eslint-env node */
 // @ts-check
-/**
- * Call at the top of any describe block that needs a saved auth-state file.
- * If the file doesn't exist (credentials were not provided), every test in
- * the block is skipped with a clear human-readable message instead of
- * crashing with ENOENT.
- *
- * Usage:
- *   const { requireAuthState } = require('./helpers/requireAuthState');
- *   test.use({ storageState: ATHLETE_AUTH });
- *   test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
- */
 const path = require('path');
 const fs   = require('fs');
 
@@ -21,14 +10,15 @@ const PATHS = {
   coach:   path.join(AUTH_STATE_DIR, 'coach.json'),
 };
 
-/**
- * Exported path constants — use these in test.use({ storageState: ATHLETE_AUTH })
- * so the path is consistent everywhere.
- */
-const ATHLETE_AUTH = PATHS.athlete;
-const COACH_AUTH   = PATHS.coach;
+// Only export the path if the file actually exists — otherwise export undefined.
+// test.use({ storageState: undefined }) is a no-op in Playwright, which prevents
+// the ENOENT crash that occurs when the file path is set but the file is missing.
+const ATHLETE_AUTH = fs.existsSync(PATHS.athlete) ? PATHS.athlete : undefined;
+const COACH_AUTH   = fs.existsSync(PATHS.coach)   ? PATHS.coach   : undefined;
 
 /**
+ * Call inside test.beforeEach to skip the test if the auth-state file is missing.
+ *
  * @param {Function} skip  — the `skip` function from the Playwright test fixture
  * @param {'athlete'|'coach'} role
  */

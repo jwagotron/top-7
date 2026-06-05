@@ -56,7 +56,7 @@ test.describe('Accessibility — Public Pages', () => {
 
 test.describe('Accessibility — Authenticated Pages', () => {
   const { requireAuthState, ATHLETE_AUTH } = require('./helpers/requireAuthState');
-  test.use({ storageState: ATHLETE_AUTH });
+  test.use({ storageState: ATHLETE_AUTH || { cookies: [], origins: [] } });
   test.beforeEach(({ skip }) => requireAuthState(skip, 'athlete'));
 
   test('Goals delete button has no aria-label but is in a group context', async ({ page }) => {
