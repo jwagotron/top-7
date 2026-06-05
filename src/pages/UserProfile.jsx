@@ -8,9 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import {
-  User, Mail, Calendar, Activity, MapPin, Users, Trophy,
-  Shield, TrendingUp, Dumbbell, ClipboardList, UserCheck
+  Mail, Calendar, Activity, MapPin, Users, Clock,
+  Shield, TrendingUp, Dumbbell, ClipboardList, UserCheck, CheckCircle2
 } from 'lucide-react';
+import { useAthleteStats } from '@/hooks/useAthleteStats';
+import { useUnits } from '@/hooks/useUnits';
 
 function Avatar({ name, size = 'lg' }) {
   const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -46,58 +48,57 @@ function EmptyState({ message }) {
 
 // ── ATHLETE PROFILE ────────────────────────────────────────────────
 function AthleteProfileContent({ user }) {
-  const { data: workouts = [] } = useQuery({
-    queryKey: ['my-workouts-profile', user?.email],
-    queryFn: () => base44.entities.Workout.filter({ created_by: user.email }),
-    enabled: !!user?.email,
-  });
+  const { toDisplay, label } = useUnits();
 
+  // ── Teams: memberships + full team metadata via service-role ──────────────
   const { data: memberships = [] } = useQuery({
     queryKey: ['my-memberships-profile', user?.email],
     queryFn: () => base44.entities.TeamMembership.filter({ athlete_email: user.email }),
     enabled: !!user?.email,
+    staleTime: 0,
   });
 
-  const { data: teams = [] } = useQuery({
-    queryKey: ['my-teams-for-profile', memberships.map(m => m.team_id).join(',')],
+  const { data: teamsData = { teams: [], memberships: [] } } = useQuery({
+    queryKey: ['my-teams-for-profile', user?.email],
     queryFn: async () => {
-      if (memberships.length === 0) return [];
-      // Use service-role backend function — athletes can't read Team records directly via RLS
       const res = await base44.functions.invoke('getMyTeams', {});
-      return res.data?.teams || [];
+      return res.data || { teams: [], memberships: [] };
     },
-    enabled: memberships.length > 0,
-  });
-
-  const { data: activities = [] } = useQuery({
-    queryKey: ['my-activities-profile', user?.email],
-    queryFn: () => base44.entities.Activity.filter({ user_email: user.email }),
     enabled: !!user?.email,
+    staleTime: 0,
   });
 
-  const activeTeams = memberships.filter(m => m.status === 'active');
-  const totalKm = Math.round(activities.reduce((s, a) => s + (a.distance_m || 0) / 1000, 0));
+  // ── All stats come from the shared hook — same source as Dashboard/Analytics ─
+  const {
+    completedWorkoutItems,
+    weeklyDistKm,
+    weeklyWorkouts,
+  } = useAthleteStats(user?.email);
 
-  // Last 7 days km
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const weeklyKm = Math.round(
-    activities
-      .filter(a => new Date(a.started_at) >= weekAgo)
-      .reduce((s, a) => s + (a.distance_m || 0) / 1000, 0) * 10
-  ) / 10;
+  const activeTeams = (teamsData.memberships || memberships).filter(m => m.status === 'active');
+  const teams = teamsData.teams || [];
 
-  const recentWorkouts = [...workouts].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+  // Total distance across all completed workouts
+  const totalDistKm = completedWorkoutItems.reduce((s, w) => s + (w.distance_km || 0), 0);
+  const totalDist = toDisplay(totalDistKm);
+  const weeklyDist = toDisplay(weeklyDistKm);
+
+  // 10 most recent completed workouts
+  const recentWorkouts = [...completedWorkoutItems]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 10);
 
   return (
     <>
+      {/* Stat cards — always show 0 when no data, never blank/undefined */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Activity}   label="Total Workouts"   value={workouts.length}  color="text-primary" />
-        <StatCard icon={MapPin}     label="Total km"         value={totalKm}          color="text-secondary" />
-        <StatCard icon={TrendingUp} label="Weekly km"        value={weeklyKm}         color="text-accent" />
-        <StatCard icon={Users}      label="Teams Joined"     value={activeTeams.length} color="text-chart-4" />
+        <StatCard icon={Activity}   label="Total Workouts"  value={completedWorkoutItems.length} color="text-primary" />
+        <StatCard icon={MapPin}     label={`Total ${label}`} value={`${totalDist > 0 ? totalDist.toFixed(1) : 0} ${label}`} color="text-secondary" />
+        <StatCard icon={TrendingUp} label={`Weekly ${label}`} value={`${weeklyDist > 0 ? weeklyDist.toFixed(1) : 0} ${label}`} color="text-accent" />
+        <StatCard icon={Users}      label="Teams Joined"    value={activeTeams.length} color="text-chart-4" />
       </div>
 
-      {/* Teams */}
+      {/* My Teams — real names, location, coach from live data */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> My Teams</CardTitle>
@@ -107,16 +108,20 @@ function AthleteProfileContent({ user }) {
             <EmptyState message="No teams joined yet" />
           ) : activeTeams.map(m => {
             const team = teams.find(t => t.id === m.team_id);
-            const teamName = team?.name || m.athlete_name || 'Team';
+            const teamName = team?.name || '—';
             const teamLocation = team?.location || team?.school_club || null;
+            const coachName = team?.contact_info || m.coach_email || null;
             return (
-              <div key={m.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border">
-                <div className="min-w-0">
+              <div key={m.id} className="flex items-start justify-between p-3 rounded-lg bg-muted/40 border border-border gap-3">
+                <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">{teamName}</p>
                   {teamLocation && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                       <MapPin className="w-3 h-3 shrink-0" />{teamLocation}
                     </p>
+                  )}
+                  {coachName && (
+                    <p className="text-xs text-muted-foreground mt-0.5">Coach: {coachName}</p>
                   )}
                 </div>
                 <Badge variant="outline" className="text-[10px] text-secondary border-secondary/30 shrink-0">Active</Badge>
@@ -126,7 +131,7 @@ function AthleteProfileContent({ user }) {
         </CardContent>
       </Card>
 
-      {/* Recent workouts */}
+      {/* Recent Workouts — 10 most recent, from live WorkoutCompletion + manual logs */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2"><Dumbbell className="w-4 h-4 text-primary" /> Recent Workouts</CardTitle>
@@ -134,18 +139,35 @@ function AthleteProfileContent({ user }) {
         <CardContent className="space-y-2">
           {recentWorkouts.length === 0 ? (
             <EmptyState message="No workout history yet" />
-          ) : recentWorkouts.map(w => (
-            <div key={w.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border">
-              <div>
-                <p className="font-medium text-sm">{w.title}</p>
-                <p className="text-xs text-muted-foreground">{w.date ? format(new Date(w.date), 'MMM d, yyyy') : '—'}</p>
+          ) : recentWorkouts.map(w => {
+            const dist = w.distance_km ? toDisplay(w.distance_km) : null;
+            return (
+              <div key={w.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-7 h-7 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-secondary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">{w.title}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-xs text-muted-foreground">
+                        {w.date ? format(new Date(w.date), 'MMM d, yyyy') : '—'}
+                      </span>
+                      {dist && <span className="text-xs text-muted-foreground">{dist.toFixed(1)} {label}</span>}
+                      {w.duration_minutes > 0 && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                          <Clock className="w-3 h-3" />{w.duration_minutes}m
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[10px] capitalize shrink-0">
+                  {w.intensity || w.sport || '—'}
+                </Badge>
               </div>
-              <div className="flex items-center gap-2">
-                {w.distance_km && <span className="text-xs text-muted-foreground">{w.distance_km} km</span>}
-                <Badge variant="outline" className="text-[10px] capitalize">{w.run_type || w.sport}</Badge>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
     </>
@@ -209,13 +231,19 @@ function CoachProfileContent({ user }) {
             <EmptyState message="No teams created yet" />
           ) : teams.map(t => {
             const count = memberships.filter(m => m.team_id === t.id && m.status === 'active').length;
+            const location = t.location || t.school_club || null;
             return (
-              <div key={t.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border">
-                <div>
+              <div key={t.id} className="flex items-start justify-between p-3 rounded-lg bg-muted/40 border border-border gap-3">
+                <div className="min-w-0">
                   <p className="font-medium text-sm">{t.name}</p>
-                  <p className="text-xs text-muted-foreground font-mono">Code: {t.invite_code || '—'}</p>
+                  {location && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <MapPin className="w-3 h-3 shrink-0" />{location}
+                    </p>
+                  )}
+                  {t.season_year && <p className="text-xs text-muted-foreground mt-0.5">{t.season_year}</p>}
                 </div>
-                <Badge variant="outline" className="text-[10px]">{count} athletes</Badge>
+                <Badge variant="outline" className="text-[10px] shrink-0">{count} athlete{count !== 1 ? 's' : ''}</Badge>
               </div>
             );
           })}
@@ -230,15 +258,23 @@ function CoachProfileContent({ user }) {
         <CardContent className="space-y-2">
           {recentAssigned.length === 0 ? (
             <EmptyState message="No workouts assigned yet" />
-          ) : recentAssigned.map(pw => (
-            <div key={pw.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border">
-              <div>
-                <p className="font-medium text-sm">{pw.title}</p>
-                <p className="text-xs text-muted-foreground">{pw.assigned_to} · {pw.scheduled_date ? format(new Date(pw.scheduled_date), 'MMM d') : '—'}</p>
+          ) : recentAssigned.map(pw => {
+            const athleteMembership = memberships.find(m => m.athlete_email === pw.assigned_to);
+            const athleteDisplay = athleteMembership?.athlete_name || pw.assigned_to?.split('@')[0] || '—';
+            return (
+              <div key={pw.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-sm truncate">{pw.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {athleteDisplay} · {pw.scheduled_date ? format(new Date(pw.scheduled_date), 'MMM d') : '—'}
+                  </p>
+                </div>
+                <Badge variant="outline" className={`text-[10px] capitalize shrink-0 ${pw.status === 'completed' ? 'text-secondary border-secondary/40' : ''}`}>
+                  {pw.status || 'upcoming'}
+                </Badge>
               </div>
-              <Badge variant="outline" className={`text-[10px] capitalize ${pw.status === 'completed' ? 'text-secondary border-secondary/40' : ''}`}>{pw.status || 'upcoming'}</Badge>
-            </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
     </>
