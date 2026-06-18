@@ -72,21 +72,27 @@ export const AuthProvider = ({ children }) => {
 
   const checkUserAuth = async (attempt = 1) => {
     try {
-      setIsLoadingAuth(true);
+      if (attempt === 1) setIsLoadingAuth(true);
       console.log(`[auth] checkUserAuth — attempt ${attempt}, calling base44.auth.me()`);
       const currentUser = await base44.auth.me();
-      console.log('[auth] session restored — user:', currentUser?.email, 'role:', currentUser?.role);
+      console.log('[auth] session restored — user:', currentUser?.email, 'user_type:', currentUser?.user_type, 'role:', currentUser?.role, attempt > 1 ? '(retry succeeded)' : '');
+      // Clean up the ephemeral session marker now that we're safely authenticated
+      try { localStorage.removeItem('base44_session_active'); } catch (_) {}
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
     } catch (error) {
-      console.warn(`[auth] checkUserAuth attempt ${attempt} failed:`, error.message, error.status);
+      console.warn(`[auth] checkUserAuth attempt ${attempt} failed:`, error.message, 'status:', error.status);
       // Retry once on network/timing errors — common on Android cold starts
-      if (attempt < 2 && (!error.status || error.status >= 500 || error.message?.includes('network'))) {
+      // where WebView network may not be ready on first attempt
+      if (attempt < 2 && (!error.status || error.status >= 500 || error.message?.includes('network') || error.message?.includes('fetch'))) {
         console.log('[auth] retrying auth check in 800ms…');
         setTimeout(() => checkUserAuth(attempt + 1), 800);
         return;
       }
+      console.log('[auth] auth check exhausted — marking unauthenticated');
+      // Clear stale session marker on final failure
+      try { localStorage.removeItem('base44_session_active'); } catch (_) {}
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
       if (error.status === 401 || error.status === 403) {

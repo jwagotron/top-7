@@ -40,13 +40,19 @@ export default function Register() {
   const handleVerify = async () => {
     setError("");
     setLoading(true);
+    console.log('[register] OTP verification started');
     try {
       const result = await base44.auth.verifyOtp({ email, otpCode });
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
+      console.log('[register] OTP verified — persisting session');
+      // Persist session marker before hard redirect (same guard as Login)
+      try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
+      console.log('[register] redirecting to /');
       window.location.href = "/";
     } catch (err) {
+      console.error('[register] OTP verification failed:', err.message);
       setError(err.message || "Invalid verification code");
     } finally {
       setLoading(false);
@@ -67,6 +73,8 @@ export default function Register() {
   };
 
   const handleGoogle = () => {
+    console.log('[register] Google Sign-In started, redirecting to provider');
+    try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
     base44.auth.loginWithProvider("google", "/");
   };
 
