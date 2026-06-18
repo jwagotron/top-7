@@ -143,7 +143,7 @@ function AnimatedRoutes() {
 }
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, user } = useAuth();
   const { role } = useRole();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -155,6 +155,9 @@ const AuthenticatedApp = () => {
   }
 
   if (authError?.type === 'user_not_registered') return <UserNotRegisteredError />;
+
+  // Log the routing decision for Android debugging
+  console.log('[app] AuthenticatedApp — user:', user?.email, 'user_type:', user?.user_type, 'computed role:', role, 'redirect:', role ? (role === 'coach' ? '/coach' : '/') : 'onboarding');
 
   return (
     <Routes>

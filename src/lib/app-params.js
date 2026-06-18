@@ -58,10 +58,16 @@ const getAppParams = () => {
 		storage.removeItem('base44_access_token');
 		storage.removeItem('token');
 	}
+	const token = getAppParamValue("access_token", { removeFromUrl: true });
+	// Log token source for debugging Android/Capacitor auth issues
+	const fromUrl = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('access_token');
+	const fromStorage = storageAvailable ? storage.getItem('base44_access_token') : null;
+	const sessionActive = storageAvailable ? storage.getItem('base44_session_active') : null;
+	console.log('[params] token sources — fromUrl:', !!fromUrl, 'fromStorage:', !!fromStorage, 'sessionActive:', !!sessionActive, 'hasToken:', !!token);
 	return {
 		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_BASE44_APP_ID }),
-		token: getAppParamValue("access_token", { removeFromUrl: true }),
-		fromUrl: getAppParamValue("from_url", { defaultValue: window.location.href }),
+		token,
+		fromUrl: getAppParamValue("from_url", { defaultValue: typeof window !== 'undefined' ? window.location.href : '' }),
 		functionsVersion: getAppParamValue("functions_version", { defaultValue: import.meta.env.VITE_BASE44_FUNCTIONS_VERSION }),
 		appBaseUrl: getAppParamValue("app_base_url", { defaultValue: import.meta.env.VITE_BASE44_APP_BASE_URL }),
 	}

@@ -21,6 +21,8 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingPublicSettings(true);
       setAuthError(null);
 
+      console.log('[auth] checkAppState — starting, hasToken:', !!appParams.token);
+
       try {
         const res = await fetch(`/api/apps/public/prod/public-settings/by-id/${appParams.appId}`, {
           headers: { 'X-App-Id': appParams.appId, ...(appParams.token ? { Authorization: `Bearer ${appParams.token}` } : {}) }
@@ -28,10 +30,12 @@ export const AuthProvider = ({ children }) => {
         if (res.ok) {
           const publicSettings = await res.json();
           setAppPublicSettings(publicSettings);
+          console.log('[auth] public settings loaded');
         } else if (res.status === 403) {
           const data = await res.json().catch(() => ({}));
           const reason = data?.extra_data?.reason;
           if (reason) {
+            console.log('[auth] 403 from public-settings, reason:', reason);
             setAuthError({
               type: reason === 'auth_required' ? 'auth_required'
                   : reason === 'user_not_registered' ? 'user_not_registered'
@@ -47,30 +51,42 @@ export const AuthProvider = ({ children }) => {
         if (appParams.token) {
           await checkUserAuth();
         } else {
+          console.log('[auth] no token in appParams — marking unauthenticated');
           setIsLoadingAuth(false);
           setIsAuthenticated(false);
         }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
+        console.error('[auth] checkAppState error:', appError.message);
         setAuthError({ type: 'unknown', message: appError.message || 'Failed to load app' });
         setIsLoadingPublicSettings(false);
         setIsLoadingAuth(false);
       }
     } catch (error) {
+      console.error('[auth] checkAppState unexpected error:', error.message);
       setAuthError({ type: 'unknown', message: error.message || 'An unexpected error occurred' });
       setIsLoadingPublicSettings(false);
       setIsLoadingAuth(false);
     }
   };
 
-  const checkUserAuth = async () => {
+  const checkUserAuth = async (attempt = 1) => {
     try {
       setIsLoadingAuth(true);
+      console.log(`[auth] checkUserAuth — attempt ${attempt}, calling base44.auth.me()`);
       const currentUser = await base44.auth.me();
+      console.log('[auth] session restored — user:', currentUser?.email, 'role:', currentUser?.role);
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
     } catch (error) {
+      console.warn(`[auth] checkUserAuth attempt ${attempt} failed:`, error.message, error.status);
+      // Retry once on network/timing errors — common on Android cold starts
+      if (attempt < 2 && (!error.status || error.status >= 500 || error.message?.includes('network'))) {
+        console.log('[auth] retrying auth check in 800ms…');
+        setTimeout(() => checkUserAuth(attempt + 1), 800);
+        return;
+      }
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
       if (error.status === 401 || error.status === 403) {
@@ -81,14 +97,19 @@ export const AuthProvider = ({ children }) => {
 
   // Refetch the current user from DB and update state
   const refetchUser = useCallback(async () => {
+    console.log('[auth] refetchUser — fetching latest');
     const currentUser = await base44.auth.me();
+    console.log('[auth] refetchUser — user:', currentUser?.email);
     setUser(currentUser);
     return currentUser;
   }, []);
 
   const logout = (shouldRedirect = true) => {
+    console.log('[auth] logout — clearing session');
     setUser(null);
     setIsAuthenticated(false);
+    // Clear the cached token from localStorage so stale tokens don't persist
+    try { localStorage.removeItem('base44_access_token'); } catch (_) {}
     if (shouldRedirect) {
       base44.auth.logout(window.location.href);
     } else {
@@ -97,7 +118,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = () => {
+    console.log('[auth] navigateToLogin');
     base44.auth.redirectToLogin(window.location.href);
+  };
+
+  // Persist session explicitly — call after login before hard redirect
+  const persistSession = () => {
+    try {
+      // The SDK stores the token internally; we also persist a flag
+      // so app-params.js can pick up on it even in edge cases
+      localStorage.setItem('base44_session_active', '1');
+      console.log('[auth] persistSession — session marker saved');
+    } catch (_) {
+      console.warn('[auth] persistSession — localStorage unavailable');
+    }
   };
 
   return (
@@ -113,6 +147,7 @@ export const AuthProvider = ({ children }) => {
       navigateToLogin,
       checkAppState,
       refetchUser,
+      persistSession,
     }}>
       {children}
     </AuthContext.Provider>

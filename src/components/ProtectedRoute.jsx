@@ -12,10 +12,12 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
   const { isAuthenticated, isLoadingAuth, authError } = useAuth();
 
   if (isLoadingAuth) {
+    console.log('[route] ProtectedRoute — waiting for auth (spinner)');
     return fallback;
   }
 
   if (authError) {
+    console.log('[route] ProtectedRoute — authError:', authError.type);
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     }
@@ -23,8 +25,10 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
   }
 
   if (!isAuthenticated) {
+    console.log('[route] ProtectedRoute — not authenticated, redirecting to login');
     return unauthenticatedElement;
   }
 
+  console.log('[route] ProtectedRoute — authenticated, rendering app');
   return <Outlet />;
 }

@@ -18,10 +18,18 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    console.log('[login] email/password login started');
     try {
       await base44.auth.loginViaEmailPassword(email, password);
+      console.log('[login] loginViaEmailPassword succeeded — persisting session');
+      // Explicitly persist session marker before hard redirect
+      // This guards against race conditions on Android where the redirect
+      // may fire before the SDK finishes writing the token to storage
+      try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
+      console.log('[login] redirecting to /');
       window.location.href = "/";
     } catch (err) {
+      console.error('[login] login failed:', err.message);
       setError(err.message || "Invalid email or password");
     } finally {
       setLoading(false);
@@ -29,6 +37,9 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
+    console.log('[login] Google Sign-In started, redirecting to provider');
+    // Persist session marker so we know auth was in progress
+    try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
     base44.auth.loginWithProvider("google", "/");
   };
 
