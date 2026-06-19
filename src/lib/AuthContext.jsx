@@ -2,6 +2,15 @@ import React, { createContext, useState, useContext, useEffect, useCallback } fr
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 
+// Read the token fresh from localStorage each time — appParams is frozen at module init
+const getLiveToken = () => {
+  try {
+    return localStorage.getItem('base44_access_token') || localStorage.getItem('token') || appParams.token || null;
+  } catch (_) {
+    return appParams.token || null;
+  }
+};
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -48,10 +57,12 @@ export const AuthProvider = ({ children }) => {
           }
         }
 
-        if (appParams.token) {
+        const liveToken = getLiveToken();
+        console.log('[auth] liveToken check:', !!liveToken, '(appParams.token:', !!appParams.token, ')');
+        if (liveToken) {
           await checkUserAuth();
         } else {
-          console.log('[auth] no token in appParams — marking unauthenticated');
+          console.log('[auth] no token found anywhere — marking unauthenticated');
           setIsLoadingAuth(false);
           setIsAuthenticated(false);
         }
@@ -91,13 +102,17 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       console.log('[auth] auth check exhausted — marking unauthenticated');
+      // If the token is expired/invalid (401/403), purge it from localStorage
+      // so the next app load doesn't pick it up and loop again
+      if (error.status === 401 || error.status === 403) {
+        console.log('[auth] stale/invalid token — clearing from storage');
+        try { localStorage.removeItem('base44_access_token'); } catch (_) {}
+        try { localStorage.removeItem('token'); } catch (_) {}
+      }
       // Clear stale session marker on final failure
       try { localStorage.removeItem('base44_session_active'); } catch (_) {}
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
-      if (error.status === 401 || error.status === 403) {
-        setAuthError({ type: 'auth_required', message: 'Authentication required' });
-      }
     }
   };
 
