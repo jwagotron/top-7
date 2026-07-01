@@ -16,6 +16,7 @@ import ErrorBoundary from '@/lib/ErrorBoundary';
 import { base44 } from '@/api/base44Client';
 import { UserImpersonationProvider } from '@/lib/UserImpersonationContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import AuthDiagnosticOverlay from '@/components/AuthDiagnosticOverlay';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -163,37 +164,51 @@ const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, user } = useAuth();
   const { role } = useRole();
 
+  // Comprehensive diagnostic logging for Android debugging
+  console.log('[app] AuthenticatedApp render —', {
+    isLoadingPublicSettings,
+    isLoadingAuth,
+    authErrorType: authError?.type,
+    authErrorMessage: authError?.message,
+    userEmail: user?.email,
+    userRole: user?.role,
+    userType: user?.user_type,
+    computedRole: role,
+    redirectTarget: !user ? 'login' : !role ? 'onboarding' : role === 'coach' ? '/coach' : '/',
+  });
+
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center">
+      <div className="fixed inset-0 flex items-center justify-center flex-col gap-3">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+        <p className="text-xs text-muted-foreground">Loading session…</p>
       </div>
     );
   }
 
   if (authError?.type === 'user_not_registered') return <UserNotRegisteredError />;
 
-  // Log the routing decision for Android debugging
-  console.log('[app] AuthenticatedApp — user:', user?.email, 'user_type:', user?.user_type, 'computed role:', role, 'redirect:', role ? (role === 'coach' ? '/coach' : '/') : 'onboarding');
-
   return (
-    <Routes>
-      {/* Public auth routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/join" element={<JoinTeam />} />
+    <>
+      <AuthDiagnosticOverlay />
+      <Routes>
+        {/* Public auth routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/join" element={<JoinTeam />} />
 
-      {/* All app routes — gated by ProtectedRoute */}
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        {role ? (
-          <Route path="*" element={<AnimatedRoutes />} />
-        ) : (
-          <Route path="*" element={<OnboardingWizard />} />
-        )}
-      </Route>
-    </Routes>
+        {/* All app routes — gated by ProtectedRoute */}
+        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+          {role ? (
+            <Route path="*" element={<AnimatedRoutes />} />
+          ) : (
+            <Route path="*" element={<OnboardingWizard />} />
+          )}
+        </Route>
+      </Routes>
+    </>
   );
 };
 

@@ -2,10 +2,20 @@ import React, { createContext, useState, useContext, useEffect, useCallback } fr
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 
-// Read the token fresh from localStorage each time — appParams is frozen at module init
+// Read the token fresh from localStorage each time — appParams is frozen at module init.
+// Check multiple possible storage keys the SDK may use, plus the URL params (for OAuth callbacks).
 const getLiveToken = () => {
   try {
-    return localStorage.getItem('base44_access_token') || localStorage.getItem('token') || appParams.token || null;
+    // Check URL params first (OAuth callback returns token in URL)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get('access_token');
+    if (urlToken) return urlToken;
+    // Then check all possible localStorage keys the SDK might use
+    return localStorage.getItem('base44_access_token')
+        || localStorage.getItem('token')
+        || localStorage.getItem('base44_token')
+        || appParams.token
+        || null;
   } catch (_) {
     return appParams.token || null;
   }
@@ -30,11 +40,14 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingPublicSettings(true);
       setAuthError(null);
 
-      console.log('[auth] checkAppState — starting, hasToken:', !!appParams.token);
+      const liveToken = getLiveToken();
+      console.log('[auth] checkAppState — starting | appParams.token:', !!appParams.token, '| liveToken:', !!liveToken, '| sessionActive:', !!sessionStorage.getItem('base44_session_active') || !!localStorage.getItem('base44_session_active'));
 
       try {
+        // Use live token (fresh from localStorage) — appParams.token is frozen at module init
+        // and may be stale on Android WebView after login redirect
         const res = await fetch(`/api/apps/public/prod/public-settings/by-id/${appParams.appId}`, {
-          headers: { 'X-App-Id': appParams.appId, ...(appParams.token ? { Authorization: `Bearer ${appParams.token}` } : {}) }
+          headers: { 'X-App-Id': appParams.appId, ...(liveToken ? { Authorization: `Bearer ${liveToken}` } : {}) }
         });
         if (res.ok) {
           const publicSettings = await res.json();
@@ -43,23 +56,23 @@ export const AuthProvider = ({ children }) => {
         } else if (res.status === 403) {
           const data = await res.json().catch(() => ({}));
           const reason = data?.extra_data?.reason;
-          if (reason) {
-            console.log('[auth] 403 from public-settings, reason:', reason);
-            setAuthError({
-              type: reason === 'auth_required' ? 'auth_required'
-                  : reason === 'user_not_registered' ? 'user_not_registered'
-                  : reason,
-              message: data.message || 'Access denied'
-            });
+          console.log('[auth] 403 from public-settings, reason:', reason, '— but continuing to checkUserAuth()');
+          // DO NOT early-return on 403 — the public-settings endpoint may reject
+          // a stale token while base44.auth.me() still has a valid session.
+          // Only set authError if we DON'T have a live token to try.
+          if (reason === 'user_not_registered' && !liveToken) {
+            setAuthError({ type: 'user_not_registered', message: data.message || 'Access denied' });
             setIsLoadingPublicSettings(false);
             setIsLoadingAuth(false);
             return;
           }
+          // Otherwise fall through to checkUserAuth() — the token may still be valid
         }
 
-        const liveToken = getLiveToken();
-        console.log('[auth] liveToken check:', !!liveToken, '(appParams.token:', !!appParams.token, ')');
-        if (liveToken) {
+        // Re-read token after the fetch — in case the SDK wrote it during the await
+        const tokenForAuth = getLiveToken();
+        console.log('[auth] tokenForAuth after public-settings:', !!tokenForAuth);
+        if (tokenForAuth) {
           await checkUserAuth();
         } else {
           console.log('[auth] no token found anywhere — marking unauthenticated');
@@ -69,9 +82,16 @@ export const AuthProvider = ({ children }) => {
         setIsLoadingPublicSettings(false);
       } catch (appError) {
         console.error('[auth] checkAppState error:', appError.message);
-        setAuthError({ type: 'unknown', message: appError.message || 'Failed to load app' });
+        // On network errors, still try auth check — the token might work
+        const fallbackToken = getLiveToken();
+        if (fallbackToken && !appError.message?.includes('Failed to fetch')) {
+          await checkUserAuth();
+        } else {
+          setAuthError({ type: 'unknown', message: appError.message || 'Failed to load app' });
+          setIsLoadingAuth(false);
+          setIsAuthenticated(false);
+        }
         setIsLoadingPublicSettings(false);
-        setIsLoadingAuth(false);
       }
     } catch (error) {
       console.error('[auth] checkAppState unexpected error:', error.message);
@@ -84,24 +104,26 @@ export const AuthProvider = ({ children }) => {
   const checkUserAuth = async (attempt = 1) => {
     try {
       if (attempt === 1) setIsLoadingAuth(true);
-      console.log(`[auth] checkUserAuth — attempt ${attempt}, calling base44.auth.me()`);
+      const tokenForLog = getLiveToken();
+      console.log(`[auth] checkUserAuth — attempt ${attempt} | liveToken: ${!!tokenForLog} | calling base44.auth.me()`);
       const currentUser = await base44.auth.me();
-      console.log('[auth] session restored — user:', currentUser?.email, 'user_type:', currentUser?.user_type, 'role:', currentUser?.role, attempt > 1 ? '(retry succeeded)' : '');
+      console.log('[auth] ✅ session restored — email:', currentUser?.email, '| user_type:', currentUser?.user_type, '| role:', currentUser?.role, attempt > 1 ? '(retry succeeded)' : '');
       // Clean up the ephemeral session marker now that we're safely authenticated
       try { localStorage.removeItem('base44_session_active'); } catch (_) {}
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
     } catch (error) {
-      console.warn(`[auth] checkUserAuth attempt ${attempt} failed:`, error.message, 'status:', error.status);
-      // Retry once on network/timing errors — common on Android cold starts
+      console.warn(`[auth] ❌ checkUserAuth attempt ${attempt} failed:`, error.message, 'status:', error.status);
+      // Retry up to 3 times on network/timing errors — common on Android cold starts
       // where WebView network may not be ready on first attempt
-      if (attempt < 2 && (!error.status || error.status >= 500 || error.message?.includes('network') || error.message?.includes('fetch'))) {
-        console.log('[auth] retrying auth check in 800ms…');
-        setTimeout(() => checkUserAuth(attempt + 1), 800);
+      const isNetworkError = !error.status || error.status >= 500 || error.message?.includes('network') || error.message?.includes('fetch') || error.message?.includes('Failed to fetch');
+      if (attempt < 3 && isNetworkError) {
+        console.log(`[auth] retrying auth check in ${attempt * 800}ms… (attempt ${attempt + 1}/3)`);
+        setTimeout(() => checkUserAuth(attempt + 1), attempt * 800);
         return;
       }
-      console.log('[auth] auth check exhausted — marking unauthenticated');
+      console.log('[auth] auth check exhausted after', attempt, 'attempts — marking unauthenticated');
       // If the token is expired/invalid (401/403), purge it from localStorage
       // so the next app load doesn't pick it up and loop again
       if (error.status === 401 || error.status === 403) {

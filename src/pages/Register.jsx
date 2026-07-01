@@ -43,16 +43,20 @@ export default function Register() {
     console.log('[register] OTP verification started');
     try {
       const result = await base44.auth.verifyOtp({ email, otpCode });
+      console.log('[register] OTP verified — result keys:', result ? Object.keys(result) : 'null');
       if (result?.access_token) {
+        // Explicitly persist token to localStorage — Android WebView may not
+        // complete the SDK's internal write before the hard redirect fires
+        try { localStorage.setItem('base44_access_token', result.access_token); } catch (_) {}
         base44.auth.setToken(result.access_token);
+        console.log('[register] token persisted to localStorage + SDK');
       }
-      console.log('[register] OTP verified — persisting session');
-      // Persist session marker before hard redirect (same guard as Login)
+      // Persist session marker before hard redirect
       try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
-      console.log('[register] redirecting to /');
-      window.location.href = "/";
+      console.log('[register] redirecting to / in 300ms (Android storage settle delay)');
+      setTimeout(() => { window.location.href = "/"; }, 300);
     } catch (err) {
-      console.error('[register] OTP verification failed:', err.message);
+      console.error('[register] OTP verification failed:', err.message, 'status:', err.status);
       setError(err.message || "Invalid verification code");
     } finally {
       setLoading(false);
@@ -75,7 +79,8 @@ export default function Register() {
   const handleGoogle = () => {
     console.log('[register] Google Sign-In started, redirecting to provider');
     try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
-    base44.auth.loginWithProvider("google", "/");
+    const currentUrl = window.location.origin + window.location.pathname;
+    base44.auth.loginWithProvider("google", currentUrl);
   };
 
   if (showOtp) {

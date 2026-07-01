@@ -18,18 +18,29 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    console.log('[login] email/password login started');
+    console.log('[login] email/password login started for:', email);
     try {
-      await base44.auth.loginViaEmailPassword(email, password);
-      console.log('[login] loginViaEmailPassword succeeded — persisting session');
-      // Explicitly persist session marker before hard redirect
-      // This guards against race conditions on Android where the redirect
-      // may fire before the SDK finishes writing the token to storage
+      const result = await base44.auth.loginViaEmailPassword(email, password);
+      console.log('[login] ✅ loginViaEmailPassword succeeded | result keys:', result ? Object.keys(result) : 'null');
+
+      // Explicitly persist the token ourselves — the SDK writes it internally,
+      // but on Android WebView the localStorage write may not complete before
+      // the hard redirect fires. Writing it here ensures it's in storage.
+      if (result?.access_token) {
+        try {
+          localStorage.setItem('base44_access_token', result.access_token);
+          console.log('[login] token explicitly persisted to localStorage');
+        } catch (_) {}
+      }
+
+      // Also persist session marker
       try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
-      console.log('[login] redirecting to /');
-      window.location.href = "/";
+
+      // Small delay to let Android WebView localStorage settle before hard redirect
+      console.log('[login] redirecting to / in 300ms (Android storage settle delay)');
+      setTimeout(() => { window.location.href = "/"; }, 300);
     } catch (err) {
-      console.error('[login] login failed:', err.message);
+      console.error('[login] ❌ login failed:', err.message, 'status:', err.status);
       setError(err.message || "Invalid email or password");
     } finally {
       setLoading(false);
@@ -40,7 +51,10 @@ export default function Login() {
     console.log('[login] Google Sign-In started, redirecting to provider');
     // Persist session marker so we know auth was in progress
     try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
-    base44.auth.loginWithProvider("google", "/");
+    // Use full current URL as fromUrl so the OAuth callback returns to the right place
+    // on Android/Capacitor where the origin may differ from web
+    const currentUrl = window.location.origin + window.location.pathname;
+    base44.auth.loginWithProvider("google", currentUrl);
   };
 
   return (
