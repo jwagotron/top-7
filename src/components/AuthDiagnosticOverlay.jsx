@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/AuthContext';
 
 /**
- * Temporary diagnostic overlay for Android/Capacitor auth debugging.
- * Shows real-time auth state so testers can see what's happening.
- * Dismissible via the X button. Auto-hides after 30 seconds.
+ * Diagnostic overlay for Android/Capacitor auth debugging.
+ * Shows real-time auth state including the actual error from base44.auth.me().
  */
 export default function AuthDiagnosticOverlay() {
   const [visible, setVisible] = useState(true);
   const [authState, setAuthState] = useState({});
+  const { isLoadingAuth, isAuthenticated, authErrorMessage, hasToken } = useAuth();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -17,6 +18,7 @@ export default function AuthDiagnosticOverlay() {
       setAuthState({
         hasToken: !!token,
         tokenPreview: token ? `${token.slice(0, 8)}…${token.slice(-4)}` : 'none',
+        tokenLength: token ? token.length : 0,
         sessionActive: !!sessionActive,
         localRole,
         pathname: window.location.pathname,
@@ -24,14 +26,13 @@ export default function AuthDiagnosticOverlay() {
       });
     }, 500);
 
-    const timer = setTimeout(() => setVisible(false), 30000);
-    return () => { clearInterval(interval); clearTimeout(timer); };
+    return () => clearInterval(interval);
   }, []);
 
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-[9999] bg-slate-900/95 text-white text-xs rounded-lg shadow-2xl p-3 backdrop-blur-sm border border-slate-700">
+    <div className="fixed bottom-4 left-4 right-4 z-[9999] bg-slate-900/95 text-white text-xs rounded-lg shadow-2xl p-3 backdrop-blur-sm border border-slate-700 max-w-md mx-auto">
       <div className="flex items-center justify-between mb-2">
         <span className="font-bold text-yellow-400">Auth Debug</span>
         <button
@@ -45,9 +46,20 @@ export default function AuthDiagnosticOverlay() {
       <div className="space-y-0.5 font-mono">
         <div>Path: <span className="text-cyan-300">{authState.pathname}</span></div>
         <div>Origin: <span className="text-cyan-300">{authState.origin}</span></div>
-        <div>Token: <span className={authState.hasToken ? 'text-green-400' : 'text-red-400'}>{authState.hasToken ? `YES ${authState.tokenPreview}` : 'NONE'}</span></div>
+        <div>Token: <span className={authState.hasToken ? 'text-green-400' : 'text-red-400'}>{authState.hasToken ? `YES (${authState.tokenLength}ch ${authState.tokenPreview})` : 'NONE'}</span></div>
         <div>Session: <span className={authState.sessionActive ? 'text-green-400' : 'text-red-400'}>{authState.sessionActive ? 'ACTIVE' : 'INACTIVE'}</span></div>
         <div>LocalRole: <span className="text-cyan-300">{authState.localRole || 'none'}</span></div>
+        <div className="pt-1 border-t border-slate-700 mt-1">
+          <div>Loading: <span className={isLoadingAuth ? 'text-yellow-400' : 'text-slate-400'}>{isLoadingAuth ? 'YES' : 'NO'}</span></div>
+          <div>Authed: <span className={isAuthenticated ? 'text-green-400' : 'text-red-400'}>{isAuthenticated ? 'YES' : 'NO'}</span></div>
+          <div>HasToken(ctx): <span className={hasToken ? 'text-green-400' : 'text-red-400'}>{hasToken ? 'YES' : 'NO'}</span></div>
+        </div>
+        {authErrorMessage && (
+          <div className="pt-1 border-t border-slate-700 mt-1">
+            <div className="text-red-400 font-bold">Error:</div>
+            <div className="text-red-300 break-all">{authErrorMessage}</div>
+          </div>
+        )}
       </div>
     </div>
   );

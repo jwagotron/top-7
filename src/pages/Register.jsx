@@ -47,9 +47,20 @@ export default function Register() {
       if (result?.access_token) {
         // Explicitly persist token to localStorage — Android WebView may not
         // complete the SDK's internal write before the hard redirect fires
-        try { localStorage.setItem('base44_access_token', result.access_token); } catch (_) {}
+        try {
+          localStorage.setItem('base44_access_token', result.access_token);
+          localStorage.setItem('token', result.access_token);
+        } catch (_) {}
         base44.auth.setToken(result.access_token);
         console.log('[register] token persisted to localStorage + SDK');
+      }
+
+      // Verify the session works before redirecting
+      try {
+        const meUser = await base44.auth.me();
+        console.log('[register] ✅ session verified — email:', meUser?.email);
+      } catch (meErr) {
+        console.error('[register] ⚠️ session verification failed:', meErr.message);
       }
       // Persist session marker before hard redirect
       try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}

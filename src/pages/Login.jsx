@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,29 @@ import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { isAuthenticated, hasToken, checkAppState } = useAuth();
+  const navigate = useNavigate();
+
+  // If the user lands on /login with a valid token, try to restore the session
+  // and redirect to the app instead of showing the login form.
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+      return;
+    }
+    // Token exists but not authenticated yet — try to restore session
+    if (hasToken && !isAuthenticated) {
+      console.log('[login] token found on /login — attempting session restore');
+      checkAppState();
+    }
+  }, [isAuthenticated, hasToken]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,12 +46,27 @@ export default function Login() {
       if (result?.access_token) {
         try {
           localStorage.setItem('base44_access_token', result.access_token);
+          localStorage.setItem('token', result.access_token);
           console.log('[login] token explicitly persisted to localStorage');
         } catch (_) {}
+        // Force the SDK to use the fresh token
+        try { base44.auth.setToken(result.access_token); } catch (_) {}
       }
 
       // Also persist session marker
       try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
+
+      // Verify the session actually works by calling me() BEFORE redirecting.
+      // This catches the case where the token is saved but the SDK can't use it.
+      console.log('[login] verifying session with base44.auth.me()…');
+      try {
+        const meUser = await base44.auth.me();
+        console.log('[login] ✅ session verified — email:', meUser?.email, '| user_type:', meUser?.user_type);
+      } catch (meErr) {
+        console.error('[login] ⚠️ session verification failed:', meErr.message, 'status:', meErr.status);
+        // Don't block the redirect — the token may still work on the fresh page load.
+        // The AuthContext will retry me() with setToken() on the new page.
+      }
 
       // Small delay to let Android WebView localStorage settle before hard redirect
       console.log('[login] redirecting to / in 300ms (Android storage settle delay)');
