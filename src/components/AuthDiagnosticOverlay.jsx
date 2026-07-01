@@ -8,9 +8,25 @@ import { getOAuthDiagnostics, isNativePlatform } from '@/lib/capacitorAuth';
  * Diagnostic overlay for Android/Capacitor auth debugging.
  * Shows real-time auth state, runtime environment, OAuth flow status,
  * and the actual error from base44.auth.me().
+ *
+ * ONLY visible in development builds (import.meta.env.DEV) or when an
+ * explicit debug flag is set: localStorage.setItem('DEBUG_AUTH', 'true').
+ * Never visible to normal users or testers in production/Google Play builds.
  */
+function shouldShowOverlay() {
+  // Vite sets DEV=true during `npm run dev`, false in production builds
+  if (import.meta.env.DEV) return true;
+  // Explicit opt-in for debugging a production build via browser console
+  try {
+    return localStorage.getItem('DEBUG_AUTH') === 'true';
+  } catch {
+    return false;
+  }
+}
+
 export default function AuthDiagnosticOverlay() {
-  const [visible, setVisible] = useState(true);
+  const show = shouldShowOverlay();
+  const [visible, setVisible] = useState(show);
   const [authState, setAuthState] = useState({});
   const [oauthDiag, setOauthDiag] = useState(getOAuthDiagnostics());
   const { isLoadingAuth, isAuthenticated, authErrorMessage, hasToken } = useAuth();
@@ -37,7 +53,7 @@ export default function AuthDiagnosticOverlay() {
     return () => clearInterval(interval);
   }, []);
 
-  if (!visible) return null;
+  if (!show || !visible) return null;
 
   const isWebView = runtime.isWebView || runtime.isCapacitor;
   const runtimeColor = runtime.isCapacitor ? 'text-green-400' : runtime.isWebView ? 'text-green-400' : runtime.type === 'chrome_custom_tab' ? 'text-red-400' : 'text-yellow-400';
