@@ -9,6 +9,7 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { useAuth } from "@/lib/AuthContext";
 import { detectRuntime } from "@/lib/runtimeDetect";
+import { performNativeGoogleAuth, isNativePlatform } from "@/lib/capacitorAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -97,16 +98,26 @@ export default function Login() {
     }
   };
 
-  const handleGoogle = () => {
+  const handleGoogle = async () => {
     const runtime = detectRuntime();
-    console.log('[login] Google Sign-In started | runtime:', runtime.label, '| origin:', window.location.origin);
-    // Do NOT set base44_session_active here — it creates false positives when
-    // the OAuth flow opens in an external browser tab (Chrome Custom Tab) that
-    // has a separate localStorage context from the app WebView. The session
-    // marker should only be set after the token is confirmed.
-    // Use full current URL as fromUrl so the OAuth callback returns to the right place
     const currentUrl = window.location.origin + window.location.pathname;
-    base44.auth.loginWithProvider("google", currentUrl);
+    const native = isNativePlatform();
+    console.log('[login] Google Sign-In | runtime:', runtime.label, '| native:', native, '| fromUrl:', currentUrl);
+
+    if (native) {
+      // On Android/Capacitor: open OAuth in a Chrome Custom Tab and capture
+      // the redirect via appUrlOpen. This prevents the redirect from landing
+      // in the system browser instead of the installed app.
+      try {
+        await performNativeGoogleAuth(currentUrl, '/');
+      } catch (e) {
+        console.error('[login] Native Google auth failed:', e.message);
+        setError(`Google Sign-In failed: ${e.message}`);
+      }
+    } else {
+      // Web flow: let the SDK handle the full-page redirect
+      base44.auth.loginWithProvider("google", currentUrl);
+    }
   };
 
   return (

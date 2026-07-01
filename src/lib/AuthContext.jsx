@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
+import { setupGlobalAppUrlListener } from '@/lib/capacitorAuth';
 
 // Read the token fresh from localStorage each time — appParams is frozen at module init.
 // The SDK's getAccessToken() reads from the same key: "base44_access_token".
@@ -33,7 +34,16 @@ export const AuthProvider = ({ children }) => {
   const [appPublicSettings, setAppPublicSettings] = useState(null);
 
   useEffect(() => {
+    // Set up global appUrlOpen listener for cold-start deep links and
+    // unexpected warm-start OAuth callbacks (Android/Capacitor only —
+    // no-ops on web where window.Capacitor is undefined).
+    const cleanup = setupGlobalAppUrlListener((token) => {
+      console.log('[auth] Token received from appUrlOpen — triggering checkAppState');
+      try { base44.auth.setToken(token); } catch (_) {}
+      checkAppState();
+    });
     checkAppState();
+    return cleanup;
   }, []);
 
   const checkAppState = async () => {

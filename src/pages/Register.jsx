@@ -8,6 +8,7 @@ import { UserPlus, Mail, Lock, Loader2 } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
+import { performNativeGoogleAuth, isNativePlatform } from "@/lib/capacitorAuth";
 import { toast } from "@/components/ui/use-toast";
 
 export default function Register() {
@@ -87,12 +88,22 @@ export default function Register() {
     }
   };
 
-  const handleGoogle = () => {
-    console.log('[register] Google Sign-In started, redirecting to provider');
-    // Do NOT set base44_session_active before redirect — it creates false positives
-    // when OAuth opens in an external browser tab with a separate localStorage context
+  const handleGoogle = async () => {
     const currentUrl = window.location.origin + window.location.pathname;
-    base44.auth.loginWithProvider("google", currentUrl);
+    const native = isNativePlatform();
+    console.log('[register] Google Sign-In | native:', native, '| fromUrl:', currentUrl);
+
+    if (native) {
+      // On Android/Capacitor: open OAuth in Chrome Custom Tab, capture via appUrlOpen
+      try {
+        await performNativeGoogleAuth(currentUrl, '/');
+      } catch (e) {
+        console.error('[register] Native Google auth failed:', e.message);
+        setError(`Google Sign-In failed: ${e.message}`);
+      }
+    } else {
+      base44.auth.loginWithProvider("google", currentUrl);
+    }
   };
 
   if (showOtp) {
