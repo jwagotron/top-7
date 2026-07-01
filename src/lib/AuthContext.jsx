@@ -91,9 +91,18 @@ export const AuthProvider = ({ children }) => {
           try { base44.auth.setToken(tokenForAuth); } catch (_) {}
           await checkUserAuth();
         } else {
-          console.log('[auth] no token found — marking unauthenticated');
-          setIsLoadingAuth(false);
-          setIsAuthenticated(false);
+          // No local token — but if session marker is active, the SDK might still
+          // have a token internally from its own init-time localStorage read, or
+          // there may be a server-side session cookie. Try me() as a last resort.
+          const sessionMarker = localStorage.getItem('base44_session_active');
+          if (sessionMarker) {
+            console.log('[auth] no local token but session marker active — attempting me() as last resort');
+            await checkUserAuth();
+          } else {
+            console.log('[auth] no token and no session marker — marking unauthenticated');
+            setIsLoadingAuth(false);
+            setIsAuthenticated(false);
+          }
         }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
@@ -138,8 +147,24 @@ export const AuthProvider = ({ children }) => {
         try { base44.auth.setToken(liveToken); } catch (_) {}
       }
 
+      // Even without a local token, the SDK may have one from its own init-time
+      // localStorage read. We call me() regardless — if it fails with 401, we
+      // know there's genuinely no session.
       const currentUser = await base44.auth.me();
       console.log('[auth] ✅ session restored — email:', currentUser?.email, '| user_type:', currentUser?.user_type, '| role:', currentUser?.role, attempt > 1 ? '(retry succeeded)' : '');
+
+      // me() succeeded — persist the token if the SDK has one internally but we
+      // didn't find it in localStorage (ensures it survives future page reloads)
+      if (!liveToken) {
+        try {
+          const sdkToken = localStorage.getItem('base44_access_token') || localStorage.getItem('token');
+          if (sdkToken) {
+            setHasToken(true);
+            console.log('[auth] recovered token from SDK internal storage after me() success');
+          }
+        } catch (_) {}
+      }
+
       try { localStorage.removeItem('base44_session_active'); } catch (_) {}
       setUser(currentUser);
       setIsAuthenticated(true);

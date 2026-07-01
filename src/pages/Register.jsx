@@ -89,7 +89,8 @@ export default function Register() {
 
   const handleGoogle = () => {
     console.log('[register] Google Sign-In started, redirecting to provider');
-    try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
+    // Do NOT set base44_session_active before redirect — it creates false positives
+    // when OAuth opens in an external browser tab with a separate localStorage context
     const currentUrl = window.location.origin + window.location.pathname;
     base44.auth.loginWithProvider("google", currentUrl);
   };

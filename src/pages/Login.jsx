@@ -8,6 +8,7 @@ import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { useAuth } from "@/lib/AuthContext";
+import { detectRuntime } from "@/lib/runtimeDetect";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,16 +18,17 @@ export default function Login() {
   const { isAuthenticated, hasToken, checkAppState } = useAuth();
   const navigate = useNavigate();
 
-  // If the user lands on /login with a valid token, try to restore the session
-  // and redirect to the app instead of showing the login form.
+  // If the user lands on /login with a valid token or an active session marker,
+  // try to restore the session and redirect to the app instead of showing the login form.
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/", { replace: true });
       return;
     }
-    // Token exists but not authenticated yet — try to restore session
-    if (hasToken && !isAuthenticated) {
-      console.log('[login] token found on /login — attempting session restore');
+    // Token exists or session marker is active — try to restore session
+    const sessionMarker = localStorage.getItem('base44_session_active');
+    if ((hasToken || sessionMarker) && !isAuthenticated) {
+      console.log('[login] token or session marker found on /login — attempting session restore');
       checkAppState();
     }
   }, [isAuthenticated, hasToken]);
@@ -72,19 +74,37 @@ export default function Login() {
       console.log('[login] redirecting to / in 300ms (Android storage settle delay)');
       setTimeout(() => { window.location.href = "/"; }, 300);
     } catch (err) {
-      console.error('[login] ❌ login failed:', err.message, 'status:', err.status);
-      setError(err.message || "Invalid email or password");
+      const runtime = detectRuntime();
+      console.error('[login] ❌ login failed:', {
+        message: err.message,
+        status: err.status,
+        code: err.code,
+        response: err.response?.data,
+        runtime: runtime.label,
+        origin: window.location.origin,
+      });
+      // Provide a more helpful error message that includes the status code
+      // so testers can distinguish wrong password (401) from endpoint/CORS issues
+      const statusInfo = err.status ? ` (HTTP ${err.status})` : '';
+      const isNetworkErr = !err.status || err.message?.includes('network') || err.message?.includes('fetch') || err.message?.includes('Failed to fetch');
+      if (isNetworkErr) {
+        setError(`Network error — cannot reach auth server. Runtime: ${runtime.label}. Origin: ${window.location.origin}`);
+      } else {
+        setError(err.message || "Invalid email or password" + statusInfo);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogle = () => {
-    console.log('[login] Google Sign-In started, redirecting to provider');
-    // Persist session marker so we know auth was in progress
-    try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
+    const runtime = detectRuntime();
+    console.log('[login] Google Sign-In started | runtime:', runtime.label, '| origin:', window.location.origin);
+    // Do NOT set base44_session_active here — it creates false positives when
+    // the OAuth flow opens in an external browser tab (Chrome Custom Tab) that
+    // has a separate localStorage context from the app WebView. The session
+    // marker should only be set after the token is confirmed.
     // Use full current URL as fromUrl so the OAuth callback returns to the right place
-    // on Android/Capacitor where the origin may differ from web
     const currentUrl = window.location.origin + window.location.pathname;
     base44.auth.loginWithProvider("google", currentUrl);
   };
