@@ -22,16 +22,33 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 
 import Dashboard from '@/pages/Dashboard';
-const Workouts        = lazy(() => import('@/pages/Workouts'));
-const TrainingPlans  = lazy(() => import('@/pages/TrainingPlans'));
-const Analytics      = lazy(() => import('@/pages/Analytics'));
-const Goals          = lazy(() => import('@/pages/Goals'));
-const CoachPanel     = lazy(() => import('@/pages/CoachPanel'));
-const Activities     = lazy(() => import('@/pages/Activities'));
-const GarminConnect  = lazy(() => import('@/pages/GarminConnect'));
-const WorkoutBuilder = lazy(() => import('@/pages/WorkoutBuilder'));
-const AthleteProfile = lazy(() => import('@/pages/AthleteProfile'));
-const AccountSettings = lazy(() => import('@/pages/AccountSettings'));
+
+// Wrap lazy imports with chunk-reload recovery: if a dynamic import fails
+// (stale chunk after app update), reload once to fetch fresh chunks.
+const lazyWithReload = (importFn) => {
+  return lazy(() =>
+    importFn().catch((err) => {
+      console.error('[lazy] chunk load failed, reloading:', err.message);
+      // Only reload once per session to avoid infinite loops
+      if (!sessionStorage.getItem('base44_chunk_reloaded')) {
+        sessionStorage.setItem('base44_chunk_reloaded', '1');
+        window.location.reload();
+      }
+      throw err;
+    })
+  );
+};
+
+const Workouts        = lazyWithReload(() => import('@/pages/Workouts'));
+const TrainingPlans  = lazyWithReload(() => import('@/pages/TrainingPlans'));
+const Analytics      = lazyWithReload(() => import('@/pages/Analytics'));
+const Goals          = lazyWithReload(() => import('@/pages/Goals'));
+const CoachPanel     = lazyWithReload(() => import('@/pages/CoachPanel'));
+const Activities     = lazyWithReload(() => import('@/pages/Activities'));
+const GarminConnect  = lazyWithReload(() => import('@/pages/GarminConnect'));
+const WorkoutBuilder = lazyWithReload(() => import('@/pages/WorkoutBuilder'));
+const AthleteProfile = lazyWithReload(() => import('@/pages/AthleteProfile'));
+const AccountSettings = lazyWithReload(() => import('@/pages/AccountSettings'));
 import AdminPanel from '@/pages/AdminPanel';
 import UserProfile from '@/pages/UserProfile';
 const ShoeTracker    = lazy(() => import('@/pages/ShoeTracker'));
