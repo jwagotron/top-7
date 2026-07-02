@@ -166,7 +166,6 @@ function AnimatedRoutes() {
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, user } = useAuth();
   const { role } = useRole();
-  const location = useLocation();
 
   // Comprehensive diagnostic logging for Android debugging
   console.log('[app] AuthenticatedApp render —', {
@@ -180,19 +179,6 @@ const AuthenticatedApp = () => {
     computedRole: role,
     redirectTarget: !user ? 'login' : !role ? 'onboarding' : role === 'coach' ? '/coach' : '/',
   });
-
-  // Public content pages render immediately — bypass auth loading and error gates
-  // so they are accessible without login (incognito, logged out, expired session).
-  const PUBLIC_CONTENT_PATHS = ['/privacy', '/terms', '/delete-account'];
-  if (PUBLIC_CONTENT_PATHS.includes(location.pathname)) {
-    return (
-      <Routes>
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/delete-account" element={<DeleteAccount />} />
-      </Routes>
-    );
-  }
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -215,8 +201,6 @@ const AuthenticatedApp = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/join" element={<JoinTeam />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
 
         {/* All app routes — gated by ProtectedRoute */}
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
@@ -231,21 +215,44 @@ const AuthenticatedApp = () => {
   );
 };
 
+// Public legal pages render OUTSIDE AuthProvider so they are always accessible
+// — no auth loading, no error gates, no redirects. Works in incognito.
+function AppContent() {
+  const location = useLocation();
+  const isPublicLegal = ['/privacy', '/terms', '/delete-account'].some(p =>
+    location.pathname === p || location.pathname.startsWith(p + '/')
+  );
+
+  if (isPublicLegal) {
+    return (
+      <Routes>
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/delete-account" element={<DeleteAccount />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <AuthProvider>
+      <RoleProvider>
+        <AuthenticatedApp />
+      </RoleProvider>
+    </AuthProvider>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
         <UserImpersonationProvider>
-          <AuthProvider>
-            <RoleProvider>
-              <QueryClientProvider client={queryClientInstance}>
-                <Router>
-                  <AuthenticatedApp />
-                  <Toaster />
-                </Router>
-              </QueryClientProvider>
-            </RoleProvider>
-          </AuthProvider>
+          <QueryClientProvider client={queryClientInstance}>
+            <Router>
+              <AppContent />
+              <Toaster />
+            </Router>
+          </QueryClientProvider>
         </UserImpersonationProvider>
       </ThemeProvider>
     </ErrorBoundary>
