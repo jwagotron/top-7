@@ -58,20 +58,13 @@ export default function DeleteAccount() {
         <li>Coach-athlete relationships and team memberships</li>
         <li>All messages, comments, and feedback</li>
         <li>Personal records and benchmark data</li>
-        <li>Device connections (Garmin, etc.) and synced activities</li>
+        <li>Device connections and synced activities</li>
       </ul>
 
       <h2>Retention Period</h2>
       <p>
         Deletion requests are processed within 30 days. Some anonymized, aggregated data
         (not linked to you personally) may be retained for service improvement and analytics.
-      </p>
-
-      <h2>Garmin & Third-Party Data</h2>
-      <p>
-        Disconnecting your Garmin device in Account Settings revokes our access to future
-        data. Previously synced activities are deleted along with your account. To delete
-        data held by Garmin itself, please contact Garmin directly.
       </p>
     </LegalPageLayout>
   );

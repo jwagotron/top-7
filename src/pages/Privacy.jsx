@@ -14,7 +14,7 @@ export default function Privacy() {
         <li><strong>Account information:</strong> name and email address.</li>
         <li><strong>Training data:</strong> workouts, distances, pace, duration, and related metrics you log in the App.</li>
         <li><strong>Coach-athlete data:</strong> training plans, planned workouts, feedback, and messages exchanged between coaches and athletes.</li>
-        <li><strong>Device data:</strong> data synced from connected devices such as Garmin, including activities, heart rate, and sleep metrics.</li>
+        <li><strong>Device data:</strong> data synced from connected devices, including activities, heart rate, and sleep metrics.</li>
         <li><strong>Usage data:</strong> how you interact with the App, including features used and crash reports.</li>
       </ul>
 
@@ -23,7 +23,7 @@ export default function Privacy() {
         <li>To provide and operate the App.</li>
         <li>To enable coach-athlete communication and training plan assignment.</li>
         <li>To generate performance analytics and race predictions.</li>
-        <li>To sync data from connected devices like Garmin.</li>
+        <li>To sync data from connected devices.</li>
         <li>To improve the App through anonymized, aggregated usage analysis.</li>
       </ul>
       <p>We do not sell your personal information to third parties.</p>
@@ -31,9 +31,8 @@ export default function Privacy() {
       <h2>Data Sharing</h2>
       <p>
         We share your data only in limited circumstances: with your coach or athletes within
-        a team you have joined, with third-party providers (such as Garmin) when you connect
-        a device, and when required by law. All sharing is limited to what is necessary to
-        provide the service.
+        a team you have joined, with third-party providers when you connect a device, and
+        when required by law. All sharing is limited to what is necessary to provide the service.
       </p>
 
       <h2>Data Retention</h2>

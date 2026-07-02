@@ -43,9 +43,9 @@ export default function Terms() {
 
       <h2>Device Integrations</h2>
       <p>
-        The App may connect to third-party devices and services such as Garmin. You are
-        responsible for reviewing the privacy practices and terms of those providers. We are
-        not responsible for the accuracy or availability of third-party data.
+        The App may connect to third-party devices and services. You are responsible for
+        reviewing the privacy practices and terms of those providers. We are not responsible
+        for the accuracy or availability of third-party data.
       </p>
 
       <h2>Intellectual Property</h2>
