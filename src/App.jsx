@@ -23,6 +23,7 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
+import DeleteAccount from '@/pages/DeleteAccount';
 
 import Dashboard from '@/pages/Dashboard';
 
@@ -165,6 +166,7 @@ function AnimatedRoutes() {
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, user } = useAuth();
   const { role } = useRole();
+  const location = useLocation();
 
   // Comprehensive diagnostic logging for Android debugging
   console.log('[app] AuthenticatedApp render —', {
@@ -178,6 +180,19 @@ const AuthenticatedApp = () => {
     computedRole: role,
     redirectTarget: !user ? 'login' : !role ? 'onboarding' : role === 'coach' ? '/coach' : '/',
   });
+
+  // Public content pages render immediately — bypass auth loading and error gates
+  // so they are accessible without login (incognito, logged out, expired session).
+  const PUBLIC_CONTENT_PATHS = ['/privacy', '/terms', '/delete-account'];
+  if (PUBLIC_CONTENT_PATHS.includes(location.pathname)) {
+    return (
+      <Routes>
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/delete-account" element={<DeleteAccount />} />
+      </Routes>
+    );
+  }
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (

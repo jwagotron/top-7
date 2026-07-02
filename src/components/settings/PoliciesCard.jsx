@@ -32,7 +32,7 @@ export default function PoliciesCard() {
           <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
         </button>
         <button
-          onClick={() => navigate('/settings')}
+          onClick={() => navigate('/delete-account')}
           className="w-full flex items-center justify-between px-4 py-3 text-left rounded-lg border border-border hover:bg-muted/40 transition-colors"
         >
           <span className="text-sm font-medium">Account & Data Deletion</span>
