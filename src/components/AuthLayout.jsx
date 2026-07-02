@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import AppLogo from "@/components/ui/AppLogo";
 
 export default function AuthLayout({ icon: Icon, title, subtitle, footer, children }) {
@@ -18,6 +19,11 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
         {footer && (
           <p className="text-center text-sm text-muted-foreground mt-6">{footer}</p>
         )}
+        <p className="text-center text-xs text-muted-foreground mt-4">
+          <Link to="/privacy" className="hover:text-foreground hover:underline">Privacy Policy</Link>
+          {" · "}
+          <Link to="/terms" className="hover:text-foreground hover:underline">Terms of Service</Link>
+        </p>
       </div>
     </div>
   );
