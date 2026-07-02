@@ -69,5 +69,53 @@
   "required": [
     "name",
     "sport"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "data.coach_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.coach_email": "{{user.email}}"
+        },
+        {
+          "data.assigned_to": {
+            "$in": [
+              "{{user.email}}"
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.coach_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.coach_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }
