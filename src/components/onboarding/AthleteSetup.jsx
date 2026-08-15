@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Dumbbell, Loader2, CheckCircle2 } from 'lucide-react';
+import { Dumbbell, Loader2, CheckCircle2, Users, ArrowRight, AlertCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { setLocalRole } from '@/lib/RoleContext';
@@ -13,10 +13,14 @@ import { toast } from 'sonner';
 export default function AthleteSetup({ userType = 'athlete' }) {
   const { user, refetchUser } = useAuth();
   const [saving, setSaving] = useState(false);
-  const [done, setDone] = useState(false);
+  const [step, setStep] = useState('profile');
+  const [teamCode, setTeamCode] = useState('');
+  const [joining, setJoining] = useState(false);
+  const [joinResult, setJoinResult] = useState(null);
+  const [joinError, setJoinError] = useState('');
   const [form, setForm] = useState({
     display_name: user?.full_name || '',
-    unit_preference: 'km',
+    unit_preference: user?.unit_preference || 'mi',
   });
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -34,56 +38,125 @@ export default function AthleteSetup({ userType = 'athlete' }) {
         user_type: userType,
       });
       setLocalRole(userType);
+      await refetchUser();
+      setStep('team');
     } catch (err) {
       console.error('Failed to update profile:', err);
       toast.error('Failed to save profile');
+    } finally {
       setSaving(false);
-      return;
     }
-    await refetchUser();
-    setDone(true);
-    setSaving(false);
   };
 
-  if (done) {
+  const handleJoinTeam = async () => {
+    const code = teamCode.trim().toUpperCase();
+    if (!code) {
+      setJoinError('Enter the 8-character code your coach gave you.');
+      return;
+    }
+
+    setJoining(true);
+    setJoinError('');
+    setJoinResult(null);
+    try {
+      const response = await base44.functions.invoke('joinTeam', { invite_code: code });
+      setJoinResult(response.data);
+      await refetchUser();
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message || 'Unable to join team';
+      if (msg.toLowerCase().includes('pending') || msg.toLowerCase().includes('already')) {
+        setJoinError('You already have a request for this team. Your coach may still need to approve it.');
+      } else if (msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('invalid')) {
+        setJoinError('That team code was not found. Check the code with your coach and try again.');
+      } else {
+        setJoinError(msg);
+      }
+    } finally {
+      setJoining(false);
+    }
+  };
+
+  const goToDashboard = () => {
+    window.location.href = '/';
+  };
+
+  if (step === 'team') {
+    const joined = joinResult?.status === 'active';
+    const pending = joinResult && !joined;
+
     return (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center p-6"
+        className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center p-6 overflow-y-auto"
       >
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md text-center"
+          className="w-full max-w-md"
         >
-          <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10 text-primary" />
+          <div className="text-center mb-7">
+            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
+              {joinResult ? <CheckCircle2 className="w-10 h-10 text-primary" /> : <Users className="w-10 h-10 text-primary" />}
+            </div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary mb-2">Profile complete</p>
+            <h1 className="text-2xl font-bold mb-2">{joinResult ? 'You’re connected.' : 'Join your team'}</h1>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              {joined
+                ? `You joined ${joinResult.team_name}. Your coach can now assign training directly to Top 7.`
+                : pending
+                  ? `Your request to join ${joinResult.team_name} was sent. Your coach will approve it before workouts appear.`
+                  : 'Enter the invite code from your coach so your assigned workouts can show up automatically.'}
+            </p>
           </div>
-          <h1 className="text-2xl font-bold mb-2">You're all set!</h1>
-          <p className="text-muted-foreground mb-8 text-sm">
-            Your athlete profile is ready. Let's start tracking your runs and building your training.
-          </p>
-          <ul className="text-left space-y-2 mb-8">
-            {[
-              'Track your runs and activities',
-              'Follow assigned training plans',
-              'View personal analytics and progress',
-              'Set and track your goals',
-              'Connect Garmin for auto-sync',
-            ].map(item => (
-              <li key={item} className="flex items-center gap-2 text-sm text-foreground">
-                <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                {item}
-              </li>
-            ))}
-          </ul>
-          <button
-            onClick={() => window.location.href = '/'}
-            className="w-full py-3.5 rounded-xl font-semibold text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
-          >
-            Go to My Dashboard
-          </button>
+
+          {!joinResult && (
+            <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-4 shadow-sm">
+              <div className="space-y-1.5">
+                <Label htmlFor="team-code">Coach Team Code</Label>
+                <Input
+                  id="team-code"
+                  value={teamCode}
+                  onChange={e => {
+                    setTeamCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8));
+                    setJoinError('');
+                  }}
+                  onKeyDown={e => e.key === 'Enter' && handleJoinTeam()}
+                  placeholder="ABC12345"
+                  autoFocus
+                  className="h-12 uppercase font-mono text-center text-lg tracking-[0.22em]"
+                  maxLength={8}
+                />
+                <p className="text-xs text-muted-foreground">Ask your coach for the 8-character Top 7 team code.</p>
+              </div>
+
+              {joinError && (
+                <div className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{joinError}</span>
+                </div>
+              )}
+
+              <Button onClick={handleJoinTeam} disabled={joining || teamCode.length < 8} className="w-full h-11 gap-2">
+                {joining ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Joining…</>
+                ) : (
+                  <>Join Team <ArrowRight className="w-4 h-4" /></>
+                )}
+              </Button>
+            </div>
+          )}
+
+          <div className="mt-4 space-y-2">
+            <Button onClick={goToDashboard} className="w-full h-11" variant={joinResult ? 'default' : 'outline'}>
+              {joined ? 'Go to My Training' : pending ? 'Go to Dashboard' : 'I’ll join a team later'}
+            </Button>
+            {!joinResult && (
+              <p className="text-center text-[11px] text-muted-foreground">
+                You can enter a team code later from the dashboard or Settings.
+              </p>
+            )}
+          </div>
         </motion.div>
       </motion.div>
     );
@@ -106,24 +179,24 @@ export default function AthleteSetup({ userType = 'athlete' }) {
               <Dumbbell className="w-6 h-6 text-primary" />
             </div>
             <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary mb-0.5">Step 1 of 2</p>
               <h1 className="text-2xl font-bold">Set Up Your Athlete Profile</h1>
-              <p className="text-sm text-muted-foreground">A few quick details to get you started</p>
+              <p className="text-sm text-muted-foreground">Two quick details, then connect to your coach.</p>
             </div>
           </div>
 
-          <div className="space-y-4">
-            {/* Display Name */}
+          <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-5 shadow-sm">
             <div className="space-y-1.5">
               <Label>Display Name <span className="text-destructive">*</span></Label>
               <Input
                 value={form.display_name}
                 onChange={e => set('display_name', e.target.value)}
                 placeholder="Your name as it should appear"
+                autoFocus
               />
-              <p className="text-xs text-muted-foreground">This is how coaches and teammates will see you.</p>
+              <p className="text-xs text-muted-foreground">This is how your coach will see you.</p>
             </div>
 
-            {/* Unit Preference */}
             <div className="space-y-1.5">
               <Label>Distance Units <span className="text-destructive">*</span></Label>
               <Select value={form.unit_preference} onValueChange={v => set('unit_preference', v)}>
@@ -131,30 +204,25 @@ export default function AthleteSetup({ userType = 'athlete' }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="km">Kilometers</SelectItem>
                   <SelectItem value="mi">Miles</SelectItem>
+                  <SelectItem value="km">Kilometers</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">All distances will be displayed in your preferred unit.</p>
+              <p className="text-xs text-muted-foreground">You can change this later in Settings.</p>
             </div>
           </div>
 
-          <div className="mt-8 flex gap-3">
-            <Button
-              onClick={handleComplete}
-              disabled={saving || !form.display_name.trim()}
-              className="w-full"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving…
-                </>
-              ) : (
-                'Complete Setup'
-              )}
-            </Button>
-          </div>
+          <Button
+            onClick={handleComplete}
+            disabled={saving || !form.display_name.trim()}
+            className="w-full mt-5 h-11 gap-2"
+          >
+            {saving ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
+            ) : (
+              <>Continue to Team <ArrowRight className="w-4 h-4" /></>
+            )}
+          </Button>
         </motion.div>
       </div>
     </motion.div>
