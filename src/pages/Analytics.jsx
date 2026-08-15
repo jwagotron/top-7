@@ -10,9 +10,10 @@ import {
 import { useUnits } from '@/hooks/useUnits';
 import { useAuth } from '@/lib/AuthContext';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
-import { Zap, TrendingUp, Activity, Flag } from 'lucide-react'; // TrendingUp still used in MetricCard
+import { Zap, TrendingUp, Activity, Flag, Flame } from 'lucide-react';
 import PersonalRecords from '@/components/analytics/PersonalRecords';
 import RacePredictor from '@/components/predictor/RacePredictor';
+import StreakPanel from '@/components/streaks/StreakPanel';
 import { cn } from '@/lib/utils';
 import { useAthleteStats } from '@/hooks/useAthleteStats';
 
@@ -47,9 +48,10 @@ export default function Analytics() {
   const { toDisplay, label } = useUnits();
   const { user } = useAuth();
   const { athleteEmail } = useAssignedPlan();
+  const analysisEmail = athleteEmail || user?.email;
 
   // ── Same shared data source as Dashboard ──────────────────────────────────
-  const { buildVolumeSeries } = useAthleteStats(athleteEmail);
+  const { buildVolumeSeries } = useAthleteStats(analysisEmail);
 
   const isDaily = period === '7';
   const { series: volumeData, filtered, totalDistKm, totalDurMins, longestRunKm } =
@@ -94,6 +96,7 @@ export default function Analytics() {
             <TabsList className="flex w-max h-9">
               <TabsTrigger value="performance" className="text-xs px-4 whitespace-nowrap"><Zap className="w-3 h-3 mr-1" />Performance</TabsTrigger>
               <TabsTrigger value="records" className="text-xs px-4 whitespace-nowrap"><Activity className="w-3 h-3 mr-1" />Records</TabsTrigger>
+              <TabsTrigger value="discipline" className="text-xs px-4 whitespace-nowrap"><Flame className="w-3 h-3 mr-1" />Discipline</TabsTrigger>
               <TabsTrigger value="predictor" className="text-xs px-4 whitespace-nowrap"><Flag className="w-3 h-3 mr-1" />Race Predictor</TabsTrigger>
             </TabsList>
           </div>
@@ -105,15 +108,8 @@ export default function Analytics() {
               <MetricCard icon={Activity} label="Workouts" value={filtered.length} color="text-primary" bg="bg-primary/10" />
               <MetricCard icon={TrendingUp} label="Distance" value={totalDist.toFixed(1)} unit={label} color="text-secondary" bg="bg-secondary/10" />
               <MetricCard icon={Zap} label="Total Hours" value={totalHrs} unit="hrs" color="text-accent" bg="bg-accent/10" />
-
+              <MetricCard icon={TrendingUp} label="Longest Run" value={longestRun ? toDisplay(longestRun).toFixed(2) : '—'} unit={longestRun ? label : undefined} color="text-primary" bg="bg-primary/10" sub="Single run distance" />
             </div>
-
-            {/* Best effort */}
-            {longestRun && (
-              <div className="grid grid-cols-1 gap-3">
-                <MetricCard icon={TrendingUp} label="Longest Run" value={toDisplay(longestRun).toFixed(2)} unit={label} color="text-primary" bg="bg-primary/10" sub="Single run distance" />
-              </div>
-            )}
 
             {/* Weekly volume chart */}
             <Card className="rounded-2xl bg-muted/40 border border-border/30">
@@ -158,14 +154,19 @@ export default function Analytics() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
               <div>
                 <h2 className="text-base font-bold mb-3">Personal Records</h2>
-                <PersonalRecords athleteEmail={user?.email} />
+                <PersonalRecords athleteEmail={analysisEmail} />
               </div>
             </div>
           </TabsContent>
 
+          {/* === DISCIPLINE TAB === */}
+          <TabsContent value="discipline" className="space-y-5 mt-0">
+            <StreakPanel userEmail={analysisEmail} />
+          </TabsContent>
+
           {/* === RACE PREDICTOR TAB === */}
           <TabsContent value="predictor" className="space-y-5 mt-0">
-            <RacePredictor userEmail={user?.email} />
+            <RacePredictor userEmail={analysisEmail} />
           </TabsContent>
         </Tabs>
       </div>
