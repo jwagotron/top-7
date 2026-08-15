@@ -23,6 +23,7 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
+import Support from '@/pages/Support';
 import DeleteAccount from '@/pages/DeleteAccount';
 import Landing from '@/pages/Landing';
 
@@ -222,7 +223,7 @@ const AuthenticatedApp = () => {
 // — no auth loading, no error gates, no redirects. Works in incognito.
 function AppContent() {
   const location = useLocation();
-  const isPublicLegal = ['/privacy', '/terms', '/delete-account'].some(p =>
+  const isPublicLegal = ['/privacy', '/terms', '/support', '/delete-account'].some(p =>
     location.pathname === p || location.pathname.startsWith(p + '/')
   );
 
@@ -231,6 +232,7 @@ function AppContent() {
       <Routes>
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/delete-account" element={<DeleteAccount />} />
       </Routes>
     );
