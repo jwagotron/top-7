@@ -9,8 +9,9 @@ import WorkoutDetailDrawer from '@/components/dashboard/WorkoutDetailDrawer.jsx'
 import {
   Activity, MapPin, Clock, CheckCircle2, ChevronRight,
   Footprints, Bike, Waves, Dumbbell, CircleDot,
-  Moon, Play
+  Moon
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
@@ -48,9 +49,10 @@ export default function Dashboard() {
   const { role, canPreview } = useRole();
   const { user, refetchUser, isLoadingAuth } = useAuth();
   const { athleteEmail, plannedWorkouts, activePlan, isLoading } = useAssignedPlan();
-  const { completions, completeMut } = useCompletions(athleteEmail);
+  const { completions } = useCompletions(athleteEmail);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [showTodayWorkout, setShowTodayWorkout] = useState(false);
+  const navigate = useNavigate();
 
   const { toDisplay, label, convertPaceLabel, paceLabel } = useUnits();
 
@@ -117,27 +119,21 @@ export default function Dashboard() {
           )}>
             {/* Header row */}
             <div className="px-5 py-4 flex items-center gap-3">
-              {/* Completion circle */}
-              <button
-                type="button"
-                disabled={todayDone || completeMut.isPending || role !== 'athlete'}
-                onClick={() => completeMut.mutate({ workout: todayWorkout })}
+              {/* Status indicator. Completion happens inside My Plan so athletes can review the workout and send useful feedback. */}
+              <div
                 className={cn(
-                  'w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200',
+                  'w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0',
                   todayDone
                     ? 'bg-secondary border-secondary text-white'
-                    : role === 'athlete'
-                      ? 'border-primary/50 bg-transparent hover:border-primary hover:bg-primary/10 cursor-pointer'
-                      : 'border-muted-foreground/30 bg-transparent cursor-default'
+                    : 'border-primary/40 bg-primary/5 text-primary'
                 )}
+                aria-label={todayDone ? 'Workout completed' : 'Workout scheduled'}
               >
                 {todayDone
                   ? <CheckCircle2 className="w-4 h-4" />
-                  : completeMut.isPending
-                    ? <span className="w-3 h-3 rounded-full border-2 border-primary border-t-transparent animate-spin block" />
-                    : <Play className="w-3 h-3 text-primary fill-primary" />
+                  : <Footprints className="w-4 h-4" />
                 }
-              </button>
+              </div>
 
               {/* Title / meta */}
               <button
