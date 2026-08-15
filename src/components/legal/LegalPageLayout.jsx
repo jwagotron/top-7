@@ -67,6 +67,7 @@ export default function LegalPageLayout({ title, lastUpdated, children }) {
             <div className="flex items-center gap-5 text-sm">
               <a href="/privacy" className="text-slate-500 hover:text-slate-900 transition-colors">Privacy</a>
               <a href="/terms" className="text-slate-500 hover:text-slate-900 transition-colors">Terms</a>
+              <a href="/support" className="text-slate-500 hover:text-slate-900 transition-colors">Support</a>
               <a href="/delete-account" className="text-slate-500 hover:text-slate-900 transition-colors">Account Deletion</a>
             </div>
           </div>
