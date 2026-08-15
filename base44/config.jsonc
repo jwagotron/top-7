@@ -1,5 +1,6 @@
 {
   "name": "Top 7",
+  "description": "Top 7 is a coach-led running training platform for cross-country and distance teams. Coaches assign workouts and plans, athletes complete training and send feedback, and both track progress, goals, shoes, streaks, race predictions, and team communication.",
   "site": {
     "installCommand": "npm install",
     "buildCommand": "npm run build",
