@@ -132,6 +132,7 @@ export default function Landing() {
           <div className="flex items-center gap-4">
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link to="/terms" className="hover:text-foreground">Terms</Link>
+            <Link to="/support" className="hover:text-foreground">Support</Link>
           </div>
         </div>
       </footer>
