@@ -373,7 +373,11 @@ export default function CoachPanel() {
 
               {/* FEEDBACK TAB */}
               <TabsContent value="feedback" className="mt-0">
-                <AthleteFeedbackList athleteEmails={athleteEmails} plannedWorkouts={plannedWorkouts} />
+                <AthleteFeedbackList
+                  teamId={effectiveTeamId}
+                  plannedWorkouts={plannedWorkouts}
+                  athleteEmail={selectedAthleteEmail}
+                />
               </TabsContent>
 
               {/* ATHLETES TAB */}
