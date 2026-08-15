@@ -31,6 +31,17 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
   const [feedbackSent, setFeedbackSent] = useState(false);
   const isCompleted = completion?.status === 'completed';
 
+  const { data: existingFeedback = [] } = useQuery({
+    queryKey: ['athlete-feedback-workout', workout?.id, athleteEmail],
+    queryFn: () => base44.entities.AthleteFeedback.filter({
+      workout_id: workout.id,
+      athlete_email: athleteEmail,
+    }, '-created_date', 10),
+    enabled: !!workout?.id && !!athleteEmail && isCompleted,
+    staleTime: 0,
+  });
+  const hasFeedback = feedbackSent || existingFeedback.length > 0;
+
   const feedbackMut = useMutation({
     mutationFn: async () => {
       await base44.entities.AthleteFeedback.create({
@@ -45,6 +56,12 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
     onSuccess: () => {
       setFeedbackSent(true);
       setShowFeedback(false);
+      qc.invalidateQueries({ queryKey: ['athlete-feedback-workout', workout.id, athleteEmail] });
+      qc.invalidateQueries({ queryKey: ['athlete-feedback'] });
+      toast.success('Feedback sent to your coach');
+    },
+    onError: () => {
+      toast.error('Could not send feedback. Please try again.');
     },
   });
 
@@ -79,6 +96,7 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
       setFeedback({ rpe: '', energy_level: '', notes: '' });
       qc.invalidateQueries({ queryKey: ['shoes'] });
       qc.invalidateQueries({ queryKey: ['athlete-feedback'] });
+      qc.invalidateQueries({ queryKey: ['athlete-feedback-workout', workout.id, athleteEmail] });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
@@ -318,7 +336,7 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
         )}
 
         {/* Post-completion feedback */}
-        {isCompleted && !feedbackSent && (
+        {isCompleted && !hasFeedback && (
           <div className="pl-7">
             {!showFeedback ? (
               <button
@@ -374,7 +392,7 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
             )}
           </div>
         )}
-        {isCompleted && feedbackSent && (
+        {isCompleted && hasFeedback && (
           <div className="pl-7">
             <p className="text-xs text-secondary font-medium">✓ Feedback sent to coach</p>
           </div>
