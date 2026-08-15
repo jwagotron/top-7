@@ -19,18 +19,20 @@ const rpeColor = (rpe) => {
   return 'bg-destructive/15 text-destructive';
 };
 
-export default function AthleteFeedbackList({ athleteEmails, plannedWorkouts }) {
-  const { data: feedbackList = [], isLoading } = useQuery({
-    queryKey: ['athlete-feedback', athleteEmails],
+export default function AthleteFeedbackList({ teamId, plannedWorkouts, athleteEmail = null }) {
+  const { data: feedbackList = [], isLoading, isError } = useQuery({
+    queryKey: ['athlete-feedback', teamId, athleteEmail || 'all'],
     queryFn: async () => {
-      if (!athleteEmails?.length) return [];
-      const results = await Promise.all(
-        athleteEmails.map(email => base44.entities.AthleteFeedback.filter({ athlete_email: email }, '-created_date', 50))
-      );
-      return results.flat().sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      if (!teamId) return [];
+      const res = await base44.functions.invoke('getTeamFeedback', {
+        team_id: teamId,
+        athlete_email: athleteEmail || null,
+      });
+      return res.data?.feedback || [];
     },
-    enabled: !!athleteEmails?.length,
-    staleTime: 15000,
+    enabled: !!teamId,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   // Map workout_id → workout title
@@ -40,6 +42,18 @@ export default function AthleteFeedbackList({ athleteEmails, plannedWorkouts }) 
     return (
       <div className="flex justify-center py-12">
         <div className="w-7 h-7 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-14">
+        <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-3">
+          <MessageSquare className="w-7 h-7 text-destructive/60" />
+        </div>
+        <p className="font-semibold text-foreground">Couldn’t load athlete feedback</p>
+        <p className="text-sm text-muted-foreground mt-1">Refresh the page and try again. Team data remains protected.</p>
       </div>
     );
   }
@@ -64,7 +78,10 @@ export default function AthleteFeedbackList({ athleteEmails, plannedWorkouts }) 
           <div key={fb.id} className="bg-card border border-border rounded-xl p-4 space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-foreground">{fb.athlete_email}</p>
+                <p className="text-sm font-semibold text-foreground">{fb.athlete_name || fb.athlete_email}</p>
+                {fb.athlete_name && fb.athlete_name !== fb.athlete_email && (
+                  <p className="text-[11px] text-muted-foreground">{fb.athlete_email}</p>
+                )}
                 {workout && (
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {workout.title} · {workout.scheduled_date}
