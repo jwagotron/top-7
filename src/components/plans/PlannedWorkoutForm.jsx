@@ -28,7 +28,7 @@ export default function PlannedWorkoutForm({ open, onClose, onSubmit, planId, wo
     if (data.target_distance_km) data.target_distance_km = toKm(Number(data.target_distance_km));
     
     // Debug: verify the scheduled date is preserved correctly
-    console.log('[PlannedWorkoutForm] Submitting workout:', {
+    if (import.meta.env.DEV) console.log('[PlannedWorkoutForm] Submitting workout:', {
       title: data.title,
       selectedDate: data.scheduled_date,
       dateType: typeof data.scheduled_date,

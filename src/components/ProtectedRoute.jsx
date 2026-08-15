@@ -34,7 +34,7 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
   const { role } = useRole();
   const [retrying, setRetrying] = useState(false);
 
-  console.log('[route] ProtectedRoute state:', {
+  if (import.meta.env.DEV) console.log('[route] ProtectedRoute state:', {
     isLoadingAuth,
     isAuthenticated,
     hasToken,

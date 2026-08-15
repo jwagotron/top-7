@@ -29,8 +29,8 @@ export default function CompletionOverview({ plannedWorkouts = [], completions =
   const rate      = assignedCount > 0 ? Math.round((completed / assignedCount) * 100) : 0;
   const colors    = rateColor(rate);
 
-  console.log('[CompletionOverview] range:', format(rangeStart,'yyyy-MM-dd'), '->', format(rangeEnd,'yyyy-MM-dd'));
-  console.log('[CompletionOverview] assigned:', assignedCount, '| completions prop:', completions.length, '| completed:', completed);
+  if (import.meta.env.DEV) console.log('[CompletionOverview] range:', format(rangeStart,'yyyy-MM-dd'), '->', format(rangeEnd,'yyyy-MM-dd'));
+  if (import.meta.env.DEV) console.log('[CompletionOverview] assigned:', assignedCount, '| completions prop:', completions.length, '| completed:', completed);
 
   return (
     <div className="bg-card border border-border rounded-2xl p-5 lg:p-6">

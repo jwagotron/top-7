@@ -41,10 +41,10 @@ export default function Register() {
   const handleVerify = async () => {
     setError("");
     setLoading(true);
-    console.log('[register] OTP verification started');
+    if (import.meta.env.DEV) console.log('[register] OTP verification started');
     try {
       const result = await base44.auth.verifyOtp({ email, otpCode });
-      console.log('[register] OTP verified — result keys:', result ? Object.keys(result) : 'null');
+      if (import.meta.env.DEV) console.log('[register] OTP verified — result keys:', result ? Object.keys(result) : 'null');
       if (result?.access_token) {
         // Explicitly persist token to localStorage — Android WebView may not
         // complete the SDK's internal write before the hard redirect fires
@@ -53,19 +53,19 @@ export default function Register() {
           localStorage.setItem('token', result.access_token);
         } catch (_) {}
         base44.auth.setToken(result.access_token);
-        console.log('[register] token persisted to localStorage + SDK');
+        if (import.meta.env.DEV) console.log('[register] token persisted to localStorage + SDK');
       }
 
       // Verify the session works before redirecting
       try {
         const meUser = await base44.auth.me();
-        console.log('[register] ✅ session verified — email:', meUser?.email);
+        if (import.meta.env.DEV) console.log('[register] ✅ session verified — email:', meUser?.email);
       } catch (meErr) {
         console.error('[register] ⚠️ session verification failed:', meErr.message);
       }
       // Persist session marker before hard redirect
       try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
-      console.log('[register] redirecting to / in 300ms (Android storage settle delay)');
+      if (import.meta.env.DEV) console.log('[register] redirecting to / in 300ms (Android storage settle delay)');
       setTimeout(() => { window.location.href = "/"; }, 300);
     } catch (err) {
       console.error('[register] OTP verification failed:', err.message, 'status:', err.status);
@@ -91,7 +91,7 @@ export default function Register() {
   const handleGoogle = async () => {
     const currentUrl = window.location.origin + window.location.pathname;
     const native = isNativePlatform();
-    console.log('[register] Google Sign-In | native:', native, '| fromUrl:', currentUrl);
+    if (import.meta.env.DEV) console.log('[register] Google Sign-In | native:', native, '| fromUrl:', currentUrl);
 
     if (native) {
       // On Android/Capacitor: open OAuth in Chrome Custom Tab, capture via appUrlOpen

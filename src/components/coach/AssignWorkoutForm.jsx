@@ -280,7 +280,7 @@ export default function AssignWorkoutForm({ open, onClose, onSubmit, workout, de
       return;
     }
 
-    console.log('[assign] started', {
+    if (import.meta.env.DEV) console.log('[assign] started', {
       athletes: selectedAthletes,
       title: form.title,
       run_type: form.run_type,

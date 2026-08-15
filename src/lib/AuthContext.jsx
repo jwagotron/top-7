@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     // unexpected warm-start OAuth callbacks (Android/Capacitor only —
     // no-ops on web where window.Capacitor is undefined).
     const cleanup = setupGlobalAppUrlListener((token) => {
-      console.log('[auth] Token received from appUrlOpen — triggering checkAppState');
+      if (import.meta.env.DEV) console.log('[auth] Token received from appUrlOpen — triggering checkAppState');
       try { base44.auth.setToken(token); } catch (_) {}
       checkAppState();
     });
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
 
       const liveToken = getLiveToken();
       setHasToken(!!liveToken);
-      console.log('[auth] checkAppState — starting | appParams.token:', !!appParams.token, '| liveToken:', !!liveToken);
+      if (import.meta.env.DEV) console.log('[auth] checkAppState — starting | appParams.token:', !!appParams.token, '| liveToken:', !!liveToken);
 
       // If we have a token, force the SDK's axios client to use it BEFORE any request.
       // The SDK sets the Authorization header at createClient() time from appParams.token,
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }) => {
       if (liveToken) {
         try {
           base44.auth.setToken(liveToken);
-          console.log('[auth] ✅ forced SDK setToken with live token');
+          if (import.meta.env.DEV) console.log('[auth] ✅ forced SDK setToken with live token');
         } catch (e) {
           console.warn('[auth] setToken failed:', e.message);
         }
@@ -77,11 +77,11 @@ export const AuthProvider = ({ children }) => {
         if (res.ok) {
           const publicSettings = await res.json();
           setAppPublicSettings(publicSettings);
-          console.log('[auth] public settings loaded');
+          if (import.meta.env.DEV) console.log('[auth] public settings loaded');
         } else if (res.status === 403) {
           const data = await res.json().catch(() => ({}));
           const reason = data?.extra_data?.reason;
-          console.log('[auth] 403 from public-settings, reason:', reason, '— continuing to checkUserAuth()');
+          if (import.meta.env.DEV) console.log('[auth] 403 from public-settings, reason:', reason, '— continuing to checkUserAuth()');
           // DO NOT early-return on 403 — the public-settings endpoint may reject
           // a stale token while base44.auth.me() still has a valid session.
           if (reason === 'user_not_registered' && !liveToken) {
@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }) => {
         // Re-read token after the fetch — in case the SDK wrote it during the await
         const tokenForAuth = getLiveToken();
         setHasToken(!!tokenForAuth);
-        console.log('[auth] tokenForAuth after public-settings:', !!tokenForAuth);
+        if (import.meta.env.DEV) console.log('[auth] tokenForAuth after public-settings:', !!tokenForAuth);
         if (tokenForAuth) {
           // Force SDK to use the live token again (in case it was updated during the await)
           try { base44.auth.setToken(tokenForAuth); } catch (_) {}
@@ -106,10 +106,10 @@ export const AuthProvider = ({ children }) => {
           // there may be a server-side session cookie. Try me() as a last resort.
           const sessionMarker = localStorage.getItem('base44_session_active');
           if (sessionMarker) {
-            console.log('[auth] no local token but session marker active — attempting me() as last resort');
+            if (import.meta.env.DEV) console.log('[auth] no local token but session marker active — attempting me() as last resort');
             await checkUserAuth();
           } else {
-            console.log('[auth] no token and no session marker — marking unauthenticated');
+            if (import.meta.env.DEV) console.log('[auth] no token and no session marker — marking unauthenticated');
             setIsLoadingAuth(false);
             setIsAuthenticated(false);
           }
@@ -148,7 +148,7 @@ export const AuthProvider = ({ children }) => {
 
       const liveToken = getLiveToken();
       setHasToken(!!liveToken);
-      console.log(`[auth] checkUserAuth — attempt ${attempt} | liveToken: ${!!liveToken} | calling base44.auth.me()`);
+      if (import.meta.env.DEV) console.log(`[auth] checkUserAuth — attempt ${attempt} | liveToken: ${!!liveToken} | calling base44.auth.me()`);
 
       // Force the SDK's axios client to use the live token on every attempt.
       // This is the critical fix: the SDK may have been initialized with a stale
@@ -161,7 +161,7 @@ export const AuthProvider = ({ children }) => {
       // localStorage read. We call me() regardless — if it fails with 401, we
       // know there's genuinely no session.
       const currentUser = await base44.auth.me();
-      console.log('[auth] ✅ session restored — email:', currentUser?.email, '| user_type:', currentUser?.user_type, '| role:', currentUser?.role, attempt > 1 ? '(retry succeeded)' : '');
+      if (import.meta.env.DEV) console.log('[auth] ✅ session restored — email:', currentUser?.email, '| user_type:', currentUser?.user_type, '| role:', currentUser?.role, attempt > 1 ? '(retry succeeded)' : '');
 
       // me() succeeded — persist the token if the SDK has one internally but we
       // didn't find it in localStorage (ensures it survives future page reloads)
@@ -170,7 +170,7 @@ export const AuthProvider = ({ children }) => {
           const sdkToken = localStorage.getItem('base44_access_token') || localStorage.getItem('token');
           if (sdkToken) {
             setHasToken(true);
-            console.log('[auth] recovered token from SDK internal storage after me() success');
+            if (import.meta.env.DEV) console.log('[auth] recovered token from SDK internal storage after me() success');
           }
         } catch (_) {}
       }
@@ -185,15 +185,15 @@ export const AuthProvider = ({ children }) => {
 
       const isNetworkError = !error.status || error.status >= 500 || error.message?.includes('network') || error.message?.includes('fetch') || error.message?.includes('Failed to fetch');
       if (attempt < 3 && isNetworkError) {
-        console.log(`[auth] retrying auth check in ${attempt * 800}ms… (attempt ${attempt + 1}/3)`);
+        if (import.meta.env.DEV) console.log(`[auth] retrying auth check in ${attempt * 800}ms… (attempt ${attempt + 1}/3)`);
         setTimeout(() => checkUserAuth(attempt + 1), attempt * 800);
         return;
       }
 
-      console.log('[auth] auth check exhausted after', attempt, 'attempts — marking unauthenticated');
+      if (import.meta.env.DEV) console.log('[auth] auth check exhausted after', attempt, 'attempts — marking unauthenticated');
       // If the token is expired/invalid (401/403), purge it from localStorage
       if (error.status === 401 || error.status === 403) {
-        console.log('[auth] stale/invalid token — clearing from storage');
+        if (import.meta.env.DEV) console.log('[auth] stale/invalid token — clearing from storage');
         try { localStorage.removeItem('base44_access_token'); } catch (_) {}
         try { localStorage.removeItem('token'); } catch (_) {}
         setHasToken(false);
@@ -206,19 +206,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   const refetchUser = useCallback(async () => {
-    console.log('[auth] refetchUser — fetching latest');
+    if (import.meta.env.DEV) console.log('[auth] refetchUser — fetching latest');
     const liveToken = getLiveToken();
     if (liveToken) {
       try { base44.auth.setToken(liveToken); } catch (_) {}
     }
     const currentUser = await base44.auth.me();
-    console.log('[auth] refetchUser — user:', currentUser?.email);
+    if (import.meta.env.DEV) console.log('[auth] refetchUser — user:', currentUser?.email);
     setUser(currentUser);
     return currentUser;
   }, []);
 
   const logout = (shouldRedirect = true) => {
-    console.log('[auth] logout — clearing session');
+    if (import.meta.env.DEV) console.log('[auth] logout — clearing session');
     setUser(null);
     setIsAuthenticated(false);
     setHasToken(false);
@@ -232,14 +232,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = () => {
-    console.log('[auth] navigateToLogin');
+    if (import.meta.env.DEV) console.log('[auth] navigateToLogin');
     base44.auth.redirectToLogin(window.location.href);
   };
 
   const persistSession = () => {
     try {
       localStorage.setItem('base44_session_active', '1');
-      console.log('[auth] persistSession — session marker saved');
+      if (import.meta.env.DEV) console.log('[auth] persistSession — session marker saved');
     } catch (_) {
       console.warn('[auth] persistSession — localStorage unavailable');
     }

@@ -87,8 +87,8 @@ export default function AthleteProfile() {
   const { toDisplay, label } = useUnits();
 
   // Debug logs for coach viewing athlete profile
-  console.log('[AthleteProfile] athleteEmail from URL:', athleteEmail);
-  console.log('[AthleteProfile] current viewer (coach):', user?.email, 'role:', user?.role);
+  if (import.meta.env.DEV) console.log('[AthleteProfile] athleteEmail from URL:', athleteEmail);
+  if (import.meta.env.DEV) console.log('[AthleteProfile] current viewer (coach):', user?.email, 'role:', user?.role);
 
   const { data: raceGoals = [], isLoading: loadingGoals } = useQuery({
     queryKey: ['race-goals', athleteEmail],
@@ -146,7 +146,7 @@ export default function AthleteProfile() {
 
   // ── Derived stats ──────────────────────────────────────────────
   // Debug: log loaded data state
-  console.log('[AthleteProfile] plannedWorkouts loaded:', plannedWorkouts.length, 'completions:', completions.length, 'feedback:', feedback.length);
+  if (import.meta.env.DEV) console.log('[AthleteProfile] plannedWorkouts loaded:', plannedWorkouts.length, 'completions:', completions.length, 'feedback:', feedback.length);
 
   const completedIds = new Set(completions.filter(c => c.status === 'completed').map(c => c.planned_workout_id));
   const today = new Date();

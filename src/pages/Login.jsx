@@ -29,7 +29,7 @@ export default function Login() {
     // Token exists or session marker is active — try to restore session
     const sessionMarker = localStorage.getItem('base44_session_active');
     if ((hasToken || sessionMarker) && !isAuthenticated) {
-      console.log('[login] token or session marker found on /login — attempting session restore');
+      if (import.meta.env.DEV) console.log('[login] token or session marker found on /login — attempting session restore');
       checkAppState();
     }
   }, [isAuthenticated, hasToken]);
@@ -38,10 +38,10 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    console.log('[login] email/password login started for:', email);
+    if (import.meta.env.DEV) console.log('[login] email/password login started for:', email);
     try {
       const result = await base44.auth.loginViaEmailPassword(email, password);
-      console.log('[login] ✅ loginViaEmailPassword succeeded | result keys:', result ? Object.keys(result) : 'null');
+      if (import.meta.env.DEV) console.log('[login] ✅ loginViaEmailPassword succeeded | result keys:', result ? Object.keys(result) : 'null');
 
       // Explicitly persist the token ourselves — the SDK writes it internally,
       // but on Android WebView the localStorage write may not complete before
@@ -50,7 +50,7 @@ export default function Login() {
         try {
           localStorage.setItem('base44_access_token', result.access_token);
           localStorage.setItem('token', result.access_token);
-          console.log('[login] token explicitly persisted to localStorage');
+          if (import.meta.env.DEV) console.log('[login] token explicitly persisted to localStorage');
         } catch (_) {}
         // Force the SDK to use the fresh token
         try { base44.auth.setToken(result.access_token); } catch (_) {}
@@ -61,10 +61,10 @@ export default function Login() {
 
       // Verify the session actually works by calling me() BEFORE redirecting.
       // This catches the case where the token is saved but the SDK can't use it.
-      console.log('[login] verifying session with base44.auth.me()…');
+      if (import.meta.env.DEV) console.log('[login] verifying session with base44.auth.me()…');
       try {
         const meUser = await base44.auth.me();
-        console.log('[login] ✅ session verified — email:', meUser?.email, '| user_type:', meUser?.user_type);
+        if (import.meta.env.DEV) console.log('[login] ✅ session verified — email:', meUser?.email, '| user_type:', meUser?.user_type);
       } catch (meErr) {
         console.error('[login] ⚠️ session verification failed:', meErr.message, 'status:', meErr.status);
         // Don't block the redirect — the token may still work on the fresh page load.
@@ -72,7 +72,7 @@ export default function Login() {
       }
 
       // Small delay to let Android WebView localStorage settle before hard redirect
-      console.log('[login] redirecting to / in 300ms (Android storage settle delay)');
+      if (import.meta.env.DEV) console.log('[login] redirecting to / in 300ms (Android storage settle delay)');
       setTimeout(() => { window.location.href = "/"; }, 300);
     } catch (err) {
       const runtime = detectRuntime();
@@ -102,7 +102,7 @@ export default function Login() {
     const runtime = detectRuntime();
     const currentUrl = window.location.origin + window.location.pathname;
     const native = isNativePlatform();
-    console.log('[login] Google Sign-In | runtime:', runtime.label, '| native:', native, '| fromUrl:', currentUrl);
+    if (import.meta.env.DEV) console.log('[login] Google Sign-In | runtime:', runtime.label, '| native:', native, '| fromUrl:', currentUrl);
 
     if (native) {
       // On Android/Capacitor: open OAuth in a Chrome Custom Tab and capture

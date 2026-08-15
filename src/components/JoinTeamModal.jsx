@@ -25,13 +25,13 @@ export default function JoinTeamModal({ open, onOpenChange, onSuccess }) {
     }
     setLoading(true);
     setError('');
-    console.log('[joinTeam] submit started', { code: teamCode.trim() });
+    if (import.meta.env.DEV) console.log('[joinTeam] submit started', { code: teamCode.trim() });
     try {
       const response = await base44.functions.invoke('joinTeam', {
         invite_code: teamCode.toUpperCase().trim(),
       });
       const data = response.data;
-      console.log('[joinTeam] submit success', data);
+      if (import.meta.env.DEV) console.log('[joinTeam] submit success', data);
       if (data.status === 'active') {
         toast.success(`You've joined ${data.team_name}!`);
         setTeamCode('');

@@ -167,7 +167,7 @@ export default function FitImportDialog({ open, onClose, onImport }) {
 
   const handleFile = async (file) => {
     if (!file) return;
-    console.log('[UploadRun] upload started', { fileName: file.name, size: file.size });
+    if (import.meta.env.DEV) console.log('[UploadRun] upload started', { fileName: file.name, size: file.size });
 
     if (file.size > MAX_FILE_SIZE) {
       setError('File is too large (max 50 MB). Please export a smaller activity.');
@@ -175,7 +175,7 @@ export default function FitImportDialog({ open, onClose, onImport }) {
     }
 
     const ext = file.name.split('.').pop().toLowerCase();
-    console.log('[UploadRun] file type detected', ext);
+    if (import.meta.env.DEV) console.log('[UploadRun] file type detected', ext);
     setError('');
     setStage('parsing');
 
@@ -206,7 +206,7 @@ export default function FitImportDialog({ open, onClose, onImport }) {
         throw new Error(`Unsupported file type: .${ext}. Please use .gpx, .fit, or .tcx`);
       }
 
-      console.log('[UploadRun] parse success', {
+      if (import.meta.env.DEV) console.log('[UploadRun] parse success', {
         distance_km: result.distance_km,
         duration_minutes: result.duration_minutes,
         avg_heart_rate: result.avg_heart_rate,
@@ -229,7 +229,7 @@ export default function FitImportDialog({ open, onClose, onImport }) {
 
   const handleImport = () => {
     const { _filename, ...data } = parsed;
-    console.log('[UploadRun] saving parsed run', { title: data.title, date: data.date, distance_km: data.distance_km, sport: data.sport });
+    if (import.meta.env.DEV) console.log('[UploadRun] saving parsed run', { title: data.title, date: data.date, distance_km: data.distance_km, sport: data.sport });
     onImport(data);
     reset();
   };
@@ -243,7 +243,7 @@ export default function FitImportDialog({ open, onClose, onImport }) {
       ...(manualData.duration_minutes && { duration_minutes: parseInt(manualData.duration_minutes) }),
       ...(manualData.notes && { notes: manualData.notes }),
     };
-    console.log('[UploadRun] saving manual run', data);
+    if (import.meta.env.DEV) console.log('[UploadRun] saving manual run', data);
     onImport(data);
     reset();
   };
