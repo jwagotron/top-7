@@ -3,7 +3,7 @@ import LegalPageLayout from '@/components/legal/LegalPageLayout';
 
 export default function Privacy() {
   return (
-    <LegalPageLayout title="Privacy Policy" lastUpdated="June 2026">
+    <LegalPageLayout title="Privacy Policy" lastUpdated="August 2026">
       <p>
         This Privacy Policy describes how Top 7 ("we", "us", or "our") collects, uses, and
         shares information about you when you use our mobile and web application ("App").
