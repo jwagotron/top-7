@@ -12,7 +12,7 @@ const roles = [
     id: 'athlete',
     label: 'Athlete',
     icon: Dumbbell,
-    description: 'Track your runs, follow training plans, and monitor your personal progress.',
+    description: 'Follow coach-assigned workouts, mark them complete, share feedback, and track your progress.',
     color: 'border-primary/40 hover:border-primary hover:bg-primary/5',
     activeColor: 'border-primary bg-primary/10',
     iconBg: 'bg-primary/10 text-primary',
@@ -21,7 +21,7 @@ const roles = [
     id: 'coach',
     label: 'Coach',
     icon: Users,
-    description: 'Create and manage teams, assign workouts, and track all your athletes.',
+    description: 'Create a team, invite athletes, assign training, and see completion and feedback in one place.',
     color: 'border-secondary/40 hover:border-secondary hover:bg-secondary/5',
     activeColor: 'border-secondary bg-secondary/10',
     iconBg: 'bg-secondary/10 text-secondary',
@@ -66,9 +66,9 @@ export default function OnboardingWizard() {
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold text-center text-foreground mb-1">Welcome! How will you use the app?</h1>
+        <h1 className="text-2xl font-bold text-center text-foreground mb-1">How will you use Top 7?</h1>
         <p className="text-sm text-muted-foreground text-center mb-8">
-          This determines your experience. You won't be able to change this yourself.
+          Choose the role that matches what you do. This sets up the right tools and navigation for you.
         </p>
 
         <div className="space-y-3">
