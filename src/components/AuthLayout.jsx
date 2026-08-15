@@ -25,6 +25,8 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
           <Link to="/privacy" className="hover:text-foreground hover:underline">Privacy Policy</Link>
           {" · "}
           <Link to="/terms" className="hover:text-foreground hover:underline">Terms of Service</Link>
+          {" · "}
+          <Link to="/support" className="hover:text-foreground hover:underline">Support</Link>
         </p>
       </div>
     </div>
