@@ -24,6 +24,7 @@ import ResetPassword from '@/pages/ResetPassword';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
 import DeleteAccount from '@/pages/DeleteAccount';
+import Landing from '@/pages/Landing';
 
 import Dashboard from '@/pages/Dashboard';
 
@@ -166,6 +167,7 @@ function AnimatedRoutes() {
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, user } = useAuth();
   const { role } = useRole();
+  const location = useLocation();
 
   // Comprehensive diagnostic logging for Android debugging
   if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[app] AuthenticatedApp render —', {
@@ -201,9 +203,10 @@ const AuthenticatedApp = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/join" element={<JoinTeam />} />
+        <Route path="/welcome" element={<Landing />} />
 
-        {/* All app routes — gated by ProtectedRoute */}
-        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        {/* All app routes — gated by ProtectedRoute. The root URL doubles as the public product page when signed out. */}
+        <Route element={<ProtectedRoute unauthenticatedElement={location.pathname === '/' ? <Landing /> : <Navigate to="/login" replace />} />}>
           {role ? (
             <Route path="*" element={<AnimatedRoutes />} />
           ) : (
