@@ -18,6 +18,21 @@ export default function Privacy() {
         <li><strong>Usage data:</strong> how you interact with the App, including features used and crash reports.</li>
       </ul>
 
+      <h2>Google Sign-In Data</h2>
+      <p>
+        If you choose Continue with Google, Top 7 uses Google OAuth to authenticate your account.
+        We request only the identity information needed to sign you in, including your Google
+        account email address and the account identifier returned by Google. We use this data to
+        create or match your Top 7 account, keep you signed in securely, and provide the App.
+        Google Sign-In does not give Top 7 access to your Gmail, Google Drive, Google Calendar,
+        contacts, or other Google account content.
+      </p>
+      <p>
+        We do not sell Google user data. We do not use Google user data for advertising. We share
+        it only with service providers as necessary to operate and secure Top 7, or when required
+        by law, consistent with this Privacy Policy.
+      </p>
+
       <h2>How We Use Your Information</h2>
       <ul>
         <li>To provide and operate the App.</li>
