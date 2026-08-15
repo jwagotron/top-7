@@ -16,8 +16,8 @@ export const queryClientInstance = new QueryClient({
 queryClientInstance.getQueryCache().subscribe(({ type, query, action }) => {
   if (type !== 'updated') return;
   if (action?.type === 'invalidate') {
-    if (import.meta.env.DEV) console.log('[QueryCache:invalidated]', JSON.stringify(query.queryKey));
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[QueryCache:invalidated]', JSON.stringify(query.queryKey));
   } else if (action?.type === 'fetch') {
-    if (import.meta.env.DEV) console.log('[QueryCache:refetch]', JSON.stringify(query.queryKey));
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[QueryCache:refetch]', JSON.stringify(query.queryKey));
   }
 });

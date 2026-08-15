@@ -97,7 +97,7 @@ export default function AssignmentSelector({ value, onChange }) {
     if (alreadyPending) { setInviteError('This athlete already has a pending invite.'); return; }
 
     setInviteLoading(true);
-    if (import.meta.env.DEV) console.log('[Invite] Submitting invite:', { email, coachEmail: user?.email });
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[Invite] Submitting invite:', { email, coachEmail: user?.email });
 
     try {
       const record = await base44.entities.AthleteInvitation.create({
@@ -108,7 +108,7 @@ export default function AssignmentSelector({ value, onChange }) {
         invited_at: new Date().toISOString(),
       });
 
-      if (import.meta.env.DEV) console.log('[Invite] Success. Created record id:', record?.id);
+      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[Invite] Success. Created record id:', record?.id);
 
       setInviteSuccess(`Invitation sent to ${email}`);
       setInviteEmail('');
@@ -143,7 +143,7 @@ export default function AssignmentSelector({ value, onChange }) {
   // PREVIEW ONLY — simulates athlete accepting invite
   const handleSimulateAcceptance = async (inv) => {
     try {
-      if (import.meta.env.DEV) console.log('[Preview] Simulating acceptance for:', inv.athlete_email);
+      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[Preview] Simulating acceptance for:', inv.athlete_email);
       // Create active coach-athlete relationship
       await base44.entities.CoachAthleteRelationship.create({
         coach_email: user.email,
@@ -157,7 +157,7 @@ export default function AssignmentSelector({ value, onChange }) {
         status: 'accepted',
         accepted_at: new Date().toISOString(),
       });
-      if (import.meta.env.DEV) console.log('[Preview] Athlete activated:', inv.athlete_email);
+      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[Preview] Athlete activated:', inv.athlete_email);
       qc.invalidateQueries({ queryKey: ['coach-athletes', user?.email] });
       qc.invalidateQueries({ queryKey: ['pending-invites', user?.email] });
     } catch (err) {

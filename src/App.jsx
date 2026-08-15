@@ -168,7 +168,7 @@ const AuthenticatedApp = () => {
   const { role } = useRole();
 
   // Comprehensive diagnostic logging for Android debugging
-  if (import.meta.env.DEV) console.log('[app] AuthenticatedApp render —', {
+  if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[app] AuthenticatedApp render —', {
     isLoadingPublicSettings,
     isLoadingAuth,
     authErrorType: authError?.type,

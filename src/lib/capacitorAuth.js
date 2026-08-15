@@ -145,7 +145,7 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
     _oauthDiag.lastError = !isNative
       ? 'Not native — web flow'
       : `Missing plugins: App=${!!App} Browser=${!!Browser}`;
-    if (import.meta.env.DEV) console.log('[capacitor-auth] Falling back to web flow:', _oauthDiag.lastError);
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] Falling back to web flow:', _oauthDiag.lastError);
     base44.auth.loginWithProvider('google', fromUrl);
     return;
   }
@@ -153,7 +153,7 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
   // 1. Build OAuth URL
   const oauthUrl = buildOAuthUrl('google', fromUrl);
   _oauthDiag.oauthUrl = oauthUrl;
-  if (import.meta.env.DEV) console.log('[capacitor-auth] OAuth URL:', oauthUrl);
+  if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] OAuth URL:', oauthUrl);
 
   // 2. Set up appUrlOpen listener BEFORE opening the browser
   let listenerHandle = null;
@@ -164,7 +164,7 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
     }, 120000);
 
     const addListenerResult = App.addListener('appUrlOpen', ({ url }) => {
-      if (import.meta.env.DEV) console.log('[capacitor-auth] appUrlOpen received:', url);
+      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] appUrlOpen received:', url);
       // Only handle URLs that contain a token
       if (url.includes('access_token=') || url.includes('token=')) {
         clearTimeout(timeout);
@@ -186,7 +186,7 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
   try {
     await Browser.open({ url: oauthUrl });
     _oauthDiag.browserOpened = true;
-    if (import.meta.env.DEV) console.log('[capacitor-auth] Chrome Custom Tab opened');
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] Chrome Custom Tab opened');
   } catch (e) {
     _oauthDiag.lastError = `Browser.open failed: ${e.message}`;
     console.error('[capacitor-auth] Browser.open failed:', e);
@@ -209,7 +209,7 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
   // 5. Extract the token
   const token = extractTokenFromUrl(callbackUrl);
   _oauthDiag.tokenExtracted = !!token;
-  if (import.meta.env.DEV) console.log('[capacitor-auth] Token extracted:', token ? `YES (${token.length}ch)` : 'NO');
+  if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] Token extracted:', token ? `YES (${token.length}ch)` : 'NO');
 
   if (!token) {
     _oauthDiag.lastError = 'No token found in callback URL';
@@ -224,7 +224,7 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
     localStorage.setItem('token', token);
     localStorage.setItem('base44_session_active', '1');
     _oauthDiag.tokenStored = true;
-    if (import.meta.env.DEV) console.log('[capacitor-auth] Token stored in localStorage');
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] Token stored in localStorage');
   } catch (e) {
     _oauthDiag.lastError = `localStorage write failed: ${e.message}`;
     console.error('[capacitor-auth] localStorage failed:', e);
@@ -235,10 +235,10 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
   // 7. Set on SDK and verify with auth.me()
   try {
     base44.auth.setToken(token);
-    if (import.meta.env.DEV) console.log('[capacitor-auth] Token set on SDK, verifying with auth.me()...');
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] Token set on SDK, verifying with auth.me()...');
     const meUser = await base44.auth.me();
     _oauthDiag.authMeResult = `success: ${meUser?.email || 'unknown'}`;
-    if (import.meta.env.DEV) console.log('[capacitor-auth] ✅ auth.me() succeeded:', meUser?.email);
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] ✅ auth.me() succeeded:', meUser?.email);
   } catch (e) {
     _oauthDiag.authMeResult = `failed: ${e.message}`;
     _oauthDiag.lastError = `auth.me() failed: ${e.message}`;
@@ -250,7 +250,7 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
   if (listenerHandle) listenerHandle.remove().catch(() => {});
 
   // 8. Hard-navigate to the app (triggers fresh AuthContext init with the stored token)
-  if (import.meta.env.DEV) console.log('[capacitor-auth] Navigating to', navigatePath);
+  if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] Navigating to', navigatePath);
   window.location.href = navigatePath;
 }
 
@@ -266,7 +266,7 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
 export function setupGlobalAppUrlListener(onTokenReceived) {
   const App = getAppPlugin();
   if (!App) {
-    if (import.meta.env.DEV) console.log('[capacitor-auth] App plugin not available — skipping global listener');
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] App plugin not available — skipping global listener');
     return;
   }
 
@@ -275,7 +275,7 @@ export function setupGlobalAppUrlListener(onTokenReceived) {
     App.getLaunchUrl()
       .then(({ url }) => {
         if (url && (url.includes('access_token=') || url.includes('token='))) {
-          if (import.meta.env.DEV) console.log('[capacitor-auth] Cold-start launch URL with token:', url);
+          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] Cold-start launch URL with token:', url);
           const token = extractTokenFromUrl(url);
           if (token) {
             localStorage.setItem('base44_access_token', token);
@@ -290,7 +290,7 @@ export function setupGlobalAppUrlListener(onTokenReceived) {
 
   // Warm-start: app is running, OAuth callback arrives via appUrlOpen
   const addListenerResult = App.addListener('appUrlOpen', ({ url }) => {
-    if (import.meta.env.DEV) console.log('[capacitor-auth] Global appUrlOpen:', url);
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] Global appUrlOpen:', url);
     if (url.includes('access_token=') || url.includes('token=')) {
       const token = extractTokenFromUrl(url);
       if (token) {

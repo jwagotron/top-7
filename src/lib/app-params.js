@@ -63,7 +63,7 @@ const getAppParams = () => {
 	const fromUrl = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('access_token');
 	const fromStorage = storageAvailable ? storage.getItem('base44_access_token') : null;
 	const sessionActive = storageAvailable ? storage.getItem('base44_session_active') : null;
-	if (import.meta.env.DEV) console.log('[params] token sources — fromUrl:', !!fromUrl, 'fromStorage:', !!fromStorage, 'sessionActive:', !!sessionActive, 'hasToken:', !!token);
+	if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[params] token sources — fromUrl:', !!fromUrl, 'fromStorage:', !!fromStorage, 'sessionActive:', !!sessionActive, 'hasToken:', !!token);
 	return {
 		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_BASE44_APP_ID }),
 		token,

@@ -109,30 +109,30 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
       let loggedShoeId = null;
       let loggedDistanceKm = null;
       const distanceToLog = workout.target_distance_km;
-      if (import.meta.env.DEV) console.log('[ShoeLog] target_distance_km:', distanceToLog);
+      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] target_distance_km:', distanceToLog);
       if (distanceToLog) {
         const primaryShoeId = localStorage.getItem('primary_shoe_id');
-        if (import.meta.env.DEV) console.log('[ShoeLog] primaryShoeId from localStorage:', primaryShoeId);
+        if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] primaryShoeId from localStorage:', primaryShoeId);
         let targetShoeId = primaryShoeId;
         if (!targetShoeId) {
           const allShoes = await base44.entities.Shoe.list('-created_date', 100);
           const firstActive = allShoes.find(s => s.status !== 'retired');
-          if (import.meta.env.DEV) console.log('[ShoeLog] fallback shoe:', firstActive?.id, firstActive?.name);
+          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] fallback shoe:', firstActive?.id, firstActive?.name);
           if (firstActive) targetShoeId = firstActive.id;
         }
         if (targetShoeId) {
           const freshShoe = await base44.entities.Shoe.get(targetShoeId);
-          if (import.meta.env.DEV) console.log('[ShoeLog] freshShoe:', freshShoe?.name, 'current mileage:', freshShoe?.mileage_km);
+          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] freshShoe:', freshShoe?.name, 'current mileage:', freshShoe?.mileage_km);
           if (freshShoe && freshShoe.status !== 'retired') {
             await base44.entities.Shoe.update(targetShoeId, {
               mileage_km: (freshShoe.mileage_km || 0) + distanceToLog,
             });
             loggedShoeId = targetShoeId;
             loggedDistanceKm = distanceToLog;
-            if (import.meta.env.DEV) console.log('[ShoeLog] Updated shoe mileage +', distanceToLog, 'km');
+            if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] Updated shoe mileage +', distanceToLog, 'km');
           }
         } else {
-          if (import.meta.env.DEV) console.log('[ShoeLog] No shoe found to log to');
+          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] No shoe found to log to');
         }
       }
       // Save shoe log info on the completion record
