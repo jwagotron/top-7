@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Target } from 'lucide-react';
 import StreakCard from './StreakCard';
 import DisciplineScore from './DisciplineScore';
-import { STREAK_TYPES, computeStreaksFromWorkouts, computeDisciplineScore } from '@/lib/streakEngine';
+import { computeStreaksFromWorkouts, computeDisciplineScore } from '@/lib/streakEngine';
 
 export default function StreakPanel({ userEmail }) {
   const { data: workouts = [] } = useQuery({

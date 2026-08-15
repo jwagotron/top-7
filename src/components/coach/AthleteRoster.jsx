@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import {
   computeStreaksFromWorkouts,
   getAthleteRosterStatus,
-  STREAK_TYPES,
 } from '@/lib/streakEngine';
 
 const statusConfig = {

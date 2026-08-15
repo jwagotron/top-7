@@ -3,11 +3,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import TopBar from '@/components/layout/TopBar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-import { Upload, Clock, Activity } from 'lucide-react';
+import { Upload, Clock } from 'lucide-react';
 import FitImportDialog from '@/components/workouts/FitImportDialog';
 
 const steps = [

@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, ChevronDown, ChevronUp, Clock, MapPin, StickyNote, Users } from 'lucide-react';
-import { format, isSameDay } from 'date-fns';
+import { CheckCircle2, ChevronDown, ChevronUp, StickyNote, Users } from 'lucide-react';
+import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
 

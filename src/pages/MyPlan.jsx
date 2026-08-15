@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useRole } from '@/lib/RoleContext';
@@ -12,7 +12,7 @@ import {
   ClipboardList, ChevronDown, ChevronUp,
   CheckCircle2, Clock, MapPin, StickyNote, Loader2, ArrowLeft
 } from 'lucide-react';
-import { format, isToday, isSameDay, addDays, eachDayOfInterval } from 'date-fns';
+import { format, isToday, isSameDay, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { parseDateOnly } from '@/lib/dateUtils';
 import { useUnits } from '@/hooks/useUnits';

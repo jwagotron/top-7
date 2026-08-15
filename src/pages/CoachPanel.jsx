@@ -96,7 +96,7 @@ export default function CoachPanel() {
       qc.invalidateQueries({ queryKey: ['coach-completions'] });
     });
     return () => { unsubPW(); unsubWC(); };
-  }, [qc]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [qc]);  
 
   // Only fetch planned workouts for athletes on THIS team — prevents cross-team data leakage
   const { data: plannedWorkouts = [], isLoading } = useQuery({

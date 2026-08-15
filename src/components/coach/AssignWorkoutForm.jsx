@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, Users, ChevronRight, User, BookOpen, X, ChevronDown, Loader2, AlertCircle } from 'lucide-react';
+import { Check, Users, ChevronRight, User, BookOpen, ChevronDown, Loader2, AlertCircle } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
 import { getGroupColorClasses } from '@/components/coach/AthleteGroupManager';
 

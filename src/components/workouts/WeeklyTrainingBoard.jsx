@@ -1,9 +1,8 @@
 import React from 'react';
-import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
-import { ChevronLeft, ChevronRight, MapPin, Clock, Zap, Trash2 } from 'lucide-react';
+import { format, addDays, isSameDay } from 'date-fns';
+import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { parseDateOnly } from '@/lib/dateUtils';
 import PlannedWorkoutCard from '@/components/workouts/PlannedWorkoutCard';
 
 export default function WeeklyTrainingBoard({

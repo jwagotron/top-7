@@ -2,8 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, GripVertical, ChevronDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Plus, Trash2, GripVertical } from 'lucide-react';
 
 const stepTypeColors = {
   warmup: 'bg-secondary/10 border-secondary/30 text-secondary',

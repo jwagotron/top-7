@@ -8,11 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { format, parseISO, subDays, startOfWeek, isWithinInterval } from 'date-fns';
+import { format, parseISO, subDays } from 'date-fns';
 import {
   Trophy, MessageSquare, TrendingUp, MapPin, Clock, Heart,
   ArrowLeft, CheckCircle2, XCircle, Send, Flame, Target,
-  BarChart2, Zap, Award, CalendarCheck, AlertCircle
+  BarChart2, Zap, CalendarCheck, AlertCircle
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,

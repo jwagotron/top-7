@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { LOGO_URL, APP_NAME } from '@/lib/branding';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Dumbbell, Users } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { setLocalRole } from '@/lib/RoleContext';
 import AthleteSetup from './AthleteSetup';

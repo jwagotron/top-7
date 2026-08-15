@@ -4,11 +4,9 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Plus, Clock, X, Loader2, CheckCircle2, Check, UserCircle2 } from 'lucide-react';
 
 export default function AssignmentSelector({ value, onChange }) {

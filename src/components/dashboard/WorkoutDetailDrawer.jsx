@@ -4,7 +4,6 @@ import { format } from 'date-fns';
 import { useUnits } from '@/hooks/useUnits';
 import { Clock, MapPin, Zap, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import WorkoutComments from '@/components/workouts/WorkoutComments';
 import { useRole } from '@/lib/RoleContext';
 

@@ -1,11 +1,11 @@
 import React from 'react';
 import { 
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  eachDayOfInterval, isSameMonth, format
+  eachDayOfInterval, format
 } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import CalendarDayCell from '@/components/workouts/CalendarDayCell';
 
 export default function WorkoutCalendar({ currentMonth, onMonthChange, workouts = [], plannedWorkouts = [], completions = [], selectedDate, onSelectDate }) {
