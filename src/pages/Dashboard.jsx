@@ -173,7 +173,7 @@ export default function Dashboard() {
 
             {/* Expanded detail */}
             {showTodayWorkout && (
-              <div className="px-5 pb-5 pt-1 space-y-3 border-t border-border/20">
+              <div className="px-5 pb-4 pt-1 space-y-3 border-t border-border/20">
                 {todayWorkout.warmup_description && (
                   <div className="p-3 rounded-xl bg-secondary/5 border border-secondary/20">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-secondary/70 mb-1">Warm-Up</p>
@@ -195,6 +195,24 @@ export default function Dashboard() {
                 {todayDone && todayCompletion?.notes && (
                   <p className="text-xs text-muted-foreground italic">"{todayCompletion.notes}"</p>
                 )}
+              </div>
+            )}
+
+            {role === 'athlete' && (
+              <div className="px-5 pb-5">
+                <button
+                  type="button"
+                  onClick={() => navigate('/my-plan')}
+                  className={cn(
+                    'w-full rounded-xl px-4 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition-colors',
+                    todayDone
+                      ? 'bg-secondary/15 text-secondary hover:bg-secondary/20 border border-secondary/20'
+                      : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  )}
+                >
+                  {todayDone ? 'Review Workout & Send Coach Feedback' : 'Open Workout & Mark Complete'}
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             )}
           </div>
