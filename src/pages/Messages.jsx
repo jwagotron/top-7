@@ -32,6 +32,28 @@ export default function Messages() {
 
   const unreadCount = messages.filter(m => !m.read && m.recipient_email === user?.email).length;
 
+  const { data: recipientOptions = [] } = useQuery({
+    queryKey: ['message-recipients', user?.email, role],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const memberships = role === 'athlete'
+        ? await base44.entities.TeamMembership.filter({ athlete_email: user.email, status: 'active' })
+        : await base44.entities.TeamMembership.filter({ coach_email: user.email, status: 'active' });
+
+      const candidates = role === 'athlete'
+        ? memberships.map(m => ({ email: m.coach_email, name: 'Coach' }))
+        : memberships.map(m => ({ email: m.athlete_email, name: m.athlete_name || m.athlete_email }));
+
+      return [...new Map(
+        candidates
+          .filter(r => r.email)
+          .map(r => [r.email, r])
+      ).values()];
+    },
+    enabled: !!user?.email,
+    staleTime: 30000,
+  });
+
   const createMut = useMutation({
     mutationFn: (d) => base44.entities.CoachMessage.create(d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages', user?.email] }); setShowCompose(false); },
@@ -170,6 +192,7 @@ export default function Messages() {
         open={showCompose}
         onClose={() => setShowCompose(false)}
         onSend={(data) => createMut.mutate({ ...data, sender_email: user?.email, sender_name: user?.full_name || user?.email })}
+        recipientOptions={recipientOptions}
       />
     </div>
   );
@@ -204,7 +227,7 @@ function QuickReply({ toEmail, subject, onSend }) {
   );
 }
 
-function ComposeDialog({ open, onClose, onSend }) {
+function ComposeDialog({ open, onClose, onSend, recipientOptions = [] }) {
   const [form, setForm] = useState({ recipient_email: '', subject: '', body: '' });
 
   const handleSubmit = (e) => {
@@ -219,8 +242,31 @@ function ComposeDialog({ open, onClose, onSend }) {
         <DialogHeader><DialogTitle>New Message</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>To (email)</Label>
-            <Input value={form.recipient_email} onChange={e => setForm(p => ({ ...p, recipient_email: e.target.value }))} placeholder="coach@school.edu" required type="email" />
+            <Label>To</Label>
+            {recipientOptions.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2 mb-2">
+                {recipientOptions.map(recipient => {
+                  const selected = form.recipient_email === recipient.email;
+                  return (
+                    <button
+                      key={recipient.email}
+                      type="button"
+                      onClick={() => setForm(p => ({ ...p, recipient_email: recipient.email }))}
+                      className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${selected ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted/40 border-border text-foreground hover:border-primary/40'}`}
+                    >
+                      {recipient.name || recipient.email}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <Input
+              value={form.recipient_email}
+              onChange={e => setForm(p => ({ ...p, recipient_email: e.target.value }))}
+              placeholder={recipientOptions.length > 0 ? 'Choose above or enter an email' : 'coach@school.edu'}
+              required
+              type="email"
+            />
           </div>
           <div>
             <Label>Subject</Label>
