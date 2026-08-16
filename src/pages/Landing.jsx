@@ -58,10 +58,13 @@ export default function Landing() {
               <Footprints className="w-3.5 h-3.5" /> Built for runners and coaches
             </div>
             <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-[0.98]">
-              Train with purpose.<br />Coach with clarity.
+              Top 7 running training<br />for athletes and coaches.
             </h1>
             <p className="mt-6 text-base sm:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-              Top 7 puts the daily training loop in one place: the coach assigns the work, the athlete knows exactly what to do, the workout gets completed, and feedback comes straight back to the coach.
+              Top 7 is a running training and coaching platform that helps coaches build and assign workouts, helps athletes follow their daily training plan, and keeps progress, feedback, team communication, race goals, and performance analytics in one place.
+            </p>
+            <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
+              Google Sign-In is used only to securely create or access a Top 7 account. Top 7 does not use Google Sign-In to access Gmail, Drive, Calendar, Contacts, or other Google account content.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link to="/register" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-3.5 text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm">
