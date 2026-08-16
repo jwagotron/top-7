@@ -21,10 +21,34 @@ Deno.serve(async (req) => {
       return Response.json({ completions: [] });
     }
 
-    // Only fetch completions that match this team's assigned workout IDs
+    // Authorization: confirm the caller actually coaches the requested athletes.
+    // Fetch the caller's active TeamMembership records (as coach) and build the
+    // set of athlete_emails they are authorized to view. Admins bypass this check.
+    let authorizedEmails = new Set(athlete_emails);
+    if (user.role !== 'admin') {
+      const memberships = await base44.asServiceRole.entities.TeamMembership.filter(
+        { coach_email: user.email, status: 'active' },
+        '-created_date',
+        500
+      );
+      const coachedEmails = new Set(
+        memberships.map(m => m.athlete_email).filter(Boolean)
+      );
+      authorizedEmails = new Set(
+        athlete_emails.filter(email => coachedEmails.has(email))
+      );
+    }
+
+    if (!authorizedEmails.size) {
+      console.log(`[getTeamCompletions] coach: ${user.email} | no authorized athletes — returning empty`);
+      return Response.json({ completions: [] });
+    }
+
+    // Only fetch completions that match this team's assigned workout IDs,
+    // and only for athletes the caller is authorized to view.
     const idSet = new Set(planned_workout_ids);
     const results = await Promise.all(
-      athlete_emails.map(email =>
+      [...authorizedEmails].map(email =>
         base44.asServiceRole.entities.WorkoutCompletion.filter(
           { athlete_email: email },
           '-completed_at',

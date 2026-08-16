@@ -6,7 +6,23 @@ import pluginUnusedImports from "eslint-plugin-unused-imports";
 
 export default [
   {
-    ignores: ["src/tests/**", "src/lib/**", "src/components/ui/**"],
+    ignores: ["src/lib/**", "src/components/ui/**"],
+  },
+  {
+    // Playwright E2E tests and helpers run in Node CommonJS — give them
+    // Node globals so require/module/__dirname/process are defined.
+    files: ["src/tests/**/*.{js,mjs,cjs}"],
+    ...pluginJs.configs.recommended,
+    languageOptions: {
+      globals: { ...globals.node },
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: "commonjs",
+      },
+    },
+    rules: {
+      "no-unused-vars": "off",
+    },
   },
   {
     files: [
@@ -14,7 +30,6 @@ export default [
       "src/pages/**/*.{js,mjs,cjs,jsx}",
       "src/Layout.jsx",
     ],
-    ignores: ["src/lib/**/*", "src/components/ui/**/*"],
     ...pluginJs.configs.recommended,
     ...pluginReact.configs.flat.recommended,
     languageOptions: {
