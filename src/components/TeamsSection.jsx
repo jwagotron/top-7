@@ -44,12 +44,14 @@ export default function TeamsSection() {
     }
   }, [isCoach, hasTeamCode]);
 
-  // Fetch coach info if athlete is connected
+  // Fetch coach info if athlete is connected — server-side lookup returns
+  // only this coach's public attributes (email, full_name). Never bypasses RLS
+  // from the client.
   const { data: coachInfo } = useQuery({
     queryKey: ['coach-info', user?.coach_email],
     queryFn: async () => {
-      const users = await base44.asServiceRole.entities.User.filter({});
-      return users.find(u => u.email === user.coach_email);
+      const res = await base44.functions.invoke('getCoachInfo', { coach_email: user.coach_email });
+      return res?.data?.coach || null;
     },
     enabled: !!user?.coach_email,
   });
