@@ -26,6 +26,7 @@ import Terms from '@/pages/Terms';
 import Support from '@/pages/Support';
 import DeleteAccount from '@/pages/DeleteAccount';
 import Landing from '@/pages/Landing';
+import PageTitleManager from '@/components/PageTitleManager';
 
 import Dashboard from '@/pages/Dashboard';
 
@@ -68,7 +69,7 @@ const pageVariants = {
 };
 
 // Routes that should stay mounted for native-like tab switching
-const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts', '/my-plan', '/goals', '/shoes', '/garmin', '/admin', '/workout-builder', '/profile', '/messages', '/athlete-profile'];
+const PERSISTENT_PATHS = ['/', '/analytics', '/coach', '/settings', '/workouts', '/my-plan', '/goals', '/shoes', '/garmin', '/admin', '/workout-builder', '/profile', '/messages', '/athletes', '/athlete-profile'];
 
 function PersistentTab({ path, element, currentPath }) {
   const isActive = path === '/' ? currentPath === '/' : currentPath.startsWith(path);
@@ -127,6 +128,8 @@ function AnimatedRoutes() {
           <PersistentTab path="/workout-builder" element={<WorkoutBuilder />}    currentPath={location.pathname} />
           <PersistentTab path="/profile"        element={<UserProfile />}         currentPath={location.pathname} />
           <PersistentTab path="/messages"       element={<Messages />}            currentPath={location.pathname} />
+          <PersistentTab path="/athletes"       element={<AthleteProfile />}       currentPath={location.pathname} />
+          {/* Legacy athlete-profile route kept temporarily so old bookmarks fail gracefully. */}
           <PersistentTab path="/athlete-profile" element={<AthleteProfile />}       currentPath={location.pathname} />
         </Suspense>
       </AppLayout>
@@ -185,17 +188,21 @@ const AuthenticatedApp = () => {
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center flex-col gap-3">
+      <>
+        <PageTitleManager isAuthenticated={!!user} />
+        <div className="fixed inset-0 flex items-center justify-center flex-col gap-3">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
         <p className="text-xs text-muted-foreground">Loading session…</p>
-      </div>
+        </div>
+      </>
     );
   }
 
-  if (authError?.type === 'user_not_registered') return <UserNotRegisteredError />;
+  if (authError?.type === 'user_not_registered') return <><PageTitleManager isAuthenticated={false} /><UserNotRegisteredError /></>;
 
   return (
     <>
+      <PageTitleManager isAuthenticated={!!user} />
       <AuthDiagnosticOverlay />
       <Routes>
         {/* Public auth routes */}
@@ -219,6 +226,33 @@ const AuthenticatedApp = () => {
   );
 };
 
+// Remove one-time platform/auth bookkeeping from the visible URL after it has
+// served its purpose. This keeps the address bar clean without touching real,
+// shareable app parameters such as team invite codes or reset tokens.
+function UrlHygiene() {
+  const location = useLocation();
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    let changed = false;
+
+    for (const key of ['is_new_user']) {
+      if (params.has(key)) {
+        params.delete(key);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      const query = params.toString();
+      const cleanUrl = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
+      window.history.replaceState(window.history.state, document.title, cleanUrl);
+    }
+  }, [location.pathname, location.search]);
+
+  return null;
+}
+
 // Public legal pages render OUTSIDE AuthProvider so they are always accessible
 // — no auth loading, no error gates, no redirects. Works in incognito.
 function AppContent() {
@@ -229,21 +263,28 @@ function AppContent() {
 
   if (isPublicLegal) {
     return (
-      <Routes>
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/support" element={<Support />} />
-        <Route path="/delete-account" element={<DeleteAccount />} />
-      </Routes>
+      <>
+        <UrlHygiene />
+        <PageTitleManager isAuthenticated={false} />
+        <Routes>
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/support" element={<Support />} />
+          <Route path="/delete-account" element={<DeleteAccount />} />
+        </Routes>
+      </>
     );
   }
 
   return (
-    <AuthProvider>
-      <RoleProvider>
-        <AuthenticatedApp />
-      </RoleProvider>
-    </AuthProvider>
+    <>
+      <UrlHygiene />
+      <AuthProvider>
+        <RoleProvider>
+          <AuthenticatedApp />
+        </RoleProvider>
+      </AuthProvider>
+    </>
   );
 }
 
