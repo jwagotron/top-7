@@ -85,6 +85,9 @@ function PersistentTab({ path, element, currentPath }) {
   return (
     <div
       ref={ref}
+      data-persistent-scroll="true"
+      data-active={isActive ? 'true' : 'false'}
+      className="overscroll-contain"
       style={{
         display: isActive ? undefined : 'none',
         position: 'absolute',
@@ -92,6 +95,7 @@ function PersistentTab({ path, element, currentPath }) {
         zIndex: isActive ? 1 : 0,
         overflowY: 'auto',
         overflowX: 'hidden',
+        overscrollBehaviorY: 'contain',
         WebkitOverflowScrolling: 'touch',
       }}
     >
