@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
@@ -12,13 +12,16 @@ import { Plus, Mail, Send, Trash2, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/lib/AuthContext';
 import { useRole } from '@/lib/RoleContext';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { APP_NAME } from '@/lib/branding';
 
 export default function Messages() {
   const [showCompose, setShowCompose] = useState(false);
-  const [selected, setSelected] = useState(null);
   const { user } = useAuth();
   const { role } = useRole();
   const qc = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const { data: allMessages = [], isLoading } = useQuery({
     queryKey: ['messages', user?.email],
@@ -30,6 +33,9 @@ export default function Messages() {
     m.recipient_email === user?.email || m.sender_email === user?.email
   );
 
+  const detailMatch = location.pathname.match(/^\/messages\/([^/]+)$/);
+  const selectedId = detailMatch ? decodeURIComponent(detailMatch[1]) : null;
+  const selected = selectedId ? messages.find(m => m.id === selectedId) || null : null;
   const unreadCount = messages.filter(m => !m.read && m.recipient_email === user?.email).length;
 
   const { data: recipientOptions = [] } = useQuery({
@@ -66,15 +72,33 @@ export default function Messages() {
 
   const deleteMut = useMutation({
     mutationFn: (id) => base44.entities.CoachMessage.delete(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages', user?.email] }); setSelected(null); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['messages', user?.email] });
+      navigate('/messages', { replace: true });
+    },
   });
 
   const handleSelect = (msg) => {
-    setSelected(msg);
-    if (!msg.read && msg.recipient_email === user?.email) {
-      updateMut.mutate({ id: msg.id, data: { read: true } });
-    }
+    navigate(`/messages/${msg.id}`);
   };
+
+  useEffect(() => {
+    if (selected && !selected.read && selected.recipient_email === user?.email) {
+      updateMut.mutate({ id: selected.id, data: { read: true } });
+    }
+  }, [selected?.id]);
+
+  useEffect(() => {
+    if (!isLoading && selectedId && !selected) {
+      navigate('/messages', { replace: true });
+    }
+  }, [isLoading, selectedId, selected, navigate]);
+
+  useEffect(() => {
+    document.title = selected
+      ? `${selected.subject || 'Message'} | ${APP_NAME}`
+      : `Messages | ${APP_NAME}`;
+  }, [selected]);
 
   return (
     <div>
@@ -91,7 +115,9 @@ export default function Messages() {
       <div className="p-4 lg:p-6 max-w-5xl mx-auto pb-28 lg:pb-8">
         <div className="flex flex-col lg:grid lg:grid-cols-5 gap-4 lg:gap-6">
           {/* Message list */}
-          <div className={`lg:col-span-2 space-y-2 ${selected ? 'hidden lg:block' : 'block'}`}>
+                    <Button variant="ghost" size="sm" className="lg:hidden h-8 px-2 gap-1 -ml-1" onClick={() => navigate(-1)}>
+                      ← Back
+                    </Button>
             {isLoading ? (
               <div className="flex justify-center py-20">
                 <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
