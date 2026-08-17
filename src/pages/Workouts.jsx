@@ -50,7 +50,7 @@ export default function Workouts() {
   const handleRefresh = useCallback(async () => {
     invalidateAll();
   }, [invalidateAll]);
-  const ptr = usePullToRefresh(handleRefresh);
+  const ptr = usePullToRefresh(handleRefresh, { path: '/workouts' });
 
   const { data: workouts = [] } = useQuery({
     queryKey: ['workouts'],
