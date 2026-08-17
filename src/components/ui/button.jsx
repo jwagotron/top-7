@@ -34,13 +34,56 @@ const buttonVariants = cva(
   }
 )
 
+const ICON_LABELS = {
+  Pencil: "Edit",
+  PencilIcon: "Edit",
+  Trash2: "Delete",
+  Trash2Icon: "Delete",
+  ChevronLeft: "Previous",
+  ChevronLeftIcon: "Previous",
+  ChevronRight: "Next",
+  ChevronRightIcon: "Next",
+  ChevronUp: "Expand",
+  ChevronUpIcon: "Expand",
+  ChevronDown: "Expand",
+  ChevronDownIcon: "Expand",
+  Menu: "Open menu",
+  MenuIcon: "Open menu",
+  X: "Close",
+  XIcon: "Close",
+  Copy: "Copy",
+  CopyIcon: "Copy",
+  Plus: "Add",
+  PlusIcon: "Add",
+  RefreshCw: "Refresh",
+  RefreshCwIcon: "Refresh",
+  RotateCcw: "Reset",
+  RotateCcwIcon: "Reset",
+  MoreHorizontal: "More options",
+  MoreHorizontalIcon: "More options",
+  Settings: "Settings",
+  SettingsIcon: "Settings",
+  User: "Profile",
+  UserIcon: "Profile",
+}
+
+function inferIconButtonLabel(children) {
+  const child = React.Children.toArray(children).find(React.isValidElement)
+  const iconName = child?.type?.displayName || child?.type?.name
+  return ICON_LABELS[iconName] || "Action"
+}
+
 const Button = React.forwardRef(({ className, variant, size, asChild = false, ...props }, ref) => {
   const Comp = asChild ? Slot : "button"
+  const accessibleProps = { ...props }
+  if (!asChild && size === "icon" && !accessibleProps["aria-label"]) {
+    accessibleProps["aria-label"] = accessibleProps.title || inferIconButtonLabel(accessibleProps.children)
+  }
   return (
     (<Comp
       className={cn(buttonVariants({ variant, size, className }))}
       ref={ref}
-      {...props} />)
+      {...accessibleProps} />)
   );
 })
 Button.displayName = "Button"
