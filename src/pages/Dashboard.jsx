@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useCallback, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import StatCard from '@/components/dashboard/StatCard';
@@ -25,6 +25,8 @@ import { useAuth } from '@/lib/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useAthleteStats } from '@/hooks/useAthleteStats';
+import usePullToRefresh from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/ui/PullToRefreshIndicator';
 
 const sportIcons = {
   run: Footprints, bike: Bike, swim: Waves, strength: Dumbbell, other: CircleDot,
