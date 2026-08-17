@@ -1,6 +1,22 @@
 import React from 'react';
+import { useAuth } from '@/lib/AuthContext';
+import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
 
 const UserNotRegisteredError = () => {
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    // Clear the valid-but-unregistered session and send to login so the user
+    // can try a different account. Without this, the token keeps the user
+    // trapped on this screen (ProtectedRoute shows it whenever authError is set).
+    logout(false);
+    try { localStorage.removeItem('base44_access_token'); } catch (_) {}
+    try { localStorage.removeItem('token'); } catch (_) {}
+    try { localStorage.removeItem('base44_session_active'); } catch (_) {}
+    window.location.href = '/login';
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-white to-slate-50">
       <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-lg border border-slate-100">
@@ -14,7 +30,7 @@ const UserNotRegisteredError = () => {
           <p className="text-slate-600 mb-8">
             You are not registered to use this application. Please contact the app administrator to request access.
           </p>
-          <div className="p-4 bg-slate-50 rounded-md text-sm text-slate-600">
+          <div className="p-4 bg-slate-50 rounded-md text-sm text-slate-600 text-left">
             <p>If you believe this is an error, you can:</p>
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>Verify you are logged in with the correct account</li>
@@ -22,6 +38,10 @@ const UserNotRegisteredError = () => {
               <li>Try logging out and back in again</li>
             </ul>
           </div>
+          <Button onClick={handleLogout} variant="outline" className="w-full mt-6 gap-2">
+            <LogOut className="w-4 h-4" />
+            Log out and try a different account
+          </Button>
         </div>
       </div>
     </div>

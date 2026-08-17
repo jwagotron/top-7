@@ -10,11 +10,26 @@ export default [
   },
   {
     // Playwright E2E tests and helpers run in Node CommonJS — give them
-    // Node globals so require/module/__dirname/process are defined.
+    // Node + CommonJS globals so require/module/__dirname/process are defined.
     files: ["src/tests/**/*.{js,mjs,cjs}"],
     ...pluginJs.configs.recommended,
     languageOptions: {
-      globals: { ...globals.node },
+      globals: {
+        ...globals.node,
+        require: "readonly",
+        module: "readonly",
+        exports: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        process: "readonly",
+        Buffer: "readonly",
+        global: "readonly",
+        console: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+      },
       parserOptions: {
         ecmaVersion: 2022,
         sourceType: "commonjs",

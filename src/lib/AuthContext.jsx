@@ -195,6 +195,22 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] auth check exhausted after', attempt, 'attempts — marking unauthenticated');
+
+      // Detect user_not_registered from the me() error. The SDK/axios error
+      // may expose the response body in several shapes, so check them all.
+      const errData = error?.response?.data || error?.data || error?.response?.body;
+      const reason = errData?.extra_data?.reason || errData?.reason;
+      if (error.status === 403 && reason === 'user_not_registered') {
+        if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] user_not_registered — showing UserNotRegisteredError (not bouncing to login)');
+        setAuthError({ type: 'user_not_registered', message: errData?.message || error.message || 'Access denied' });
+        // Do NOT purge the token — the session is valid, the user just isn't a
+        // member of this app. Clearing it would create a login loop.
+        try { localStorage.removeItem('base44_session_active'); } catch (_) {}
+        setIsLoadingAuth(false);
+        setIsAuthenticated(false);
+        return;
+      }
+
       // If the token is expired/invalid (401/403), purge it from localStorage
       if (error.status === 401 || error.status === 403) {
         if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] stale/invalid token — clearing from storage');
