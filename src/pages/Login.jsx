@@ -9,7 +9,6 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { useAuth } from "@/lib/AuthContext";
 import { detectRuntime } from "@/lib/runtimeDetect";
-import { performNativeGoogleAuth, isNativePlatform } from "@/lib/capacitorAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -98,26 +97,19 @@ export default function Login() {
     }
   };
 
-  const handleGoogle = async () => {
+  const handleGoogle = () => {
+    setError("");
     const runtime = detectRuntime();
-    const currentUrl = window.location.origin + window.location.pathname;
-    const native = isNativePlatform();
-    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[login] Google Sign-In | runtime:', runtime.label, '| native:', native, '| fromUrl:', currentUrl);
-
-    if (native) {
-      // On Android/Capacitor: open OAuth in a Chrome Custom Tab and capture
-      // the redirect via appUrlOpen. This prevents the redirect from landing
-      // in the system browser instead of the installed app.
-      try {
-        await performNativeGoogleAuth(currentUrl, '/');
-      } catch (e) {
-        console.error('[login] Native Google auth failed:', e.message);
-        setError(`Google Sign-In failed: ${e.message}`);
-      }
-    } else {
-      // Web flow: let the SDK handle the full-page redirect
-      base44.auth.loginWithProvider("google", currentUrl);
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) {
+      console.log('[login] Google Sign-In | runtime:', runtime.label, '| returning to app root');
     }
+
+    // Use Base44's supported social-auth flow on every runtime. Returning to
+    // the app root is intentional: returning OAuth to /login creates a race
+    // where the login screen renders again before AuthContext restores the
+    // newly issued session. The protected root route already waits for auth
+    // restoration and is the reliable callback landing page for web/native.
+    base44.auth.loginWithProvider("google", "/");
   };
 
   return (
