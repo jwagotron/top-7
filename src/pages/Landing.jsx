@@ -41,11 +41,8 @@ export default function Landing() {
             <span className="font-bold text-lg tracking-tight">{APP_NAME}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/login" className="px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
-              Log in
-            </Link>
-            <Link to="/register" className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-colors">
-              Get started <ArrowRight className="w-4 h-4" />
+            <Link to="/login" className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-colors">
+              Continue <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
@@ -70,8 +67,8 @@ export default function Landing() {
               Google Sign-In is used only to securely create or access a Top 7 account. Top 7 does not use Google Sign-In to access Gmail, Drive, Calendar, Contacts, or other Google account content.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Link to="/register" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-3.5 text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm">
-                Create an account <ArrowRight className="w-4 h-4" />
+              <Link to="/login" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-3.5 text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm">
+                Continue to Top 7 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link to="/join" className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-5 py-3.5 text-sm font-semibold hover:bg-muted/50 transition-colors">
                 Have a team code? Join a team
@@ -121,12 +118,9 @@ export default function Landing() {
           <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
             Top 7 is designed around the work that matters every day, not a maze of features athletes and coaches never use.
           </p>
-          <div className="mt-7 flex flex-col sm:flex-row justify-center gap-3">
-            <Link to="/register" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-3.5 text-sm font-bold hover:bg-primary/90 transition-colors">
-              Start using Top 7 <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link to="/login" className="inline-flex items-center justify-center rounded-xl border border-border px-5 py-3.5 text-sm font-semibold hover:bg-muted/50 transition-colors">
-              Log in
+          <div className="mt-7 flex justify-center">
+            <Link to="/login" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-3.5 text-sm font-bold hover:bg-primary/90 transition-colors">
+              Continue to Top 7 <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </section>
