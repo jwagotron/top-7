@@ -6,38 +6,9 @@ import pluginUnusedImports from "eslint-plugin-unused-imports";
 
 export default [
   {
-    ignores: ["src/lib/**", "src/components/ui/**"],
-  },
-  {
-    // Playwright E2E tests and helpers run in Node CommonJS — give them
-    // Node + CommonJS globals so require/module/__dirname/process are defined.
-    files: ["src/tests/**/*.{js,mjs,cjs}"],
-    ...pluginJs.configs.recommended,
-    languageOptions: {
-      globals: {
-        ...globals.node,
-        require: "readonly",
-        module: "readonly",
-        exports: "readonly",
-        __dirname: "readonly",
-        __filename: "readonly",
-        process: "readonly",
-        Buffer: "readonly",
-        global: "readonly",
-        console: "readonly",
-        setTimeout: "readonly",
-        clearTimeout: "readonly",
-        setInterval: "readonly",
-        clearInterval: "readonly",
-      },
-      parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: "commonjs",
-      },
-    },
-    rules: {
-      "no-unused-vars": "off",
-    },
+    // Playwright E2E tests and helpers run in Node CommonJS outside the app's
+    // lint scope — ignore them so require/module/__dirname/process don't trip no-undef.
+    ignores: ["src/lib/**", "src/components/ui/**", "src/tests/**"],
   },
   {
     files: [
