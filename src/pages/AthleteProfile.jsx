@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import TopBar from '@/components/layout/TopBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +24,7 @@ import { parseDateOnly } from '@/lib/dateUtils';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
+import { APP_NAME } from '@/lib/branding';
 
 const priorityColors = {
   A: 'bg-destructive/10 text-destructive border-destructive/20',
@@ -75,16 +76,59 @@ function ComplianceRing({ value }) {
 }
 
 export default function AthleteProfile() {
-  const [searchParams] = useSearchParams();
-  const athleteEmail = searchParams.get('athlete');
-  const athleteName = searchParams.get('name');
-  const [showRaceForm, setShowRaceForm] = useState(false);
-  const [showNoteForm, setShowNoteForm] = useState(false);
-  const [replyBody, setReplyBody] = useState('');
-  const qc = useQueryClient();
+  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toDisplay, label } = useUnits();
+  const qc = useQueryClient();
+
+  const pathMatch = location.pathname.match(/^\/athletes\/([^/]+)$/);
+  const membershipId = pathMatch ? decodeURIComponent(pathMatch[1]) : null;
+  const legacyParams = new URLSearchParams(location.search);
+  const legacyEmail = legacyParams.get('athlete');
+  const legacyName = legacyParams.get('name');
+
+  const { data: membership, isLoading: loadingMembership } = useQuery({
+    queryKey: ['athlete-membership', membershipId],
+    queryFn: () => base44.entities.TeamMembership.get(membershipId),
+    enabled: !!membershipId,
+    staleTime: 30000,
+  });
+
+  // Keep old emailed links/bookmarks working, but immediately migrate them to
+  // the cleaner /athletes/:membershipId route once the membership is resolved.
+  const { data: legacyMemberships = [] } = useQuery({
+    queryKey: ['legacy-athlete-membership', legacyEmail],
+    queryFn: () => base44.entities.TeamMembership.filter({ athlete_email: legacyEmail, status: 'active' }, '-created_date', 1),
+    enabled: !membershipId && !!legacyEmail,
+    staleTime: 30000,
+  });
+
+  const athleteEmail = location.state?.athleteEmail || membership?.athlete_email || legacyEmail;
+  const athleteName = location.state?.athleteName || membership?.athlete_name || legacyName || membership?.athlete_email;
+
+  useEffect(() => {
+    const legacyMembership = legacyMemberships[0];
+    if (!membershipId && legacyMembership?.id) {
+      navigate(`/athletes/${legacyMembership.id}`, {
+        replace: true,
+        state: {
+          athleteEmail: legacyMembership.athlete_email,
+          athleteName: legacyMembership.athlete_name || legacyMembership.athlete_email,
+        },
+      });
+    }
+  }, [legacyMemberships, membershipId, navigate]);
+
+  useEffect(() => {
+    if (athleteName || athleteEmail) {
+      document.title = `${athleteName || athleteEmail} | ${APP_NAME}`;
+    }
+  }, [athleteName, athleteEmail]);
+
+  const [showRaceForm, setShowRaceForm] = useState(false);
+  const [showNoteForm, setShowNoteForm] = useState(false);
+  const [replyBody, setReplyBody] = useState('');
 
   // Debug logs for coach viewing athlete profile
   if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[AthleteProfile] athleteEmail from URL:', athleteEmail);
@@ -201,7 +245,18 @@ export default function AthleteProfile() {
 
   const initials = (athleteName || athleteEmail || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
-  const isLoading = loadingGoals || loadingWorkouts;
+  const isLoading = loadingMembership || loadingGoals || loadingWorkouts;
+
+  if (membershipId && loadingMembership && !athleteEmail) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopBar title="Athlete Profile" />
+        <div className="p-8 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   if (!athleteEmail) {
     console.warn('[AthleteProfile] No athleteEmail in URL — rendering empty state');
