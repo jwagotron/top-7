@@ -24,6 +24,17 @@ export default function Login() {
   const { isAuthenticated, hasToken, checkAppState } = useAuth();
   const navigate = useNavigate();
 
+  // The duplicate-account handoff may prefill ?email=. Consume it once, then
+  // remove it so the browser address bar stays clean and doesn't expose the
+  // user's email after the form has already captured it.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('email')) return;
+    params.delete('email');
+    const query = params.toString();
+    window.history.replaceState(window.history.state, document.title, `/login${query ? `?${query}` : ''}${window.location.hash}`);
+  }, []);
+
   // If the user lands on /login with a valid token or an active session marker,
   // try to restore the session and redirect to the app instead of showing the login form.
   useEffect(() => {
