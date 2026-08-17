@@ -12,7 +12,7 @@ export default function TeamInviteCard({ team, onTeamUpdated }) {
   const [regenerating, setRegenerating] = useState(false);
   const [togglingJoin, setTogglingJoin] = useState(false);
 
-  const joinUrl = `${window.location.origin}/join?code=${team.invite_code}`;
+  const joinUrl = `${window.location.origin}/join/${encodeURIComponent(team.invite_code)}`;
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
