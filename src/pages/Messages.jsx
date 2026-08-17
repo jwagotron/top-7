@@ -115,9 +115,7 @@ export default function Messages() {
       <div className="p-4 lg:p-6 max-w-5xl mx-auto pb-28 lg:pb-8">
         <div className="flex flex-col lg:grid lg:grid-cols-5 gap-4 lg:gap-6">
           {/* Message list */}
-                    <Button variant="ghost" size="sm" className="lg:hidden h-8 px-2 gap-1 -ml-1" onClick={() => navigate(-1)}>
-                      ← Back
-                    </Button>
+          <div className={`lg:col-span-2 space-y-2 ${selectedId ? 'hidden lg:block' : 'block'}`}>
             {isLoading ? (
               <div className="flex justify-center py-20">
                 <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -174,7 +172,7 @@ export default function Messages() {
               <div className="bg-card rounded-2xl border border-border overflow-hidden">
                 <div className="p-5 border-b border-border">
                   <div className="flex items-center justify-between gap-3 mb-3">
-                    <Button variant="ghost" size="sm" className="lg:hidden h-8 px-2 gap-1 -ml-1" onClick={() => setSelected(null)}>
+                    <Button variant="ghost" size="sm" className="lg:hidden h-8 px-2 gap-1 -ml-1" onClick={() => navigate(-1)}>
                       ← Back
                     </Button>
                     <Button variant="ghost" size="icon" className="text-destructive shrink-0 ml-auto" onClick={() => deleteMut.mutate(selected.id)}>
