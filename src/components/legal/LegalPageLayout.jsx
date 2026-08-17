@@ -9,9 +9,9 @@ import { Shield } from 'lucide-react';
  */
 export default function LegalPageLayout({ title, lastUpdated, children }) {
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="legal-page min-h-screen flex flex-col" style={{ colorScheme: 'only light' }}>
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white">
+      <header className="legal-page__header border-b">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-5 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2.5">
             <img
@@ -40,20 +40,14 @@ export default function LegalPageLayout({ title, lastUpdated, children }) {
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mb-3">{title}</h1>
           <p className="text-sm text-slate-400 mb-10">Last updated: {lastUpdated}</p>
 
-          <div className="prose prose-slate max-w-none
-            prose-headings:text-slate-900 prose-headings:font-semibold
-            prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-3
-            prose-p:text-slate-600 prose-p:leading-relaxed prose-p:mb-4
-            prose-li:text-slate-600 prose-li:leading-relaxed prose-li:mb-1
-            prose-a:text-blue-600 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-            prose-strong:text-slate-900 prose-strong:font-semibold">
+          <div className="legal-content max-w-none">
             {children}
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-50">
+      <footer className="legal-page__footer border-t">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-2">
