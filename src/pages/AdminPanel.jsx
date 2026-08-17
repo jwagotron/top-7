@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { Activity, Wifi, AlertCircle, Clock, RefreshCw, Shield, Pencil, Plus, Check, X } from 'lucide-react';
 
@@ -176,15 +177,19 @@ export default function AdminPanel() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Badge variant="outline" className="text-[10px]">{u.role || 'user'}</Badge>
-                    <select
-                      value={u.user_type || ''}
-                      onChange={e => handleChangeUserType(u.id, e.target.value)}
-                      className="text-xs border border-border rounded-md px-2 py-1 bg-background text-foreground"
+                    <Select
+                      value={u.user_type || 'none'}
+                      onValueChange={value => handleChangeUserType(u.id, value === 'none' ? '' : value)}
                     >
-                      <option value="">No type</option>
-                      <option value="athlete">athlete</option>
-                      <option value="coach">coach</option>
-                    </select>
+                      <SelectTrigger className="w-32 text-xs" aria-label={`User type for ${u.full_name || u.email}`}>
+                        <SelectValue placeholder="No type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No type</SelectItem>
+                        <SelectItem value="athlete">Athlete</SelectItem>
+                        <SelectItem value="coach">Coach</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </CardContent>
               </Card>
@@ -356,14 +361,15 @@ export default function AdminPanel() {
               <div className="space-y-4">
                 <div>
                   <Label className="text-xs">Role</Label>
-                  <select
-                    value={userRole}
-                    onChange={e => setUserRole(e.target.value)}
-                    className="w-full text-xs border border-border rounded-md px-2 py-2 bg-background text-foreground mt-1"
-                  >
-                    <option value="athlete">Athlete</option>
-                    <option value="coach">Coach</option>
-                  </select>
+                  <Select value={userRole} onValueChange={setUserRole}>
+                    <SelectTrigger className="mt-1 w-full" aria-label="Role">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="athlete">Athlete</SelectItem>
+                      <SelectItem value="coach">Coach</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label className="text-xs">Email</Label>
