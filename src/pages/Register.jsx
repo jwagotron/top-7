@@ -19,10 +19,12 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [accountExists, setAccountExists] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setAccountExists(false);
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -32,7 +34,26 @@ export default function Register() {
       await base44.auth.register({ email, password });
       setShowOtp(true);
     } catch (err) {
-      setError(err.message || "Registration failed");
+      const responseData = err?.response?.data || err?.data || {};
+      const status = err?.status || err?.response?.status;
+      const rawMessage = [
+        err?.message,
+        responseData?.message,
+        responseData?.detail,
+        responseData?.error,
+        responseData?.reason,
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      const isExistingAccount =
+        status === 409 ||
+        /already\s+(exists|registered|created|in use)|account\s+exists|email\s+(exists|registered|in use)|duplicate/.test(rawMessage);
+
+      if (isExistingAccount) {
+        setAccountExists(true);
+        setError("An account already exists with this email. Log in instead using the same sign-in method you used before.");
+      } else {
+        setError(err.message || responseData?.message || "Registration failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -89,20 +110,22 @@ export default function Register() {
   };
 
   const handleGoogle = async () => {
-    const currentUrl = window.location.origin + window.location.pathname;
+    const returnUrl = window.location.origin + "/";
     const native = isNativePlatform();
-    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[register] Google Sign-In | native:', native, '| fromUrl:', currentUrl);
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[register] Google Sign-In | native:', native, '| returnUrl:', returnUrl);
 
     if (native) {
       // On Android/Capacitor: open OAuth in Chrome Custom Tab, capture via appUrlOpen
       try {
-        await performNativeGoogleAuth(currentUrl, '/');
+        await performNativeGoogleAuth(returnUrl, '/');
       } catch (e) {
         console.error('[register] Native Google auth failed:', e.message);
         setError(`Google Sign-In failed: ${e.message}`);
       }
     } else {
-      base44.auth.loginWithProvider("google", currentUrl);
+      // Google OAuth handles both new and returning users. Land at the app root
+      // so AuthContext can restore the session before the registration page renders.
+      base44.auth.loginWithProvider("google", "/");
     }
   };
 
@@ -194,7 +217,15 @@ export default function Register() {
 
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-          {error}
+          <p>{error}</p>
+          {accountExists && (
+            <Link
+              to={`/login?email=${encodeURIComponent(email)}`}
+              className="inline-block mt-2 font-semibold text-primary hover:underline"
+            >
+              Log in instead →
+            </Link>
+          )}
         </div>
       )}
 
