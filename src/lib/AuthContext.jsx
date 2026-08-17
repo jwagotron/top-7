@@ -82,14 +82,18 @@ export const AuthProvider = ({ children }) => {
           const data = await res.json().catch(() => ({}));
           const reason = data?.extra_data?.reason;
           if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] 403 from public-settings, reason:', reason, '— continuing to checkUserAuth()');
-          // DO NOT early-return on 403 — the public-settings endpoint may reject
-          // a stale token while base44.auth.me() still has a valid session.
-          if (reason === 'user_not_registered' && !liveToken) {
+          // user_not_registered is definitive — the user is not a member of this
+          // app, regardless of whether a token exists. Show the error screen
+          // immediately instead of bouncing through me() and back to login.
+          if (reason === 'user_not_registered') {
             setAuthError({ type: 'user_not_registered', message: data.message || 'Access denied' });
             setIsLoadingPublicSettings(false);
             setIsLoadingAuth(false);
             return;
           }
+          // For other 403 reasons (e.g. stale token), DO NOT early-return — the
+          // public-settings endpoint may reject a stale token while
+          // base44.auth.me() still has a valid session.
         }
 
         // Re-read token after the fetch — in case the SDK wrote it during the await
