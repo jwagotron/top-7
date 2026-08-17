@@ -25,6 +25,8 @@ export default function AccountSettings() {
   const { units, setUnits } = useUnits();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [form, setForm] = useState({
     full_name: user?.full_name || '',
   });
@@ -153,6 +155,11 @@ export default function AccountSettings() {
             <CardDescription>Permanently delete your account and all associated data. This cannot be undone.</CardDescription>
           </CardHeader>
           <CardContent>
+            {deleteError && (
+              <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                {deleteError}
+              </div>
+            )}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground w-full gap-2">
@@ -170,16 +177,29 @@ export default function AccountSettings() {
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    onClick={async () => {
+                    disabled={deletingAccount}
+                    onClick={async (event) => {
+                      event.preventDefault();
+                      setDeleteError('');
+                      setDeletingAccount(true);
                       try {
-                        await base44.auth.deleteAccount();
-                      } catch {
-                        // deleteAccount may not exist on all SDK versions; fall back to logout
-                        base44.auth.logout();
+                        const response = await base44.functions.invoke('deleteMyAccount', {});
+                        if (!response?.data?.success) {
+                          throw new Error(response?.data?.error || 'Account deletion failed');
+                        }
+                        try {
+                          localStorage.removeItem('base44_access_token');
+                          localStorage.removeItem('token');
+                          localStorage.removeItem('base44_session_active');
+                        } catch (_) {}
+                        base44.auth.logout(window.location.origin + '/');
+                      } catch (error) {
+                        setDeleteError(error?.message || 'We could not delete your account. Please try again or contact support.');
+                        setDeletingAccount(false);
                       }
                     }}
                   >
-                    Yes, delete my account
+                    {deletingAccount ? 'Deleting account…' : 'Yes, permanently delete my account'}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
