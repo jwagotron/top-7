@@ -11,7 +11,13 @@ import { useAuth } from "@/lib/AuthContext";
 import { detectRuntime } from "@/lib/runtimeDetect";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get("email") || "";
+    } catch (_) {
+      return "";
+    }
+  });
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
