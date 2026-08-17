@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -20,6 +20,8 @@ import AthleteFeedbackList from '@/components/coach/AthleteFeedbackList';
 import { Plus, Users, Calendar, CheckCircle2, TrendingUp, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUnits } from '@/hooks/useUnits';
+import usePullToRefresh from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/ui/PullToRefreshIndicator';
 
 import { format, isSameDay, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { parseDateOnly } from '@/lib/dateUtils';
@@ -56,6 +58,17 @@ export default function CoachPanel() {
 
   const selectedTeam = myTeams.find(t => t.id === selectedTeamId) || myTeams[0] || null;
   const effectiveTeamId = selectedTeam?.id;
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([
+      refetchTeams(),
+      qc.invalidateQueries({ queryKey: ['team-roster'], exact: false }),
+      qc.invalidateQueries({ queryKey: ['planned-workouts'], exact: false }),
+      qc.invalidateQueries({ queryKey: ['coach-completions'], exact: false }),
+      qc.invalidateQueries({ queryKey: ['team-feedback'], exact: false }),
+    ]);
+  }, [qc, refetchTeams]);
+  const ptr = usePullToRefresh(handleRefresh, { path: '/coach' });
 
   // Fetch ALL members via backend function (service role) to bypass RLS gaps on old records
   const { data: rosterData = {}, isLoading: isLoadingMembers } = useQuery({
@@ -214,6 +227,7 @@ export default function CoachPanel() {
 
   return (
       <div className="min-h-screen bg-background">
+        <PullToRefreshIndicator {...ptr} />
         <TopBar title="Coach Panel">
           {/* Team selector */}
           {myTeams.length > 1 && (
