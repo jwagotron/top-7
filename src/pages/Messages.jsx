@@ -95,10 +95,11 @@ export default function Messages() {
   }, [isLoading, selectedId, selected, navigate]);
 
   useEffect(() => {
+    if (!location.pathname.startsWith('/messages')) return;
     document.title = selected
       ? `${selected.subject || 'Message'} | ${APP_NAME}`
       : `Messages | ${APP_NAME}`;
-  }, [selected]);
+  }, [selected, location.pathname]);
 
   return (
     <div>
