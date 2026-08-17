@@ -71,8 +71,11 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
+        // Public settings are public app metadata, not an authentication check.
+        // Do not attach the freshly issued OAuth token here. A public-settings
+        // 403 must never be allowed to reject an otherwise valid Google session.
         const res = await fetch(`/api/apps/public/prod/public-settings/by-id/${appParams.appId}`, {
-          headers: { 'X-App-Id': appParams.appId, ...(liveToken ? { Authorization: `Bearer ${liveToken}` } : {}) }
+          headers: { 'X-App-Id': appParams.appId }
         });
         if (res.ok) {
           const publicSettings = await res.json();
@@ -81,19 +84,9 @@ export const AuthProvider = ({ children }) => {
         } else if (res.status === 403) {
           const data = await res.json().catch(() => ({}));
           const reason = data?.extra_data?.reason;
-          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] 403 from public-settings, reason:', reason, '— continuing to checkUserAuth()');
-          // user_not_registered is definitive — the user is not a member of this
-          // app, regardless of whether a token exists. Show the error screen
-          // immediately instead of bouncing through me() and back to login.
-          if (reason === 'user_not_registered') {
-            setAuthError({ type: 'user_not_registered', message: data.message || 'Access denied' });
-            setIsLoadingPublicSettings(false);
-            setIsLoadingAuth(false);
-            return;
-          }
-          // For other 403 reasons (e.g. stale token), DO NOT early-return — the
-          // public-settings endpoint may reject a stale token while
-          // base44.auth.me() still has a valid session.
+          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] public-settings returned 403, reason:', reason, '— auth will still be validated with auth.me()');
+          // Never decide user authentication from the public-settings endpoint.
+          // A valid OAuth token must be validated by base44.auth.me() below.
         }
 
         // Re-read token after the fetch — in case the SDK wrote it during the await
