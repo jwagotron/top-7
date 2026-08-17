@@ -23,7 +23,29 @@ function getCapacitor() {
 
 export function isNativePlatform() {
   const cap = getCapacitor();
-  return !!(cap && cap.isNative === true);
+  if (!cap) return false;
+
+  // Support the current Capacitor API as well as older/Base44 shell shapes.
+  // Modern Capacitor exposes isNativePlatform() / getPlatform(); some older
+  // shells exposed an isNative boolean. Relying only on cap.isNative caused
+  // native store builds to be misclassified as web and use the wrong OAuth flow.
+  try {
+    if (typeof cap.isNativePlatform === 'function') {
+      return !!cap.isNativePlatform();
+    }
+  } catch (_) {}
+
+  try {
+    if (typeof cap.getPlatform === 'function') {
+      const platform = cap.getPlatform();
+      return platform === 'android' || platform === 'ios';
+    }
+  } catch (_) {}
+
+  if (cap.isNative === true) return true;
+
+  // Last-resort signal used by some Capacitor bridges.
+  return cap.platform === 'android' || cap.platform === 'ios';
 }
 
 function getPlugin(name) {
