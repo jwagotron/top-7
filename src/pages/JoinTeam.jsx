@@ -12,26 +12,35 @@ export default function JoinTeam() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null); // { success, status, team_name, error }
   const [autoSubmitted, setAutoSubmitted] = useState(false);
+  const [codeFromUrl, setCodeFromUrl] = useState(false);
 
-  // Auto-read code from URL ?code=XXXXXXXX
+  // Prefer the clean /join/CODE route. Old /join?code=CODE links still work
+  // and are upgraded in-place so previously shared links remain valid.
   useEffect(() => {
+    const pathMatch = window.location.pathname.match(/^\/join\/([^/]+)$/);
     const params = new URLSearchParams(window.location.search);
-    const urlCode = params.get('code');
-    if (urlCode) {
-      setCode(urlCode.toUpperCase());
+    const rawCode = pathMatch?.[1] ? decodeURIComponent(pathMatch[1]) : params.get('code');
+    if (!rawCode) return;
+
+    const normalized = rawCode.toUpperCase();
+    setCode(normalized);
+    setCodeFromUrl(true);
+
+    if (!pathMatch?.[1] && params.get('code')) {
+      params.delete('code');
+      const remainingQuery = params.toString();
+      const cleanUrl = `/join/${encodeURIComponent(normalized)}${remainingQuery ? `?${remainingQuery}` : ''}${window.location.hash}`;
+      window.history.replaceState(window.history.state, document.title, cleanUrl);
     }
   }, []);
 
-  // Auto-submit if code came from URL and user is logged in
+  // Auto-submit if the invite code came from the URL and the user is logged in.
   useEffect(() => {
-    if (code && isAuthenticated && user && !autoSubmitted) {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('code')) {
-        setAutoSubmitted(true);
-        handleJoin(code);
-      }
+    if (code && codeFromUrl && isAuthenticated && user && !autoSubmitted) {
+      setAutoSubmitted(true);
+      handleJoin(code);
     }
-  }, [code, isAuthenticated, user, autoSubmitted]);
+  }, [code, codeFromUrl, isAuthenticated, user, autoSubmitted]);
 
   const handleJoin = async (joinCode) => {
     const c = (joinCode || code).trim().toUpperCase();
