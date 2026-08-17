@@ -121,10 +121,11 @@ export default function AthleteProfile() {
   }, [legacyMemberships, membershipId, navigate]);
 
   useEffect(() => {
+    if (!(location.pathname.startsWith('/athletes/') || location.pathname === '/athlete-profile')) return;
     if (athleteName || athleteEmail) {
       document.title = `${athleteName || athleteEmail} | ${APP_NAME}`;
     }
-  }, [athleteName, athleteEmail]);
+  }, [athleteName, athleteEmail, location.pathname]);
 
   const [showRaceForm, setShowRaceForm] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
