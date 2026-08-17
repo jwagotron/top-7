@@ -24,6 +24,7 @@ export default function MobileNav() {
 
   return (
     <nav
+      aria-label="Primary navigation"
       className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-sidebar border-t border-sidebar-border flex"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
@@ -33,8 +34,10 @@ export default function MobileNav() {
           <button
             key={path}
             onClick={() => navigate(path)}
+            aria-current={active ? 'page' : undefined}
+            aria-label={label}
             className={cn(
-              'flex-1 flex flex-col items-center justify-center py-3 gap-1.5 text-[10px] font-semibold tracking-wide transition-all duration-150 select-none active:opacity-70',
+              'flex-1 min-h-14 flex flex-col items-center justify-center py-2.5 gap-1 text-[11px] font-semibold tracking-wide transition-all duration-150 select-none touch-manipulation active:opacity-70',
               active
                 ? 'text-sidebar-primary'
                 : 'text-sidebar-foreground/40 hover:text-sidebar-foreground/70'
