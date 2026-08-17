@@ -61,7 +61,7 @@ export default function Activities() {
   const handleRefresh = useCallback(async () => {
     await qc.invalidateQueries({ queryKey: ['my-activities', user?.email] });
   }, [qc, user?.email]);
-  const ptr = usePullToRefresh(handleRefresh);
+  const ptr = usePullToRefresh(handleRefresh, { path: '/activities' });
 
   const { data: activities = [], isLoading } = useQuery({
     queryKey: ['my-activities', user?.email],
