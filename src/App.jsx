@@ -211,6 +211,7 @@ const AuthenticatedApp = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/join" element={<JoinTeam />} />
+        <Route path="/join/:code" element={<JoinTeam />} />
         <Route path="/welcome" element={<Landing />} />
 
         {/* All app routes — gated by ProtectedRoute. The root URL doubles as the public product page when signed out. */}
