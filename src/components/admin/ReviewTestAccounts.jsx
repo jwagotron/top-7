@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Pencil, Trash2, X, Check, ChevronDown, ChevronUp, LogIn, LogOut } from 'lucide-react';
 import { useUserImpersonation } from '@/lib/UserImpersonationContext';
 
@@ -52,13 +53,16 @@ function AccountForm({ account, onSave, onCancel }) {
           <div key={f.key}>
             <label className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5 block">{f.label}</label>
             {f.type === 'select' ? (
-              <select
-                value={form[f.key]}
-                onChange={e => set(f.key, e.target.value)}
-                className="w-full text-xs border border-border rounded-md px-2 py-1.5 bg-background text-foreground"
-              >
-                {f.options.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
+              <Select value={form[f.key]} onValueChange={value => set(f.key, value)}>
+                <SelectTrigger className="w-full text-xs" aria-label={f.label}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {f.options.map(o => (
+                    <SelectItem key={o} value={o}>{o.charAt(0).toUpperCase() + o.slice(1)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             ) : (
               <input
                 value={form[f.key]}
