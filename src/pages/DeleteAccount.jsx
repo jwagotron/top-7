@@ -21,7 +21,7 @@ export default function DeleteAccount() {
           <p className="text-sm font-medium text-slate-700 mb-1">In-app deletion</p>
           <p className="text-sm text-slate-500">
             Go to <strong>Account Settings → Delete Account</strong> and confirm the prompt.
-            Your account and all data will be scheduled for deletion.
+            Top 7 will permanently remove your account and associated app data.
           </p>
           <Link
             to="/settings"
@@ -61,10 +61,12 @@ export default function DeleteAccount() {
         <li>Device connections and synced activities</li>
       </ul>
 
-      <h2>Retention Period</h2>
+      <h2>Deletion & Retention</h2>
       <p>
-        Deletion requests are processed within 30 days. Some anonymized, aggregated data
-        (not linked to you personally) may be retained for service improvement and analytics.
+        In-app deletion removes your active Top 7 account and associated app records. Limited
+        backup copies may remain temporarily while routine backup retention periods expire.
+        Some anonymized, aggregated data that can no longer be linked to you may be retained
+        for service improvement and analytics.
       </p>
     </LegalPageLayout>
   );
