@@ -95,4 +95,69 @@
     user-select: none;
     -webkit-user-select: none;
   }
+
+  /* Public legal pages must remain readable even when the app/native shell is in dark mode. */
+  .legal-page {
+    color-scheme: only light;
+    background: #ffffff !important;
+    color: #475569 !important;
+  }
+
+  .legal-page__header {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  .legal-page__footer {
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  .legal-content {
+    color: #475569 !important;
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .legal-content h2 {
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+    color: #0f172a !important;
+    font-size: 1.25rem;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  .legal-content p {
+    margin-bottom: 1rem;
+    color: #475569 !important;
+  }
+
+  .legal-content ul,
+  .legal-content ol {
+    margin: 0 0 1rem 1.5rem;
+  }
+
+  .legal-content ul { list-style: disc; }
+  .legal-content ol { list-style: decimal; }
+
+  .legal-content li {
+    margin-bottom: 0.35rem;
+    color: #475569 !important;
+  }
+
+  .legal-content strong {
+    color: #0f172a !important;
+    font-weight: 600;
+  }
+
+  .legal-content a {
+    color: #2563eb !important;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .legal-content a:hover {
+    text-decoration: underline;
+  }
 }
