@@ -96,6 +96,25 @@
     -webkit-user-select: none;
   }
 
+  button, [role="button"], select, input, textarea {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (pointer: coarse) {
+    select,
+    input,
+    textarea {
+      min-height: 48px;
+      font-size: 16px;
+    }
+
+    button,
+    [role="button"] {
+      min-height: 48px;
+    }
+  }
+
   /* Public legal pages must remain readable even when the app/native shell is in dark mode. */
   .legal-page {
     color-scheme: only light;
