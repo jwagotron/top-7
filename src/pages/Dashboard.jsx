@@ -55,6 +55,20 @@ export default function Dashboard() {
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [showTodayWorkout, setShowTodayWorkout] = useState(false);
   const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ['athlete-memberships'], exact: false }),
+      qc.invalidateQueries({ queryKey: ['athlete-memberships-dash'], exact: false }),
+      qc.invalidateQueries({ queryKey: ['assigned-plans'], exact: false }),
+      qc.invalidateQueries({ queryKey: ['assigned-plan-workouts'], exact: false }),
+      qc.invalidateQueries({ queryKey: ['direct-assigned-workouts'], exact: false }),
+      qc.invalidateQueries({ queryKey: ['completions'], exact: false }),
+      qc.invalidateQueries({ queryKey: ['workouts'], exact: false }),
+    ]);
+  }, [qc]);
+  const ptr = usePullToRefresh(handleRefresh, { path: '/' });
 
   const { toDisplay, label, convertPaceLabel, paceLabel } = useUnits();
 
@@ -108,6 +122,7 @@ export default function Dashboard() {
 
   return (
     <div>
+      <PullToRefreshIndicator {...ptr} />
       <TopBar title="My Progress" />
       <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-5 lg:space-y-6 pb-24 lg:pb-8">
 
