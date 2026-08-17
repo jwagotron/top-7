@@ -118,9 +118,9 @@ export const DEFAULT_ROUTE = {
 };
 
 export const ALLOWED_ROUTES = {
-  athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/shoes', '/garmin', '/messages', '/settings', '/athlete-profile', '/profile'],
-  coach:   ['/coach', '/workout-builder', '/plans', '/settings', '/profile', '/athlete-profile', '/messages'],
-  admin:   ['/', '/admin', '/coach', '/workout-builder', '/plans', '/settings', '/athlete-profile', '/activities', '/workouts', '/analytics', '/goals', '/shoes', '/garmin', '/my-plan', '/profile'],
+  athlete: ['/', '/workouts', '/my-plan', '/activities', '/plans', '/analytics', '/goals', '/shoes', '/garmin', '/messages', '/settings', '/athletes', '/athlete-profile', '/profile'],
+  coach:   ['/coach', '/workout-builder', '/plans', '/settings', '/profile', '/athletes', '/athlete-profile', '/messages'],
+  admin:   ['/', '/admin', '/coach', '/workout-builder', '/plans', '/settings', '/athletes', '/athlete-profile', '/activities', '/workouts', '/analytics', '/goals', '/shoes', '/garmin', '/my-plan', '/profile'],
 };
 
 export function isRouteAllowed(role, pathname) {
