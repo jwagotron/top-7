@@ -16,6 +16,7 @@ export default function Privacy() {
         <li><strong>Coach-athlete data:</strong> training plans, planned workouts, feedback, and messages exchanged between coaches and athletes.</li>
         <li><strong>Device data:</strong> data synced from connected devices, including activities, heart rate, and sleep metrics.</li>
         <li><strong>Usage data:</strong> how you interact with the App, including features used and crash reports.</li>
+        <li><strong>Device and app identifiers:</strong> technical identifiers associated with your device, browser, or app installation that may be used for authentication, security, analytics, and reliable app operation.</li>
       </ul>
 
       <h2>Google Sign-In Data</h2>
