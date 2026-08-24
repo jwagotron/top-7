@@ -63,9 +63,6 @@ export default function Landing() {
             <p className="mt-5 text-base sm:text-xl text-muted-foreground max-w-2xl leading-relaxed">
               Top 7 is a running training and coaching platform that helps coaches build and assign workouts and training plans, helps athletes know exactly what to run each day, and keeps workout completion, progress, feedback, team communication, race goals, shoe mileage, streaks, race predictions, and performance analytics in one place.
             </p>
-            <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
-              Google Sign-In is used only to securely create or access a Top 7 account. Top 7 does not use Google Sign-In to access Gmail, Drive, Calendar, Contacts, or other Google account content.
-            </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link to="/login" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-3.5 text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm">
                 Continue to Top 7 <ArrowRight className="w-4 h-4" />
@@ -127,13 +124,18 @@ export default function Landing() {
       </main>
 
       <footer className="border-t border-border/60">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between text-xs text-muted-foreground">
-          <span>© {new Date().getFullYear()} {APP_NAME}</span>
-          <div className="flex items-center gap-4">
-            <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-            <Link to="/terms" className="hover:text-foreground">Terms</Link>
-            <Link to="/support" className="hover:text-foreground">Support</Link>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 text-xs text-muted-foreground">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <span>© {new Date().getFullYear()} {APP_NAME}</span>
+            <div className="flex items-center gap-4">
+              <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+              <Link to="/terms" className="hover:text-foreground">Terms</Link>
+              <Link to="/support" className="hover:text-foreground">Support</Link>
+            </div>
           </div>
+          <p className="mt-4 max-w-3xl text-[11px] leading-relaxed text-muted-foreground/70">
+            Google Sign-In is used only to create or access a Top 7 account and does not provide Top 7 access to Gmail, Drive, Calendar, Contacts, or other Google account content.
+          </p>
         </div>
       </footer>
     </div>
