@@ -8,8 +8,6 @@ import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { useAuth } from "@/lib/AuthContext";
-import { detectRuntime } from "@/lib/runtimeDetect";
-import { performNativeGoogleAuth, isNativePlatform } from "@/lib/capacitorAuth";
 
 export default function Login() {
   const [email, setEmail] = useState(() => {
@@ -115,27 +113,11 @@ export default function Login() {
     }
   };
 
-  const handleGoogle = async () => {
+  const handleGoogle = () => {
     setError("");
-    const runtime = detectRuntime();
-    const returnUrl = window.location.origin + "/auth-return";
-    const native = isNativePlatform() || (runtime.isAndroid && (runtime.isWebView || runtime.isCapacitor || runtime.isStandalone));
-
-    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) {
-      console.log('[login] Google Sign-In | runtime:', runtime.label, '| native path:', native, '| returnUrl:', returnUrl);
-    }
-
-    if (native) {
-      try {
-        await performNativeGoogleAuth(returnUrl, '/');
-      } catch (e) {
-        console.error('[login] Native Google auth failed:', e.message);
-        setError(`Google Sign-In failed: ${e.message}`);
-      }
-      return;
-    }
-
-    // Normal web browsers can use the SDK redirect flow directly.
+    // Base44's Play Store wrapper owns the native Google-auth handoff once the
+    // Play App Signing SHA-256 is configured. Keep this on the supported SDK
+    // path so the wrapper can intercept and restore the session correctly.
     base44.auth.loginWithProvider("google", "/");
   };
 
