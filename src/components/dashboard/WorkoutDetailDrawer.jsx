@@ -6,6 +6,7 @@ import { Clock, MapPin, Zap, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import WorkoutComments from '@/components/workouts/WorkoutComments';
 import { useRole } from '@/lib/RoleContext';
+import { parseDateOnly } from '@/lib/dateUtils';
 
 function MetricTile({ icon: Icon, label, value, unit, color = 'text-primary', bg = 'bg-primary/10' }) {
   if (value == null || value === '') return null;
@@ -55,7 +56,7 @@ export default function WorkoutDetailDrawer({ workout, onClose }) {
         <DialogHeader>
           <DialogTitle className="text-lg">{workout.title}</DialogTitle>
           <p className="text-xs text-muted-foreground">
-            {workout.date ? format(new Date(workout.date), 'EEEE, MMMM d, yyyy') : ''}
+            {workout.date ? format(parseDateOnly(workout.date), 'EEEE, MMMM d, yyyy') : ''}
             {workout.run_type ? ` · ${workout.run_type.replace(/_/g, ' ')}` : ''}
           </p>
         </DialogHeader>
