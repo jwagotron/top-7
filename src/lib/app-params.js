@@ -54,9 +54,18 @@ const getAppParamValue = (paramName, { defaultValue = undefined, removeFromUrl =
 }
 
 const getAppParams = () => {
-	if (getAppParamValue("clear_access_token") === 'true') {
+	// clear_access_token is a one-shot control flag, never durable app state.
+	// Persisting it would delete every future OAuth token on every app launch and
+	// create a permanent login loop. Purge any legacy stored copy first, then
+	// consume the flag only if it exists on the current URL.
+	storage.removeItem('base44_clear_access_token');
+	const startupParams = new URLSearchParams(window.location.search);
+	if (startupParams.get('clear_access_token') === 'true') {
 		storage.removeItem('base44_access_token');
 		storage.removeItem('token');
+		startupParams.delete('clear_access_token');
+		const cleanUrl = `${window.location.pathname}${startupParams.toString() ? `?${startupParams.toString()}` : ''}${window.location.hash}`;
+		window.history.replaceState({}, document.title, cleanUrl);
 	}
 	const token = getAppParamValue("access_token", { removeFromUrl: true });
 	// Log token source for debugging Android/Capacitor auth issues
