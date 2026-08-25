@@ -111,7 +111,11 @@ export default function Register() {
 
   const handleGoogle = async () => {
     const returnUrl = window.location.origin + "/";
-    const native = isNativePlatform();
+    // Android store builds should always attempt the native bridge first.
+    // performNativeGoogleAuth safely falls back to normal web OAuth when the
+    // bridge plugins are genuinely unavailable (for example, regular Chrome).
+    const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '');
+    const native = isNativePlatform() || isAndroid;
     if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[register] Google Sign-In | native:', native, '| returnUrl:', returnUrl);
 
     if (native) {
