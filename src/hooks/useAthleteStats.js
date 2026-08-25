@@ -45,7 +45,7 @@ export function useAthleteStats(athleteEmail) {
 
   // ── Recent (last 6) ───────────────────────────────────────────────────────
   const recentCompletedWorkouts = [...completedWorkoutItems]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => parseDateOnly(b.date) - parseDateOnly(a.date))
     .slice(0, 6);
 
   // ── Volume series builder (used by Analytics) ─────────────────────────────
