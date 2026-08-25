@@ -129,7 +129,7 @@ export default function MobileDrawer() {
               <div className="w-8 h-8 rounded-lg bg-sidebar-primary/20 flex items-center justify-center shrink-0">
                 <Repeat2 className="w-4 h-4" />
               </div>
-              Switch to {previewRole === 'athlete' ? 'Coach' : 'Athlete'}
+              Switch to {previewRole === null ? 'Athlete' : previewRole === 'athlete' ? 'Coach' : 'Admin'}
             </button>
           )}
 
