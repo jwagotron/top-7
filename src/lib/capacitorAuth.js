@@ -176,7 +176,10 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
       ? 'Not native — web flow'
       : `Missing plugins: App=${!!App} Browser=${!!Browser}`;
     if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] Falling back to web flow:', _oauthDiag.lastError);
-    base44.auth.loginWithProvider('google', fromUrl);
+    // The caller may supply a native-only /auth-return callback. If the
+    // Capacitor bridge cannot complete, fall back to the ordinary web return
+    // path so mobile web users are never sent through an Android app intent.
+    base44.auth.loginWithProvider('google', '/');
     return;
   }
 
@@ -222,7 +225,10 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
     console.error('[capacitor-auth] Browser.open failed:', e);
     if (listenerHandle) listenerHandle.remove().catch(() => {});
     // Fall back to web flow
-    base44.auth.loginWithProvider('google', fromUrl);
+    // The caller may supply a native-only /auth-return callback. If the
+    // Capacitor bridge cannot complete, fall back to the ordinary web return
+    // path so mobile web users are never sent through an Android app intent.
+    base44.auth.loginWithProvider('google', '/');
     return;
   }
 
