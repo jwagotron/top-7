@@ -12,7 +12,11 @@ if (typeof window !== 'undefined') {
   const ua = navigator.userAgent || '';
   const cap = window.Capacitor;
   const isAndroid = /Android/i.test(ua);
-  const isAndroidWebView = /; wv\)/i.test(ua) || /WebView/i.test(ua);
+  const isAndroidWebView = /;\s*wv\)/i.test(ua)
+    || /\bwv\b/i.test(ua)
+    || /Version\/4\.0.*Chrome\//i.test(ua)
+    || /WebView/i.test(ua);
+  const isStandalone = window.matchMedia?.('(display-mode: standalone)')?.matches === true;
 
   let isNativeAndroid = false;
   if (isAndroid) {
@@ -22,7 +26,7 @@ if (typeof window !== 'undefined') {
     try {
       isNativeAndroid = isNativeAndroid || (typeof cap?.getPlatform === 'function' && cap.getPlatform() === 'android');
     } catch (_) {}
-    isNativeAndroid = isNativeAndroid || cap?.isNative === true || cap?.platform === 'android' || isAndroidWebView;
+    isNativeAndroid = isNativeAndroid || cap?.isNative === true || cap?.platform === 'android' || isAndroidWebView || isStandalone;
   }
 
   document.documentElement.classList.toggle('native-android', !!isNativeAndroid);
