@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
 import { useAuth } from '@/lib/AuthContext';
+import { toast } from 'sonner';
 
 const sportIcons = { run: Footprints, bike: Bike, swim: Waves, strength: Dumbbell, other: CircleDot, triathlon: Activity, general: CircleDot };
 
@@ -61,23 +62,28 @@ export default function TrainingPlans() {
 
   const createPlanMut = useMutation({
     mutationFn: (d) => base44.entities.TrainingPlan.create({ ...d, coach_email: user?.email }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['plans', user?.email] }); setShowPlanForm(false); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['plans', user?.email] }); setShowPlanForm(false); toast.success('Training plan created'); },
+    onError: (error) => toast.error(error?.message || 'Could not create training plan. Please try again.'),
   });
   const updatePlanMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.TrainingPlan.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['plans', user?.email] }); setEditingPlan(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['plans', user?.email] }); setEditingPlan(null); toast.success('Training plan updated'); },
+    onError: (error) => toast.error(error?.message || 'Could not update training plan. Please try again.'),
   });
   const deletePlanMut = useMutation({
     mutationFn: (id) => base44.entities.TrainingPlan.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['plans', user?.email] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['plans', user?.email] }); toast.success('Training plan deleted'); },
+    onError: (error) => toast.error(error?.message || 'Could not delete training plan. Please try again.'),
   });
   const createWorkoutMut = useMutation({
     mutationFn: (d) => base44.entities.PlannedWorkout.create(d),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['planned-workouts'] }); setShowWorkoutForm(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['planned-workouts'] }); setShowWorkoutForm(null); toast.success('Workout added to plan'); },
+    onError: (error) => toast.error(error?.message || 'Could not add workout. Please try again.'),
   });
   const deleteWorkoutMut = useMutation({
     mutationFn: (id) => base44.entities.PlannedWorkout.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['planned-workouts'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['planned-workouts'] }); toast.success('Workout removed from plan'); },
+    onError: (error) => toast.error(error?.message || 'Could not remove workout. Please try again.'),
   });
 
   return (
@@ -153,7 +159,18 @@ export default function TrainingPlans() {
                       <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setEditingPlan(plan); }} className="gap-1">
                         <Pencil className="w-3 h-3" /> Edit Plan
                       </Button>
-                      <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); deletePlanMut.mutate(plan.id); }} className="gap-1 text-destructive hover:text-destructive">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={deletePlanMut.isPending}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm(`Delete training plan "${plan.name}"? This cannot be undone.`)) {
+                            deletePlanMut.mutate(plan.id);
+                          }
+                        }}
+                        className="gap-1 text-destructive hover:text-destructive"
+                      >
                         <Trash2 className="w-3 h-3" /> Delete
                       </Button>
                     </div>
@@ -179,7 +196,17 @@ export default function TrainingPlans() {
                         </p>
                       </div>
                       {canCreate && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteWorkoutMut.mutate(w.id)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                          disabled={deleteWorkoutMut.isPending}
+                          onClick={() => {
+                            if (window.confirm(`Remove "${w.title}" from this plan? This cannot be undone.`)) {
+                              deleteWorkoutMut.mutate(w.id);
+                            }
+                          }}
+                        >
                           <Trash2 className="w-3 h-3 text-destructive" />
                         </Button>
                       )}
