@@ -9,6 +9,7 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { useAuth } from "@/lib/AuthContext";
 import { detectRuntime } from "@/lib/runtimeDetect";
+import { performNativeGoogleAuth, isNativePlatform } from "@/lib/capacitorAuth";
 
 export default function Login() {
   const [email, setEmail] = useState(() => {
@@ -114,18 +115,27 @@ export default function Login() {
     }
   };
 
-  const handleGoogle = () => {
+  const handleGoogle = async () => {
     setError("");
     const runtime = detectRuntime();
+    const returnUrl = window.location.origin + "/";
+    const native = isNativePlatform() || runtime.isAndroid || runtime.isWebView;
+
     if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) {
-      console.log('[login] Google Sign-In | runtime:', runtime.label, '| returning to app root');
+      console.log('[login] Google Sign-In | runtime:', runtime.label, '| native path:', native, '| returnUrl:', returnUrl);
     }
 
-    // Use Base44's supported social-auth flow on every runtime. Returning to
-    // the app root is intentional: returning OAuth to /login creates a race
-    // where the login screen renders again before AuthContext restores the
-    // newly issued session. The protected root route already waits for auth
-    // restoration and is the reliable callback landing page for web/native.
+    if (native) {
+      try {
+        await performNativeGoogleAuth(returnUrl, '/');
+      } catch (e) {
+        console.error('[login] Native Google auth failed:', e.message);
+        setError(`Google Sign-In failed: ${e.message}`);
+      }
+      return;
+    }
+
+    // Normal web browsers can use the SDK redirect flow directly.
     base44.auth.loginWithProvider("google", "/");
   };
 
