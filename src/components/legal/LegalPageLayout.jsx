@@ -11,7 +11,7 @@ export default function LegalPageLayout({ title, lastUpdated, children }) {
   return (
     <div className="legal-page min-h-screen flex flex-col" style={{ colorScheme: 'only light' }}>
       {/* Header */}
-      <header className="legal-page__header border-b">
+      <header className="legal-page__header border-b app-safe-header">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-5 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2.5">
             <img
