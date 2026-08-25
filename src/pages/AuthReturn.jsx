@@ -3,6 +3,7 @@ import AppLogo from '@/components/ui/AppLogo';
 import { APP_NAME } from '@/lib/branding';
 import { base44 } from '@/api/base44Client';
 import { isNativePlatform } from '@/lib/capacitorAuth';
+import { detectRuntime } from '@/lib/runtimeDetect';
 
 const ANDROID_PACKAGE = 'com.base69c32a03dfe10b4cd6245abe.app';
 
@@ -35,8 +36,9 @@ export default function AuthReturn() {
   const [showReturnButton, setShowReturnButton] = useState(false);
   const token = useMemo(() => readToken(), []);
 
-  const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '');
-  const native = isNativePlatform();
+  const runtime = detectRuntime();
+  const isAndroid = runtime.isAndroid;
+  const native = isNativePlatform() || (runtime.isAndroid && (runtime.isWebView || runtime.isCapacitor || runtime.isStandalone));
 
   const returnToAndroidApp = () => {
     if (!token) {
