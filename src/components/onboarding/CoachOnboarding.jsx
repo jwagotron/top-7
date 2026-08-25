@@ -92,7 +92,7 @@ export default function CoachOnboarding({ userType = 'coach' }) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 bg-background overflow-y-auto"
+      className="fixed inset-0 z-50 bg-background overflow-y-auto app-safe-inset"
     >
       <div className="min-h-full flex items-start justify-center p-6 py-12">
         <motion.div
