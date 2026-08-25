@@ -107,13 +107,13 @@ export default function Sidebar({ collapsed, onToggle }) {
       <div className={cn("border-b border-sidebar-border/50", collapsed ? "px-2 py-2" : "px-4 py-2")}>
         {!collapsed && (
           <span className="text-[10px] uppercase tracking-widest text-sidebar-foreground/40 font-semibold capitalize block mb-1">
-            {user?.role === 'admin' ? 'admin' : (user?.user_type || role || 'athlete')} mode
+            {user?.role === 'admin' && previewRole ? `${previewRole} preview` : `${role || user?.user_type || 'athlete'} mode`}
           </span>
         )}
         {canPreview && (
           <button
             onClick={() => togglePreviewRole(navigate)}
-            title={`Switch to ${previewRole === 'athlete' ? 'coach' : 'athlete'} view`}
+            title={`Switch to ${previewRole === null ? 'athlete' : previewRole === 'athlete' ? 'coach' : 'admin'} view`}
             className={cn(
               "flex items-center gap-2 rounded-lg transition-colors",
               "bg-sidebar-primary/20 hover:bg-sidebar-primary/30 text-sidebar-primary",
@@ -123,7 +123,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             <Repeat2 className="w-3.5 h-3.5 shrink-0" />
             {!collapsed && (
               <span className="text-[11px] font-semibold">
-                Switch to {previewRole === 'athlete' ? 'Coach' : 'Athlete'}
+                Switch to {previewRole === null ? 'Athlete' : previewRole === 'athlete' ? 'Coach' : 'Admin'}
               </span>
             )}
           </button>
