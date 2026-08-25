@@ -54,7 +54,7 @@ export default function RoleSelectionScreen() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center p-6"
+      className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center p-6 app-safe-viewport-lg"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
