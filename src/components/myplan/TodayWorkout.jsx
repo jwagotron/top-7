@@ -65,11 +65,6 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
     },
   });
 
-  const { data: shoes = [] } = useQuery({
-    queryKey: ['shoes'],
-    queryFn: () => base44.entities.Shoe.list('-created_date', 100),
-  });
-
   const uncompleteMut = useMutation({
     mutationFn: async () => {
       if (!completion?.id) return;
@@ -123,45 +118,51 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
           notes: notes || undefined,
         });
       }
-      // Auto-log mileage to primary shoe (fresh fetch to avoid stale data)
-      let loggedShoeId = null;
-      let loggedDistanceKm = null;
-      const distanceToLog = workout.target_distance_km;
-      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] target_distance_km:', distanceToLog);
-      if (distanceToLog) {
-        const primaryShoeId = localStorage.getItem('primary_shoe_id');
-        if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] primaryShoeId from localStorage:', primaryShoeId);
-        let targetShoeId = primaryShoeId;
-        if (!targetShoeId) {
-          const allShoes = await base44.entities.Shoe.list('-created_date', 100);
-          const firstActive = allShoes.find(s => s.status !== 'retired');
-          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] fallback shoe:', firstActive?.id, firstActive?.name);
-          if (firstActive) targetShoeId = firstActive.id;
-        }
-        if (targetShoeId) {
-          const freshShoe = await base44.entities.Shoe.get(targetShoeId);
-          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] freshShoe:', freshShoe?.name, 'current mileage:', freshShoe?.mileage_km);
-          if (freshShoe && freshShoe.status !== 'retired') {
-            await base44.entities.Shoe.update(targetShoeId, {
+      // Shoe mileage is a secondary convenience. Never let a stale/deleted/
+      // retired shoe make the already-saved workout completion appear to fail.
+      let shoeLogFailed = false;
+      const distanceToLog = Number(workout.target_distance_km) || 0;
+      if (distanceToLog > 0) {
+        try {
+          const primaryShoeId = localStorage.getItem('primary_shoe_id');
+          let freshShoe = null;
+
+          if (primaryShoeId) {
+            try {
+              const candidate = await base44.entities.Shoe.get(primaryShoeId);
+              if (candidate?.status !== 'retired') freshShoe = candidate;
+            } catch {
+              // Stale primary ID. Fall through to the first active shoe.
+              localStorage.removeItem('primary_shoe_id');
+            }
+          }
+
+          if (!freshShoe) {
+            const allShoes = await base44.entities.Shoe.list('-created_date', 100);
+            const firstActive = allShoes.find(s => s.status !== 'retired');
+            if (firstActive?.id) {
+              freshShoe = await base44.entities.Shoe.get(firstActive.id);
+            }
+          }
+
+          if (freshShoe?.id && freshShoe.status !== 'retired') {
+            await base44.entities.Shoe.update(freshShoe.id, {
               mileage_km: (freshShoe.mileage_km || 0) + distanceToLog,
             });
-            loggedShoeId = targetShoeId;
-            loggedDistanceKm = distanceToLog;
-            if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] Updated shoe mileage +', distanceToLog, 'km');
+            const completionId = result?.id || completion?.id;
+            if (completionId) {
+              await base44.entities.WorkoutCompletion.update(completionId, {
+                shoe_id: freshShoe.id,
+                distance_logged_km: distanceToLog,
+              });
+            }
           }
-        } else {
-          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[ShoeLog] No shoe found to log to');
+        } catch (shoeError) {
+          shoeLogFailed = true;
+          console.warn('[ShoeLog] Workout saved, but shoe mileage update failed:', shoeError?.message || shoeError);
         }
       }
-      // Save shoe log info on the completion record
-      const completionId = result?.id || completion?.id;
-      if (completionId && loggedShoeId) {
-        await base44.entities.WorkoutCompletion.update(completionId, {
-          shoe_id: loggedShoeId,
-          distance_logged_km: loggedDistanceKm,
-        });
-      }
-      return result;
+      return { completion: result, shoeLogFailed };
     },
     onMutate: async () => {
       await qc.cancelQueries({ queryKey: ['completions', athleteEmail] });
