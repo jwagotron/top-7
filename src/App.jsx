@@ -10,6 +10,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from '@/components/layout/AppLayout';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import { RoleProvider, useRole } from '@/lib/RoleContext';
+import { DEFAULT_ROUTE, isRouteAllowed } from '@/lib/roleConfig';
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
 import JoinTeam from '@/pages/JoinTeam';
 import ErrorBoundary from '@/lib/ErrorBoundary';
@@ -58,9 +59,9 @@ const AthleteProfile = lazyWithReload(() => import('@/pages/AthleteProfile'));
 const AccountSettings = lazyWithReload(() => import('@/pages/AccountSettings'));
 import AdminPanel from '@/pages/AdminPanel';
 import UserProfile from '@/pages/UserProfile';
-const ShoeTracker    = lazy(() => import('@/pages/ShoeTracker'));
-const MyPlan         = lazy(() => import('@/pages/MyPlan'));
-const Messages       = lazy(() => import('@/pages/Messages'));
+const ShoeTracker    = lazyWithReload(() => import('@/pages/ShoeTracker'));
+const MyPlan         = lazyWithReload(() => import('@/pages/MyPlan'));
+const Messages       = lazyWithReload(() => import('@/pages/Messages'));
 
 const pageVariants = {
   initial: { opacity: 0, x: 12 },
