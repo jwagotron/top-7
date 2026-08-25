@@ -54,23 +54,6 @@
     }
   }
 
-  /* Full-viewport screens that are not wrapped by AppLayout still need to
-     reserve Android/iOS system-bar space. These preserve a normal web gutter
-     while adding device insets in installed shells. */
-  .app-safe-viewport {
-    padding-top: calc(var(--app-safe-area-top) + 1rem);
-    padding-bottom: calc(var(--app-safe-area-bottom) + 1rem);
-  }
-
-  .app-safe-inset {
-    padding-top: var(--app-safe-area-top);
-    padding-bottom: var(--app-safe-area-bottom);
-  }
-
-  .app-safe-header {
-    padding-top: var(--app-safe-area-top);
-  }
-
   .dark {
     --background: 220 25% 8%;
     --foreground: 220 15% 95%;
@@ -104,6 +87,25 @@
     --sidebar-accent-foreground: 220 15% 85%;
     --sidebar-border: 220 25% 14%;
     --sidebar-ring: 210 100% 55%;
+  }
+}
+
+@layer utilities {
+  /* Full-viewport screens that are not wrapped by AppLayout still need to
+     reserve Android/iOS system-bar space. Utilities layer ensures these win
+     over generic p-* helpers on fixed onboarding/auth screens. */
+  .app-safe-viewport {
+    padding-top: calc(var(--app-safe-area-top) + 1rem);
+    padding-bottom: calc(var(--app-safe-area-bottom) + 1rem);
+  }
+
+  .app-safe-inset {
+    padding-top: var(--app-safe-area-top);
+    padding-bottom: var(--app-safe-area-bottom);
+  }
+
+  .app-safe-header {
+    padding-top: var(--app-safe-area-top);
   }
 }
 
