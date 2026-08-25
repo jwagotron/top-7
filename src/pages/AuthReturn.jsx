@@ -21,7 +21,6 @@ function readToken() {
 
 function getAndroidIntentUrl(token) {
   const query = new URLSearchParams({
-    native_oauth: '1',
     access_token: token,
   });
 
@@ -67,12 +66,12 @@ export default function AuthReturn() {
       return;
     }
 
-    // Native OAuth callbacks can occasionally remain in Chrome even though the
-    // domain is verified. Force an explicit package-targeted Android intent so
-    // the token crosses back into the installed Top 7 app. If Chrome blocks an
-    // automatic external-app launch, reveal the same action as a user tap.
-    const nativeCallback = new URLSearchParams(window.location.search).get('native_oauth') === '1';
-    if (isAndroid && nativeCallback) {
+    // This route is reserved for the installed-app Google OAuth flow. If the
+    // callback remains in Android Chrome instead of reopening Top 7, force an
+    // explicit package-targeted intent so the token crosses the browser/WebView
+    // storage boundary. If Chrome blocks an automatic external-app launch,
+    // reveal the same action as a user tap.
+    if (isAndroid) {
       const timer = window.setTimeout(() => {
         returnToAndroidApp();
         window.setTimeout(() => setShowReturnButton(true), 900);
