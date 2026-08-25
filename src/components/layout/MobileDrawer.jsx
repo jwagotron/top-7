@@ -80,7 +80,7 @@ export default function MobileDrawer() {
         {/* Branding header */}
         <div
           className="flex items-center justify-between px-5 shrink-0 border-b border-sidebar-border/60"
-          style={{ paddingTop: 'env(safe-area-inset-top)', minHeight: '4rem' }}
+          style={{ paddingTop: 'var(--app-safe-area-top)', minHeight: 'calc(4rem + var(--app-safe-area-top))' }}
         >
           <div className="flex items-center gap-3">
             <AppLogo className="w-8 h-8" rounded="rounded-xl" />
