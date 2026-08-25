@@ -14,7 +14,7 @@ export default function MobileHeader({ title }) {
   return (
     <div
       className="lg:hidden flex items-center gap-2 px-4 py-3 bg-card border-b border-border sticky top-0 z-30"
-      style={{ paddingTop: `calc(env(safe-area-inset-top) + 0.75rem)` }}
+      style={{ paddingTop: 'calc(var(--app-safe-area-top) + 0.75rem)' }}
     >
       <button
         onClick={() => navigate(-1)}
