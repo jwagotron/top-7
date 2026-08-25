@@ -176,10 +176,11 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
       ? 'Not native — web flow'
       : `Missing plugins: App=${!!App} Browser=${!!Browser}`;
     if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[capacitor-auth] Falling back to web flow:', _oauthDiag.lastError);
-    // The caller may supply a native-only /auth-return callback. If the
-    // Capacitor bridge cannot complete, fall back to the ordinary web return
-    // path so mobile web users are never sent through an Android app intent.
-    base44.auth.loginWithProvider('google', '/');
+    // We only enter performNativeGoogleAuth from an installed-app runtime.
+    // Even when the Base44 shell does not expose the Capacitor plugins, keep
+    // the dedicated /auth-return URL so the browser callback can hand the
+    // issued token back into the installed Top 7 package.
+    base44.auth.loginWithProvider('google', fromUrl);
     return;
   }
 
@@ -225,10 +226,11 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
     console.error('[capacitor-auth] Browser.open failed:', e);
     if (listenerHandle) listenerHandle.remove().catch(() => {});
     // Fall back to web flow
-    // The caller may supply a native-only /auth-return callback. If the
-    // Capacitor bridge cannot complete, fall back to the ordinary web return
-    // path so mobile web users are never sent through an Android app intent.
-    base44.auth.loginWithProvider('google', '/');
+    // We only enter performNativeGoogleAuth from an installed-app runtime.
+    // Even when the Base44 shell does not expose the Capacitor plugins, keep
+    // the dedicated /auth-return URL so the browser callback can hand the
+    // issued token back into the installed Top 7 package.
+    base44.auth.loginWithProvider('google', fromUrl);
     return;
   }
 
