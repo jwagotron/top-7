@@ -110,7 +110,7 @@ export default function Register() {
   };
 
   const handleGoogle = async () => {
-    const returnUrl = window.location.origin + "/";
+    const returnUrl = window.location.origin + "/auth-return?native_oauth=1";
     // Android store builds should always attempt the native bridge first.
     // performNativeGoogleAuth safely falls back to normal web OAuth when the
     // bridge plugins are genuinely unavailable (for example, regular Chrome).
