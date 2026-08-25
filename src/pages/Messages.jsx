@@ -265,8 +265,8 @@ function QuickReply({ toEmail, subject, onSend }) {
       ) : (
         <div className="space-y-2">
           <Textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Write your reply…" rows={3} className="text-sm" />
-          <Button size="sm" className="gap-2" onClick={handleSend} disabled={!body.trim()}>
-            <Send className="w-3.5 h-3.5" /> Send Reply
+          <Button size="sm" className="gap-2" onClick={handleSend} disabled={!body.trim() || sending}>
+            <Send className="w-3.5 h-3.5" /> {sending ? 'Sending…' : 'Send Reply'}
           </Button>
         </div>
       )}
@@ -276,11 +276,20 @@ function QuickReply({ toEmail, subject, onSend }) {
 
 function ComposeDialog({ open, onClose, onSend, recipientOptions = [] }) {
   const [form, setForm] = useState({ recipient_email: '', subject: '', body: '' });
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSend(form);
-    setForm({ recipient_email: '', subject: '', body: '' });
+    if (sending) return;
+    setSending(true);
+    try {
+      await onSend(form);
+      setForm({ recipient_email: '', subject: '', body: '' });
+    } catch {
+      // Mutation-level onError presents the failure and keeps the draft intact.
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -324,8 +333,10 @@ function ComposeDialog({ open, onClose, onSend, recipientOptions = [] }) {
             <Textarea value={form.body} onChange={e => setForm(p => ({ ...p, body: e.target.value }))} placeholder="Write your message..." rows={5} required />
           </div>
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" className="gap-2"><Send className="w-4 h-4" /> Send</Button>
+            <Button type="button" variant="outline" onClick={onClose} disabled={sending}>Cancel</Button>
+            <Button type="submit" className="gap-2" disabled={sending}>
+              <Send className="w-4 h-4" /> {sending ? 'Sending…' : 'Send'}
+            </Button>
           </div>
         </form>
       </DialogContent>
