@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { Bike, Footprints, Waves, Dumbbell, CircleDot, Clock, MapPin, Heart } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
+import { parseDateOnly } from '@/lib/dateUtils';
 
 const sportIcons = {
   run: Footprints,
@@ -15,7 +16,7 @@ const sportIcons = {
 export default function RecentActivity({ workouts }) {
   const { toDisplay, label } = useUnits();
   const recent = [...workouts]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => parseDateOnly(b.date) - parseDateOnly(a.date))
     .slice(0, 5);
 
   return (
@@ -37,7 +38,7 @@ export default function RecentActivity({ workouts }) {
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-semibold text-foreground truncate flex-1 min-w-0">{w.title}</p>
                   <span className="text-[11px] text-muted-foreground/60 shrink-0 whitespace-nowrap">
-                    {format(new Date(w.date), 'MMM d')}
+                    {format(parseDateOnly(w.date), 'MMM d')}
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
