@@ -9,6 +9,7 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { useAuth } from "@/lib/AuthContext";
 import { detectRuntime } from "@/lib/runtimeDetect";
+import { APP_URL } from "@/lib/branding";
 
 export default function Login() {
   const [email, setEmail] = useState(() => {
@@ -119,7 +120,7 @@ export default function Login() {
     // Base44's Play Store wrapper owns the native Google-auth handoff once the
     // Play App Signing SHA-256 is configured. Keep this on the supported SDK
     // path so the wrapper can intercept and restore the session correctly.
-    base44.auth.loginWithProvider("google", "/");
+    base44.auth.loginWithProvider("google", `${APP_URL}/`);
   };
 
   return (
