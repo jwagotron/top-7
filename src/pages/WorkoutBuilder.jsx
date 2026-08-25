@@ -15,6 +15,7 @@ import { Save, Plus, Pencil, Trash2, Dumbbell, UserPlus } from 'lucide-react';
 import AssignWorkoutForm from '@/components/coach/AssignWorkoutForm';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
+import { toast } from 'sonner';
 
 const RUN_TYPES = [
   { value: 'easy', label: 'Easy Run', color: 'bg-secondary/10 text-secondary' },
@@ -61,7 +62,7 @@ export default function WorkoutBuilder() {
     enabled: !!user?.email,
   });
 
-  const primaryTeam = teams[0] || null;
+  const primaryTeam = teams.find(t => t.status !== 'archived') || null;
 
   const { data: memberships = [] } = useQuery({
     queryKey: ['team-memberships', primaryTeam?.id],
@@ -80,7 +81,8 @@ export default function WorkoutBuilder() {
         base44.entities.PlannedWorkout.create({ ...item, plan_id: null, status: 'upcoming' })
       ));
     },
-    onSuccess: () => setAssignTarget(null),
+    onSuccess: () => { setAssignTarget(null); toast.success('Workout assigned'); },
+    onError: (error) => toast.error(error?.message || 'Could not assign workout. Please try again.'),
   });
 
   const set = (f, v) => setForm(p => ({ ...p, [f]: v }));
@@ -116,7 +118,9 @@ export default function WorkoutBuilder() {
       qc.invalidateQueries({ queryKey: ['builder-workouts'] });
       qc.invalidateQueries({ queryKey: ['workout-steps'] });
       resetForm();
+      toast.success(editingId ? 'Workout updated' : 'Workout saved');
     },
+    onError: (error) => toast.error(error?.message || 'Could not save workout. Please try again.'),
   });
 
   const deleteMut = useMutation({
@@ -128,7 +132,9 @@ export default function WorkoutBuilder() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['builder-workouts'] });
       qc.invalidateQueries({ queryKey: ['workout-steps'] });
+      toast.success('Workout deleted');
     },
+    onError: (error) => toast.error(error?.message || 'Could not delete workout. Please try again.'),
   });
 
   const resetForm = () => { setForm(defaultForm); setSteps([]); setEditingId(null); setShowForm(false); };
@@ -216,7 +222,17 @@ export default function WorkoutBuilder() {
                               <UserPlus className="w-3 h-3" /><span className="hidden sm:inline">Assign</span>
                             </Button>
                             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleEdit(w)}><Pencil className="w-3.5 h-3.5" /></Button>
-                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteMut.mutate(w.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-destructive hover:text-destructive"
+                              disabled={deleteMut.isPending}
+                              onClick={() => {
+                                if (window.confirm(`Delete "${w.title}"? This also deletes its workout steps and cannot be undone.`)) {
+                                  deleteMut.mutate(w.id);
+                                }
+                              }}
+                            ><Trash2 className="w-3.5 h-3.5" /></Button>
                           </div>
                         </div>
                         {w.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{w.description}</p>}
