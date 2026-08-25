@@ -34,7 +34,10 @@ function BenefitList({ items }) {
 export default function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border/60 bg-background/90 backdrop-blur sticky top-0 z-30">
+      <header
+        className="border-b border-border/60 bg-background/90 backdrop-blur sticky top-0 z-30"
+        style={{ paddingTop: 'var(--app-safe-area-top)' }}
+      >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <AppLogo className="w-9 h-9" rounded="rounded-xl" />
