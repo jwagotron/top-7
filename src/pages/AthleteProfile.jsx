@@ -208,7 +208,7 @@ export default function AthleteProfile() {
     : '—';
 
   // Current streak
-  const sortedPast = [...pastWorkouts].sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date));
+  const sortedPast = [...pastWorkouts].sort((a, b) => parseDateOnly(b.scheduled_date) - parseDateOnly(a.scheduled_date));
   let streak = 0;
   for (const w of sortedPast) {
     if (completedIds.has(w.id)) streak++;
@@ -242,7 +242,7 @@ export default function AthleteProfile() {
   });
 
   const unreadInThread = thread.filter(m => !m.read && m.recipient_email === user?.email).length;
-  const upcomingRace = raceGoals.filter(r => r.status === 'upcoming').sort((a, b) => new Date(a.race_date) - new Date(b.race_date))[0];
+  const upcomingRace = raceGoals.filter(r => r.status === 'upcoming').sort((a, b) => parseDateOnly(a.race_date) - parseDateOnly(b.race_date))[0];
 
   const initials = (athleteName || athleteEmail || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
@@ -394,7 +394,7 @@ export default function AthleteProfile() {
               <CardContent className="p-0">
                 {pastWorkouts.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-6">No recent activity.</p>
-                ) : [...pastWorkouts].sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date)).slice(0, 5).map(w => {
+                ) : [...pastWorkouts].sort((a, b) => parseDateOnly(b.scheduled_date) - parseDateOnly(a.scheduled_date)).slice(0, 5).map(w => {
                   const done = completedIds.has(w.id);
                   return (
                     <div key={w.id} className="flex items-center justify-between gap-3 px-5 py-3 border-b border-border/50 last:border-0">
@@ -450,7 +450,7 @@ export default function AthleteProfile() {
           <TabsContent value="workouts" className="space-y-3 mt-4">
             {plannedWorkouts.length === 0 ? (
               <p className="text-muted-foreground text-sm text-center py-8">No workouts assigned yet.</p>
-            ) : [...plannedWorkouts].sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date)).map(w => {
+            ) : [...plannedWorkouts].sort((a, b) => parseDateOnly(b.scheduled_date) - parseDateOnly(a.scheduled_date)).map(w => {
               const comp = completions.find(c => c.planned_workout_id === w.id);
               const done = comp?.status === 'completed';
               const isPast = parseDateOnly(w.scheduled_date) <= today;
