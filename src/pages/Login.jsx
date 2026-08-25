@@ -118,7 +118,7 @@ export default function Login() {
   const handleGoogle = async () => {
     setError("");
     const runtime = detectRuntime();
-    const returnUrl = window.location.origin + "/";
+    const returnUrl = window.location.origin + "/auth-return?native_oauth=1";
     const native = isNativePlatform() || runtime.isAndroid || runtime.isWebView;
 
     if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) {
