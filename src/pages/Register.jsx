@@ -9,6 +9,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { performNativeGoogleAuth, isNativePlatform } from "@/lib/capacitorAuth";
+import { detectRuntime } from "@/lib/runtimeDetect";
 import { toast } from "@/components/ui/use-toast";
 
 export default function Register() {
@@ -111,12 +112,11 @@ export default function Register() {
 
   const handleGoogle = async () => {
     const returnUrl = window.location.origin + "/auth-return";
-    // Android store builds should always attempt the native bridge first.
-    // performNativeGoogleAuth safely falls back to normal web OAuth when the
-    // bridge plugins are genuinely unavailable (for example, regular Chrome).
-    const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '');
-    const native = isNativePlatform() || isAndroid;
-    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[register] Google Sign-In | native:', native, '| returnUrl:', returnUrl);
+    // Only the installed Android shell should use the native handoff. Plain
+    // Android Chrome stays on the normal web OAuth flow.
+    const runtime = detectRuntime();
+    const native = isNativePlatform() || (runtime.isAndroid && (runtime.isWebView || runtime.isCapacitor || runtime.isStandalone));
+    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[register] Google Sign-In | runtime:', runtime.label, '| native:', native, '| returnUrl:', returnUrl);
 
     if (native) {
       // On Android/Capacitor: open OAuth in Chrome Custom Tab, capture via appUrlOpen
