@@ -67,32 +67,52 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
 
   const uncompleteMut = useMutation({
     mutationFn: async () => {
-      if (!completion?.id) return;
-      // Reverse shoe mileage if it was logged
-      if (completion.shoe_id && completion.distance_logged_km) {
-        const freshShoe = await base44.entities.Shoe.get(completion.shoe_id);
-        if (freshShoe) {
-          await base44.entities.Shoe.update(completion.shoe_id, {
-            mileage_km: Math.max(0, (freshShoe.mileage_km || 0) - completion.distance_logged_km),
-          });
-        }
-      }
+      if (!completion?.id) return { cleanupFailed: false };
+
+      // Completion status is the source of truth. Persist that first so a
+      // deleted shoe or stale feedback record can never block Undo.
       await base44.entities.WorkoutCompletion.update(completion.id, {
         status: 'pending',
         shoe_id: null,
         distance_logged_km: null,
       });
-      // Delete any feedback the athlete sent for this workout
-      const existingFeedback = await base44.entities.AthleteFeedback.filter({ workout_id: workout.id, athlete_email: athleteEmail });
-      await Promise.all(existingFeedback.map(fb => base44.entities.AthleteFeedback.delete(fb.id)));
+
+      let cleanupFailed = false;
+      if (completion.shoe_id && completion.distance_logged_km) {
+        try {
+          const freshShoe = await base44.entities.Shoe.get(completion.shoe_id);
+          if (freshShoe) {
+            await base44.entities.Shoe.update(completion.shoe_id, {
+              mileage_km: Math.max(0, (freshShoe.mileage_km || 0) - completion.distance_logged_km),
+            });
+          }
+        } catch (shoeError) {
+          cleanupFailed = true;
+          console.warn('[ShoeLog] Completion undone, but shoe mileage could not be reversed:', shoeError?.message || shoeError);
+        }
+      }
+
+      try {
+        const feedbackRecords = await base44.entities.AthleteFeedback.filter({ workout_id: workout.id, athlete_email: athleteEmail });
+        await Promise.all(feedbackRecords.map(fb => base44.entities.AthleteFeedback.delete(fb.id)));
+      } catch (feedbackError) {
+        cleanupFailed = true;
+        console.warn('[Feedback] Completion undone, but feedback cleanup failed:', feedbackError?.message || feedbackError);
+      }
+
+      return { cleanupFailed };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setFeedbackSent(false);
       setFeedback({ rpe: '', energy_level: '', notes: '' });
       qc.invalidateQueries({ queryKey: ['shoes'] });
       qc.invalidateQueries({ queryKey: ['athlete-feedback'] });
       qc.invalidateQueries({ queryKey: ['athlete-feedback-workout', workout.id, athleteEmail] });
+      if (data?.cleanupFailed) {
+        toast.warning('Workout reopened, but one related record could not be cleaned up.');
+      }
     },
+    onError: () => toast.error('Could not reopen this workout. Please try again.'),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
     },
@@ -188,14 +208,18 @@ export default function TodayWorkout({ workout, completion, athleteEmail }) {
     },
     onError: (_err, _vars, ctx) => {
       if (ctx?.previous) qc.setQueryData(['completions', athleteEmail], ctx.previous);
+      toast.error('Could not complete this workout. Please try again.');
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setShowNotes(false);
       qc.invalidateQueries({ queryKey: ['shoes'] });
       toast.success('Workout completed! 🎉', {
         description: 'Great work — keep the momentum going.',
         duration: 3000,
       });
+      if (data?.shoeLogFailed) {
+        toast.warning('Workout saved, but shoe mileage could not be updated.');
+      }
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['completions', athleteEmail] });
