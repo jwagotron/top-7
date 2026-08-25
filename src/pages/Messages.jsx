@@ -14,6 +14,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { useRole } from '@/lib/RoleContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { APP_NAME } from '@/lib/branding';
+import { toast } from 'sonner';
 
 export default function Messages() {
   const [showCompose, setShowCompose] = useState(false);
@@ -63,6 +64,7 @@ export default function Messages() {
   const createMut = useMutation({
     mutationFn: (d) => base44.entities.CoachMessage.create(d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages', user?.email] }); setShowCompose(false); },
+    onError: (error) => toast.error(error?.message || 'Could not send message. Please try again.'),
   });
 
   const updateMut = useMutation({
@@ -75,7 +77,9 @@ export default function Messages() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['messages', user?.email] });
       navigate('/messages', { replace: true });
+      toast.success('Message deleted');
     },
+    onError: (error) => toast.error(error?.message || 'Could not delete message. Please try again.'),
   });
 
   const handleSelect = (msg) => {
@@ -176,7 +180,17 @@ export default function Messages() {
                     <Button variant="ghost" size="sm" className="lg:hidden h-8 px-2 gap-1 -ml-1" onClick={() => navigate(-1)}>
                       ← Back
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-destructive shrink-0 ml-auto" onClick={() => deleteMut.mutate(selected.id)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive shrink-0 ml-auto"
+                      disabled={deleteMut.isPending}
+                      onClick={() => {
+                        if (window.confirm(`Delete "${selected.subject || 'this message'}"? This cannot be undone.`)) {
+                          deleteMut.mutate(selected.id);
+                        }
+                      }}
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -197,7 +211,7 @@ export default function Messages() {
                   <QuickReply
                     toEmail={selected.sender_email}
                     subject={`Re: ${selected.subject || ''}`}
-                    onSend={(d) => createMut.mutate({ ...d, sender_email: user?.email, sender_name: user?.full_name || user?.email })}
+                    onSend={(d) => createMut.mutateAsync({ ...d, sender_email: user?.email, sender_name: user?.full_name || user?.email })}
                   />
                 )}
               </div>
@@ -216,7 +230,7 @@ export default function Messages() {
       <ComposeDialog
         open={showCompose}
         onClose={() => setShowCompose(false)}
-        onSend={(data) => createMut.mutate({ ...data, sender_email: user?.email, sender_name: user?.full_name || user?.email })}
+        onSend={(data) => createMut.mutateAsync({ ...data, sender_email: user?.email, sender_name: user?.full_name || user?.email })}
         recipientOptions={recipientOptions}
       />
     </div>
@@ -226,13 +240,21 @@ export default function Messages() {
 function QuickReply({ toEmail, subject, onSend }) {
   const [body, setBody] = useState('');
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  const handleSend = () => {
-    if (!body.trim()) return;
-    onSend({ recipient_email: toEmail, subject, body });
-    setBody('');
-    setSent(true);
-    setTimeout(() => setSent(false), 3000);
+  const handleSend = async () => {
+    if (!body.trim() || sending) return;
+    setSending(true);
+    try {
+      await onSend({ recipient_email: toEmail, subject, body });
+      setBody('');
+      setSent(true);
+      setTimeout(() => setSent(false), 3000);
+    } catch {
+      // Mutation-level onError presents the failure and leaves the reply intact.
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
