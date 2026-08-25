@@ -5,7 +5,7 @@ import { APP_NAME } from "@/lib/branding";
 
 export default function AuthLayout({ icon: Icon, title, subtitle, footer, children }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4 app-safe-viewport">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <Link to="/" className="inline-flex flex-col items-center justify-center gap-2 mb-5 group">
