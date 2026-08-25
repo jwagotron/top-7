@@ -1,7 +1,8 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
+import { parseDateOnly } from '@/lib/dateUtils';
 import { Pencil, Trash2, User, Clock, MapPin, Zap, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
@@ -25,8 +26,11 @@ const STATUS_STYLES = {
   pending: 'bg-card border-border',
 };
 
+const isPastScheduledDate = (scheduledDate) =>
+  !!scheduledDate && parseDateOnly(scheduledDate) < startOfDay(new Date());
+
 function CompletionStatusBadge({ completion, scheduled_date }) {
-  const isMissed = !completion && scheduled_date && new Date(scheduled_date) < new Date(new Date().toDateString());
+  const isMissed = !completion && isPastScheduledDate(scheduled_date);
   
   if (completion?.status === 'completed') return (
     <div className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border-2 border-emerald-500/60 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 whitespace-nowrap shadow-sm">
@@ -64,11 +68,6 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
     const completion = getCompletion(w.id);
     return completion?.status === 'completed';
   }).length;
-  const missedCount = workouts.filter(w => {
-    const completion = getCompletion(w.id);
-    const isMissed = !completion?.status && w.scheduled_date && new Date(w.scheduled_date) < new Date(new Date().toDateString());
-    return isMissed;
-  }).length;
   const totalCount = workouts.length;
   const completionPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   
@@ -98,7 +97,7 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
         <div className="space-y-2.5">
            {workouts.map(w => {
              const completion = getCompletion(w.id);
-             const isMissed = !completion && w.scheduled_date && new Date(w.scheduled_date) < new Date(new Date().toDateString());
+             const isMissed = !completion && isPastScheduledDate(w.scheduled_date);
              const statusKey = completion?.status === 'completed' ? 'completed' : completion?.status === 'skipped' ? 'skipped' : isMissed ? 'missed' : 'pending';
 
              return (
@@ -140,7 +139,7 @@ export default function DayWorkoutList({ date, workouts, completions = [], onEdi
 
                   <div className="flex flex-col items-end gap-2 shrink-0">
                   <CompletionStatusBadge completion={completion} scheduled_date={w.scheduled_date} />
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(w)}>
                    <Pencil className="w-3 h-3" />
                   </Button>
