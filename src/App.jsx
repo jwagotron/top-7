@@ -26,7 +26,6 @@ import Terms from '@/pages/Terms';
 import Support from '@/pages/Support';
 import DeleteAccount from '@/pages/DeleteAccount';
 import Landing from '@/pages/Landing';
-import AuthReturn from '@/pages/AuthReturn';
 import PageTitleManager from '@/components/PageTitleManager';
 
 import Dashboard from '@/pages/Dashboard';
@@ -218,7 +217,6 @@ const AuthenticatedApp = () => {
         <Route path="/join" element={<JoinTeam />} />
         <Route path="/join/:code" element={<JoinTeam />} />
         <Route path="/welcome" element={<Landing />} />
-        <Route path="/auth-return" element={<AuthReturn />} />
 
         {/* All app routes — gated by ProtectedRoute. The root URL doubles as the public product page when signed out. */}
         <Route element={<ProtectedRoute unauthenticatedElement={location.pathname === '/' ? <Landing /> : <Navigate to="/login" replace />} />}>
