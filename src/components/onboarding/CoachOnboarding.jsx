@@ -35,9 +35,15 @@ export default function CoachOnboarding({ userType = 'coach' }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const res = await base44.integrations.Core.UploadFile({ file });
-    set('logo_url', res.file_url);
-    setUploading(false);
+    setError(null);
+    try {
+      const res = await base44.integrations.Core.UploadFile({ file });
+      set('logo_url', res.file_url);
+    } catch (uploadError) {
+      setError(uploadError?.message || 'Logo upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const generateInviteCode = () => {
