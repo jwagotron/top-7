@@ -109,18 +109,37 @@ function AnimatedRoutes() {
   const location = useLocation();
   const { role } = useRole();
   const defaultRoute = DEFAULT_ROUTE[role] || '/';
+  const routeAllowed = isRouteAllowed(role, location.pathname);
+  const currentPersistentPath = PERSISTENT_PATHS.find(p =>
+    p === '/' ? location.pathname === '/' : location.pathname.startsWith(p)
+  ) || null;
+  const [visitedPersistentPaths, setVisitedPersistentPaths] = React.useState(() => new Set());
+  const lastRoleRef = React.useRef(role);
+
+  React.useEffect(() => {
+    const roleChanged = lastRoleRef.current !== role;
+    lastRoleRef.current = role;
+
+    setVisitedPersistentPaths(previous => {
+      const next = roleChanged ? new Set() : new Set(previous);
+      if (routeAllowed && currentPersistentPath && isRouteAllowed(role, currentPersistentPath)) {
+        next.add(currentPersistentPath);
+      }
+      return next;
+    });
+  }, [role, routeAllowed, currentPersistentPath]);
 
   // Route access must be enforced before persistent pages mount. Previously all
   // persistent pages mounted hidden, which let the wrong role execute queries
   // for Coach/Admin screens in the background.
-  if (!isRouteAllowed(role, location.pathname)) {
+  if (!routeAllowed) {
     return <Navigate to={defaultRoute} replace />;
   }
 
-  const canMount = (path) => isRouteAllowed(role, path);
-  const isPersistent = PERSISTENT_PATHS.some(p =>
-    p === '/' ? location.pathname === '/' : location.pathname.startsWith(p)
-  );
+  // Render the current route immediately, then keep it mounted once visited.
+  const canMount = (path) =>
+    isRouteAllowed(role, path) && (path === currentPersistentPath || visitedPersistentPaths.has(path));
+  const isPersistent = !!currentPersistentPath;
 
   return (
     <>
