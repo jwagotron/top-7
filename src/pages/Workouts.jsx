@@ -114,11 +114,15 @@ export default function Workouts() {
     updatePlannedMut.mutate({ id: planned.id, data: { status: 'skipped' } });
   };
 
-  const handleCreateWorkout = (data) => {
-    createMut.mutate(data);
-    // If logging from a planned workout, mark it complete
-    if (preFillPlanned) {
-      updatePlannedMut.mutate({ id: preFillPlanned.id, data: { status: 'completed' } });
+  const handleCreateWorkout = async (data) => {
+    try {
+      await createMut.mutateAsync(data);
+      // Only mark the planned workout complete after the run itself exists.
+      if (preFillPlanned) {
+        await updatePlannedMut.mutateAsync({ id: preFillPlanned.id, data: { status: 'completed' } });
+      }
+    } catch {
+      // Mutation-level onError handlers present the appropriate message.
     }
   };
 
@@ -126,7 +130,7 @@ export default function Workouts() {
     const workout = workouts.find(w => w.id === id);
     if (!window.confirm(`Delete "${workout?.title || 'this run'}"? This cannot be undone.`)) return;
     deleteWorkoutMut.mutate(id);
-  }; 
+  };
 
 
 
