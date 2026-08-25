@@ -119,7 +119,7 @@ export default function Login() {
     setError("");
     const runtime = detectRuntime();
     const returnUrl = window.location.origin + "/auth-return";
-    const native = isNativePlatform() || runtime.isAndroid || runtime.isWebView;
+    const native = isNativePlatform() || (runtime.isAndroid && (runtime.isWebView || runtime.isCapacitor || runtime.isStandalone));
 
     if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) {
       console.log('[login] Google Sign-In | runtime:', runtime.label, '| native path:', native, '| returnUrl:', returnUrl);
