@@ -4,6 +4,8 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, AlertTriangle, XCircle, Clock, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { parseDateOnly } from '@/lib/dateUtils';
+import { startOfDay, endOfDay, subDays } from 'date-fns';
 import {
   computeStreaksFromWorkouts,
   getAthleteRosterStatus,
@@ -55,10 +57,10 @@ function AthleteRow({ athlete, allWorkouts, allPlanned, allStreaks }) {
   const StatusIcon = cfg.Icon;
 
   const thisWeekPlanned = athletePlanned.filter(p => {
-    const d = new Date(p.scheduled_date);
-    const now = new Date();
-    const weekAgo = new Date(now - 7 * 86400000);
-    return d >= weekAgo && d <= now;
+    const d = parseDateOnly(p.scheduled_date);
+    const todayEnd = endOfDay(new Date());
+    const weekAgo = startOfDay(subDays(new Date(), 7));
+    return d >= weekAgo && d <= todayEnd;
   });
   const completionRate = thisWeekPlanned.length > 0
     ? Math.round((thisWeekPlanned.filter(p => p.status === 'completed').length / thisWeekPlanned.length) * 100)
