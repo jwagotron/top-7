@@ -2,6 +2,7 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUnits } from '@/hooks/useUnits';
+import { parseDateOnly } from '@/lib/dateUtils';
 
 export default function WeeklyChart({ workouts }) {
   const { toDisplay, label } = useUnits();
@@ -9,7 +10,7 @@ export default function WeeklyChart({ workouts }) {
   
   const data = days.map((day, i) => {
     const dayWorkouts = workouts.filter(w => {
-      const d = new Date(w.date);
+      const d = parseDateOnly(w.date);
       return d.getDay() === (i + 1) % 7;
     });
     return {
