@@ -47,6 +47,8 @@ function GroupForm({ group, athletes, onSave, onClose }) {
               key={c.value}
               type="button"
               onClick={() => setColor(c.value)}
+              aria-label={`Select ${c.label} color`}
+              aria-pressed={color === c.value}
               className={cn(
                 'w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center',
                 c.bg,
@@ -104,7 +106,9 @@ function GroupForm({ group, athletes, onSave, onClose }) {
 export default function AthleteGroupManager({ teamId, coachEmail, members = [] }) {
   const qc = useQueryClient();
   const [editingGroup, setEditingGroup] = useState(null); // null=closed, {}=new, {...}=existing
-  const activeMembers = members.filter(m => m.status === 'active');
+  const activeMembers = members.filter(m =>
+    m.status === 'active' && m.athlete_email && m.athlete_email !== coachEmail
+  );
 
   const { data: groups = [] } = useQuery({
     queryKey: ['athlete-groups', teamId],
@@ -121,11 +125,16 @@ export default function AthleteGroupManager({ teamId, coachEmail, members = [] }
       setEditingGroup(null);
       toast.success(editingGroup?.id ? 'Group updated' : 'Group created');
     },
+    onError: (error) => toast.error(error?.message || 'Could not save athlete group. Please try again.'),
   });
 
   const deleteMut = useMutation({
     mutationFn: (id) => base44.entities.AthleteGroup.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['athlete-groups', teamId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['athlete-groups', teamId] });
+      toast.success('Group deleted');
+    },
+    onError: (error) => toast.error(error?.message || 'Could not delete athlete group. Please try again.'),
   });
 
   return (
@@ -161,7 +170,17 @@ export default function AthleteGroupManager({ teamId, coachEmail, members = [] }
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingGroup(g)}>
                     <Pencil className="w-3.5 h-3.5" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteMut.mutate(g.id)}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-destructive hover:text-destructive"
+                    disabled={deleteMut.isPending}
+                    onClick={() => {
+                      if (window.confirm(`Delete athlete group "${g.name}"? This cannot be undone.`)) {
+                        deleteMut.mutate(g.id);
+                      }
+                    }}
+                  >
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
