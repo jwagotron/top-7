@@ -10,7 +10,7 @@ export default function PullToRefreshIndicator({ pullDistance, threshold, refres
   return (
     <div
       className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-all"
-      style={{ transform: `translateY(${refreshing ? 56 : pullDistance * 0.5}px)` }}
+      style={{ transform: `translateY(calc(var(--app-safe-area-top) + ${refreshing ? 56 : pullDistance * 0.5}px))` }}
     >
       <div className="bg-card border border-border rounded-full p-2 shadow-md">
         <RefreshCw
