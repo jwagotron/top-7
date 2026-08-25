@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Pencil, Trophy, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { parseDateOnly } from '@/lib/dateUtils';
 
 export const DISTANCES = [
   { key: '400m',          label: '400m' },
@@ -64,6 +65,7 @@ function PRDialog({ record, distanceKey, athleteEmail, onClose }) {
       qc.invalidateQueries({ queryKey: ['personal-records', athleteEmail] });
       onClose();
     },
+    onError: (saveError) => setError(saveError?.message || 'Could not save this record. Please try again.'),
   });
 
   const deleteMut = useMutation({
@@ -72,10 +74,9 @@ function PRDialog({ record, distanceKey, athleteEmail, onClose }) {
       qc.invalidateQueries({ queryKey: ['personal-records', athleteEmail] });
       onClose();
     },
-    onError: () => {
-      // Record may already be gone — refresh and close anyway
+    onError: (deleteError) => {
       qc.invalidateQueries({ queryKey: ['personal-records', athleteEmail] });
-      onClose();
+      setError(deleteError?.message || 'Could not delete this record. Please try again.');
     },
   });
 
@@ -152,7 +153,11 @@ function PRDialog({ record, distanceKey, athleteEmail, onClose }) {
                 variant="ghost"
                 size="sm"
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={() => deleteMut.mutate(record.id)}
+                onClick={() => {
+                  if (window.confirm(`Delete your ${distLabel} personal record? This cannot be undone.`)) {
+                    deleteMut.mutate(record.id);
+                  }
+                }}
                 disabled={deleteMut.isPending}
               >
                 <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
@@ -242,7 +247,7 @@ export default function PersonalRecords({ athleteEmail }) {
                     </p>
                     {rec?.date_set && (
                       <p className="text-[10px] text-muted-foreground/50 truncate">
-                        {format(new Date(rec.date_set), 'MMM d, yyyy')}
+                        {format(parseDateOnly(rec.date_set), 'MMM d, yyyy')}
                         {rec.notes ? ` · ${rec.notes}` : ''}
                       </p>
                     )}
