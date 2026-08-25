@@ -99,6 +99,11 @@
     padding-bottom: calc(var(--app-safe-area-bottom) + 1rem);
   }
 
+  .app-safe-viewport-lg {
+    padding-top: calc(var(--app-safe-area-top) + 1.5rem);
+    padding-bottom: calc(var(--app-safe-area-bottom) + 1.5rem);
+  }
+
   .app-safe-inset {
     padding-top: var(--app-safe-area-top);
     padding-bottom: var(--app-safe-area-bottom);
