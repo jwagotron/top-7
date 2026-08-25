@@ -21,10 +21,7 @@ export function setLocalRole(role) {
 
 const RoleContext = createContext();
 
-// Emails that can preview-switch between athlete and coach
-const PREVIEW_EMAILS = ['dan@stratagemims.com', 'jwagone987@gmail.com'];
-
-const DEFAULT_ROUTE = { athlete: '/', coach: '/coach' };
+const DEFAULT_ROUTE = { athlete: '/', coach: '/coach', admin: '/admin' };
 
 export function RoleProvider({ children }) {
   const { user } = useAuth();
@@ -38,7 +35,8 @@ export function RoleProvider({ children }) {
     return () => window.removeEventListener(ROLE_CHANGE_EVENT, sync);
   }, []);
 
-  const canPreview = user && PREVIEW_EMAILS.includes(user.email);
+  // Previewing another role is an admin capability, not an email allowlist.
+  const canPreview = user?.role === 'admin';
 
   const role = useMemo(() => {
     if (!user) return localRole; // local/test fallback — reactive
@@ -54,18 +52,16 @@ export function RoleProvider({ children }) {
 
 
   const togglePreviewRole = (navigate) => {
-    setPreviewRole(r => {
-      const next = r === 'athlete' ? 'coach' : 'athlete';
-      // Navigate to the default route for the new role
-      if (navigate) navigate(DEFAULT_ROUTE[next] || '/');
+    if (!canPreview) return;
+    setPreviewRole(current => {
+      // Admin is the default state (null). Cycle through the two product views,
+      // then return cleanly to the real Admin role.
+      const next = current === null ? 'athlete' : current === 'athlete' ? 'coach' : null;
+      const routeRole = next || 'admin';
+      if (navigate) navigate(DEFAULT_ROUTE[routeRole] || '/');
       return next;
     });
   };
-
-  // Initialize preview role on first canPreview render
-  React.useEffect(() => {
-    if (canPreview && !previewRole) setPreviewRole('athlete');
-  }, [canPreview]);
 
   return (
     <RoleContext.Provider value={{ role, canPreview, previewRole, togglePreviewRole }}>
