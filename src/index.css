@@ -112,6 +112,19 @@
   .app-safe-header {
     padding-top: var(--app-safe-area-top);
   }
+
+  .app-safe-pad-top-lg {
+    padding-top: calc(var(--app-safe-area-top) + 1.5rem);
+  }
+
+  .app-safe-pad-bottom-lg {
+    padding-bottom: calc(var(--app-safe-area-bottom) + 1.5rem);
+  }
+
+  .app-safe-pad-y-lg {
+    padding-top: calc(var(--app-safe-area-top) + 1.5rem);
+    padding-bottom: calc(var(--app-safe-area-bottom) + 1.5rem);
+  }
 }
 
 @layer base {
