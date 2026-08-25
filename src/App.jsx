@@ -107,35 +107,46 @@ function PersistentTab({ path, element, currentPath }) {
 
 function AnimatedRoutes() {
   const location = useLocation();
+  const { role } = useRole();
+  const defaultRoute = DEFAULT_ROUTE[role] || '/';
+
+  // Route access must be enforced before persistent pages mount. Previously all
+  // persistent pages mounted hidden, which let the wrong role execute queries
+  // for Coach/Admin screens in the background.
+  if (!isRouteAllowed(role, location.pathname)) {
+    return <Navigate to={defaultRoute} replace />;
+  }
+
+  const canMount = (path) => isRouteAllowed(role, path);
   const isPersistent = PERSISTENT_PATHS.some(p =>
     p === '/' ? location.pathname === '/' : location.pathname.startsWith(p)
   );
 
   return (
     <>
-      {/* Persistent tabs — stay mounted once visited */}
+      {/* Persistent tabs — only mount pages the current role can access. */}
       <AppLayout persistent>
         <Suspense fallback={
-          <div className="fixed inset-0 flex items-center justify-center">
+          <div className="fixed inset-0 flex items-center justify-center app-safe-inset">
             <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
           </div>
         }>
-          <PersistentTab path="/"           element={<Dashboard />}      currentPath={location.pathname} />
-          <PersistentTab path="/workouts"   element={<Workouts />}        currentPath={location.pathname} />
-          <PersistentTab path="/my-plan"    element={<MyPlan />}          currentPath={location.pathname} />
-          <PersistentTab path="/analytics"  element={<Analytics />}       currentPath={location.pathname} />
-          <PersistentTab path="/coach"      element={<CoachPanel />}      currentPath={location.pathname} />
-          <PersistentTab path="/settings"   element={<AccountSettings />} currentPath={location.pathname} />
-          <PersistentTab path="/goals"      element={<Goals />}           currentPath={location.pathname} />
-          <PersistentTab path="/shoes"      element={<ShoeTracker />}     currentPath={location.pathname} />
-          <PersistentTab path="/garmin"     element={<GarminConnect />}   currentPath={location.pathname} />
-          <PersistentTab path="/admin"         element={<AdminPanel />}       currentPath={location.pathname} />
-          <PersistentTab path="/workout-builder" element={<WorkoutBuilder />}    currentPath={location.pathname} />
-          <PersistentTab path="/profile"        element={<UserProfile />}         currentPath={location.pathname} />
-          <PersistentTab path="/messages"       element={<Messages />}            currentPath={location.pathname} />
-          <PersistentTab path="/athletes"       element={<AthleteProfile />}       currentPath={location.pathname} />
+          {canMount('/') && <PersistentTab path="/" element={<Dashboard />} currentPath={location.pathname} />}
+          {canMount('/workouts') && <PersistentTab path="/workouts" element={<Workouts />} currentPath={location.pathname} />}
+          {canMount('/my-plan') && <PersistentTab path="/my-plan" element={<MyPlan />} currentPath={location.pathname} />}
+          {canMount('/analytics') && <PersistentTab path="/analytics" element={<Analytics />} currentPath={location.pathname} />}
+          {canMount('/coach') && <PersistentTab path="/coach" element={<CoachPanel />} currentPath={location.pathname} />}
+          {canMount('/settings') && <PersistentTab path="/settings" element={<AccountSettings />} currentPath={location.pathname} />}
+          {canMount('/goals') && <PersistentTab path="/goals" element={<Goals />} currentPath={location.pathname} />}
+          {canMount('/shoes') && <PersistentTab path="/shoes" element={<ShoeTracker />} currentPath={location.pathname} />}
+          {canMount('/garmin') && <PersistentTab path="/garmin" element={<GarminConnect />} currentPath={location.pathname} />}
+          {canMount('/admin') && <PersistentTab path="/admin" element={<AdminPanel />} currentPath={location.pathname} />}
+          {canMount('/workout-builder') && <PersistentTab path="/workout-builder" element={<WorkoutBuilder />} currentPath={location.pathname} />}
+          {canMount('/profile') && <PersistentTab path="/profile" element={<UserProfile />} currentPath={location.pathname} />}
+          {canMount('/messages') && <PersistentTab path="/messages" element={<Messages />} currentPath={location.pathname} />}
+          {canMount('/athletes') && <PersistentTab path="/athletes" element={<AthleteProfile />} currentPath={location.pathname} />}
           {/* Legacy athlete-profile route kept temporarily so old bookmarks fail gracefully. */}
-          <PersistentTab path="/athlete-profile" element={<AthleteProfile />}       currentPath={location.pathname} />
+          {canMount('/athlete-profile') && <PersistentTab path="/athlete-profile" element={<AthleteProfile />} currentPath={location.pathname} />}
         </Suspense>
       </AppLayout>
 
@@ -153,17 +164,16 @@ function AnimatedRoutes() {
             style={{ zIndex: 10 }}
           >
             <Suspense fallback={
-              <div className="fixed inset-0 flex items-center justify-center">
+              <div className="fixed inset-0 flex items-center justify-center app-safe-inset">
                 <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
               </div>
             }>
               <Routes location={location}>
                 <Route element={<AppLayout />}>
-                  <Route path="/plans"           element={<TrainingPlans />} />
-                  <Route path="/activities"      element={<Activities />} />
+                  <Route path="/plans" element={<TrainingPlans />} />
+                  <Route path="/activities" element={<Activities />} />
                 </Route>
-                {/* Redirect unknown routes to home instead of flashing 404 */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<Navigate to={defaultRoute} replace />} />
               </Routes>
             </Suspense>
           </motion.div>
