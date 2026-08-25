@@ -137,17 +137,27 @@ export default function ShoeTracker() {
 
   const createMut = useMutation({
     mutationFn: d => base44.entities.Shoe.create({ ...d, status: 'active' }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['shoes'] }); setShowForm(false); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['shoes'] }); setShowForm(false); toast.success('Shoes added'); },
+    onError: (error) => toast.error(error?.message || 'Could not add shoes. Please try again.'),
   });
 
   const updateMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Shoe.update(id, data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['shoes'] }); setEditing(null); setAddMileage(null); },
+    onError: (error) => toast.error(error?.message || 'Could not update shoes. Please try again.'),
   });
 
   const deleteMut = useMutation({
     mutationFn: id => base44.entities.Shoe.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['shoes'] }),
+    onSuccess: (_data, deletedId) => {
+      qc.invalidateQueries({ queryKey: ['shoes'] });
+      if (primaryShoeId === deletedId) {
+        localStorage.removeItem('primary_shoe_id');
+        setPrimaryShoeIdState(null);
+      }
+      toast.success('Shoes deleted');
+    },
+    onError: (error) => toast.error(error?.message || 'Could not delete shoes. Please try again.'),
   });
 
   const handleAddMileage = (shoe, km) => {
@@ -167,7 +177,6 @@ export default function ShoeTracker() {
   };
 
   const active = shoes.filter(s => s.status !== 'retired');
-  const retired = shoes.filter(s => s.status === 'retired');
   const displayed = showRetired ? shoes : active;
 
   return (
@@ -193,7 +202,7 @@ export default function ShoeTracker() {
           <div className="flex items-start gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20 text-sm text-muted-foreground">
             <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p><strong className="text-foreground">Primary Shoe</strong> — Mark one shoe as primary (⭐) and its mileage will be automatically updated whenever you log a run workout.</p>
+              <p><strong className="text-foreground">Primary Shoe</strong> — Mark one shoe as primary (⭐) and its mileage will be automatically updated when you complete a run workout.</p>
               <p><strong className="text-foreground">Retire</strong> — Marks a shoe as retired so it no longer appears in your active list. You can re-activate it at any time.</p>
               <p><strong className="text-foreground">Reset</strong> — Resets a shoe's mileage counter back to 0, useful if you resoled or are re-using the shoe.</p>
             </div>
@@ -209,7 +218,7 @@ export default function ShoeTracker() {
 
         {displayed.map(shoe => {
           const pct = shoe.max_mileage_km ? Math.min(100, ((shoe.mileage_km || 0) / shoe.max_mileage_km) * 100) : 0;
-          const remainingKm = shoe.max_mileage_km ? Math.max(0, shoe.max_mileage_km - (shoe.mileage_km || 0)) : null;
+          const remainingKm = shoe.max_mileage_km ? shoe.max_mileage_km - (shoe.mileage_km || 0) : null;
           const remaining = remainingKm !== null ? toDisplay(remainingKm) : null;
           const displayMileage = toDisplay(shoe.mileage_km || 0);
           const displayMax = toDisplay(shoe.max_mileage_km || 0);
@@ -264,7 +273,17 @@ export default function ShoeTracker() {
                   <Button size="sm" variant="ghost" className="text-xs h-7 px-2 gap-1 text-muted-foreground" onClick={() => handleRetire(shoe)}>
                     <CheckCircle2 className="w-3 h-3" /> {isRetired ? 'Re-activate' : 'Retire'}
                   </Button>
-                  <Button size="sm" variant="ghost" className="text-xs h-7 px-2 gap-1 text-destructive" onClick={() => deleteMut.mutate(shoe.id)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs h-7 px-2 gap-1 text-destructive"
+                    disabled={deleteMut.isPending}
+                    onClick={() => {
+                      if (window.confirm(`Delete ${shoe.name}? This cannot be undone.`)) {
+                        deleteMut.mutate(shoe.id);
+                      }
+                    }}
+                  >
                     <Trash2 className="w-3 h-3" /> Delete
                   </Button>
                 </div>
