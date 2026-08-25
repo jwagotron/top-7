@@ -111,7 +111,8 @@ function DayCell({ day, currentMonth, selectedDate, plannedWorkouts, workouts, c
         {showAddButton && inMonth && (
           <button
             onClick={e => { e.stopPropagation(); onAddClick(day); }}
-            className="opacity-0 group-hover:opacity-100 w-4 h-4 rounded-full bg-primary/20 hover:bg-primary/40 flex items-center justify-center transition-all duration-150 shrink-0 mt-0.5"
+            aria-label={`Add workout on ${format(day, 'MMMM d')}`}
+            className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 w-4 h-4 rounded-full bg-primary/20 hover:bg-primary/40 flex items-center justify-center transition-all duration-150 shrink-0 mt-0.5"
           >
             <svg className="w-2 h-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
