@@ -86,11 +86,14 @@ export default function MobileDrawer() {
             <AppLogo className="w-8 h-8" rounded="rounded-xl" />
             <div>
               <span className="font-bold text-[15px] text-sidebar-foreground tracking-tight block leading-tight">{APP_NAME}</span>
-              <span className="text-[10px] text-sidebar-foreground/40 uppercase tracking-widest capitalize">{user?.role === 'admin' ? 'admin' : (user?.user_type || role || 'athlete')} mode</span>
+              <span className="text-[10px] text-sidebar-foreground/40 uppercase tracking-widest capitalize">
+                {user?.role === 'admin' && previewRole ? `${previewRole} preview` : `${role || user?.user_type || 'athlete'} mode`}
+              </span>
             </div>
           </div>
           <button
             onClick={close}
+            aria-label="Close navigation"
             className="w-8 h-8 flex items-center justify-center rounded-lg text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-150"
           >
             <X className="w-4 h-4" />
