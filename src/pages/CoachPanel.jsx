@@ -181,7 +181,8 @@ export default function CoachPanel() {
 
   const deleteMut = useMutation({
     mutationFn: (id) => base44.entities.PlannedWorkout.delete(id),
-    onSuccess: () => invalidatePlanned(),
+    onSuccess: () => { invalidatePlanned(); toast.success('Assigned workout deleted'); },
+    onError: (error) => toast.error(error?.message || 'Could not delete assigned workout. Please try again.'),
   });
 
   const handleMonthChange = (dir) => {
@@ -380,7 +381,12 @@ export default function CoachPanel() {
                     workouts={dayWorkouts}
                     completions={teamCompletions}
                     onEdit={setEditingWorkout}
-                    onDelete={(id) => deleteMut.mutate(id)}
+                    onDelete={(id) => {
+                      const workoutToDelete = plannedWorkouts.find(w => w.id === id);
+                      if (window.confirm(`Delete "${workoutToDelete?.title || 'this assigned workout'}"? This cannot be undone.`)) {
+                        deleteMut.mutate(id);
+                      }
+                    }}
                   />
                 </div>
               </TabsContent>
