@@ -16,6 +16,7 @@ import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
 import { useAssignedPlan } from '@/hooks/useAssignedPlan';
 import { useCompletions } from '@/hooks/useCompletions';
+import { toast } from 'sonner';
 
 export default function Workouts() {
   const { user } = useAuth();
@@ -71,22 +72,26 @@ export default function Workouts() {
 
   const createMut = useMutation({
     mutationFn: (data) => base44.entities.Workout.create(data),
-    onSuccess: () => { invalidateAll(); setShowLogForm(false); setPreFillPlanned(null); },
+    onSuccess: () => { invalidateAll(); setShowLogForm(false); setPreFillPlanned(null); toast.success('Run saved'); },
+    onError: (error) => toast.error(error?.message || 'Could not save run. Please try again.'),
   });
 
   const updateWorkoutMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Workout.update(id, data),
-    onSuccess: () => { invalidateAll(); setEditingWorkout(null); },
+    onSuccess: () => { invalidateAll(); setEditingWorkout(null); toast.success('Run updated'); },
+    onError: (error) => toast.error(error?.message || 'Could not update run. Please try again.'),
   });
 
   const deleteWorkoutMut = useMutation({
     mutationFn: (id) => base44.entities.Workout.delete(id),
-    onSuccess: () => invalidateAll(),
+    onSuccess: () => { invalidateAll(); setViewingWorkout(null); toast.success('Run deleted'); },
+    onError: (error) => toast.error(error?.message || 'Could not delete run. Please try again.'),
   });
 
   const updatePlannedMut = useMutation({
     mutationFn: ({ id, data }) => base44.entities.PlannedWorkout.update(id, data),
     onSuccess: () => invalidateAll(),
+    onError: (error) => toast.error(error?.message || 'Could not update planned workout. Please try again.'),
   });
 
   const handleWeekChange = (dir) => {
@@ -116,6 +121,12 @@ export default function Workouts() {
       updatePlannedMut.mutate({ id: preFillPlanned.id, data: { status: 'completed' } });
     }
   };
+
+  const handleDeleteWorkout = (id) => {
+    const workout = workouts.find(w => w.id === id);
+    if (!window.confirm(`Delete "${workout?.title || 'this run'}"? This cannot be undone.`)) return;
+    deleteWorkoutMut.mutate(id);
+  }; 
 
 
 
@@ -171,7 +182,7 @@ export default function Workouts() {
           showCompleteButton={isAthlete}
           onMarkComplete={isAthlete ? ({ workout, notes }) => completeMut.mutateAsync({ workout, notes }) : undefined}
           onViewWorkout={(w) => setViewingWorkout(w)}
-          onDeleteWorkout={(id) => deleteWorkoutMut.mutate(id)}
+          onDeleteWorkout={handleDeleteWorkout}
           role={role}
         />
       </div>
@@ -202,7 +213,7 @@ export default function Workouts() {
         open={!!viewingWorkout}
         onClose={() => setViewingWorkout(null)}
         onEdit={canCreate ? (w) => { setViewingWorkout(null); setEditingWorkout(w); } : undefined}
-        onDelete={canCreate ? (id) => deleteWorkoutMut.mutate(id) : undefined}
+        onDelete={canCreate ? handleDeleteWorkout : undefined}
       />
     </div>
   );
