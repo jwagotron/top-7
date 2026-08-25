@@ -18,6 +18,7 @@ import { useUnits } from '@/hooks/useUnits';
 import { useRole } from '@/lib/RoleContext';
 import TeamSettingsCard from '@/components/settings/TeamSettingsCard';
 import PoliciesCard from '@/components/settings/PoliciesCard';
+import { toast } from 'sonner';
 
 export default function AccountSettings() {
   const { user } = useAuth();
@@ -37,8 +38,8 @@ export default function AccountSettings() {
       await base44.auth.updateMe(form);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch {
-      // error is non-fatal — user sees button return to normal state
+    } catch (error) {
+      toast.error(error?.message || 'Could not save your changes. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -84,7 +85,7 @@ export default function AccountSettings() {
               <div>
                 <p className="text-sm font-semibold capitalize">{role || 'Not set'}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {role === 'athlete' && 'View workouts, log runs, track your progress.'}
+                  {role === 'athlete' && 'Follow coach-assigned workouts, complete training, and track your progress.'}
                   {role === 'coach' && 'Manage athletes, assign workouts, build plans.'}
                   {role === 'admin' && 'Full access including admin panel and all tools.'}
                 </p>
