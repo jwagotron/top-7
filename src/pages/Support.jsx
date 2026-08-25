@@ -25,7 +25,7 @@ const supportItems = [
 export default function Support() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <header className="border-b border-border/60 bg-background/95 backdrop-blur">
+      <header className="border-b border-border/60 bg-background/95 backdrop-blur app-safe-header">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2.5">
             <AppLogo className="w-9 h-9" rounded="rounded-xl" />
