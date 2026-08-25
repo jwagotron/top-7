@@ -147,7 +147,13 @@ function buildOAuthUrl(provider, fromUrl) {
 export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
   const App = getAppPlugin();
   const Browser = getBrowserPlugin();
-  const isNative = isNativePlatform();
+  // Some Base44 Android shells expose the Capacitor plugins reliably but do
+  // not expose every native-platform detection flag consistently. If the App
+  // and Browser bridge plugins are present on Android, treat this as the
+  // installed/native OAuth environment instead of falling back to web OAuth.
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+  const hasNativeBridge = !!(App && Browser && /Android/i.test(ua));
+  const isNative = isNativePlatform() || hasNativeBridge;
 
   _oauthDiag = {
     isNative,
@@ -162,8 +168,10 @@ export async function performNativeGoogleAuth(fromUrl, navigatePath = '/') {
     lastError: null,
   };
 
-  // If not native or plugins missing, fall back to the web flow
-  if (!isNative || !App || !Browser) {
+  // If the native bridge is genuinely unavailable, fall back to the web flow.
+  // The installed Android app should stay on the bridge path even when one
+  // Capacitor native-detection property is missing on a particular shell.
+  if (!App || !Browser || !isNative) {
     _oauthDiag.lastError = !isNative
       ? 'Not native — web flow'
       : `Missing plugins: App=${!!App} Browser=${!!Browser}`;
