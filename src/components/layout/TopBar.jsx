@@ -15,7 +15,7 @@ export default function TopBar({ title, children }) {
   return (
     <header
       className="border-b border-border bg-card/80 backdrop-blur-md flex items-center px-3 lg:px-6 sticky top-0 z-30 gap-2"
-      style={{ paddingTop: 'env(safe-area-inset-top)', minHeight: '4rem' }}
+      style={{ paddingTop: 'var(--app-safe-area-top)', minHeight: 'calc(4rem + var(--app-safe-area-top))' }}
     >
       {/* Menu icon — mobile only, fixed width */}
       <Button
