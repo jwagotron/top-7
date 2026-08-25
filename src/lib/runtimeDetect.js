@@ -14,9 +14,16 @@ export function detectRuntime() {
   // Capacitor native shell injects window.Capacitor
   const isCapacitor = !!(window.Capacitor && window.Capacitor.isNative);
 
-  // Android WebView vs Chrome browser: WebView has "wv" in UA or "Version/x.x Chrome"
-  // without "Chrome/" as standalone. Chrome Custom Tab has "Chrome" but no "wv".
-  const isAndroidWebView = isAndroid && (/; wv\)/.test(ua) || /WebView/i.test(ua));
+  // Android WebView vs Chrome browser. Common WebView UAs include `; wv)`,
+  // a standalone `wv` token, or `Version/4.0 ... Chrome/...`. Base44-managed
+  // shells are not guaranteed to expose the same Capacitor flags on every build,
+  // so UA detection is an important fallback for installed Android apps.
+  const isAndroidWebView = isAndroid && (
+    /;\s*wv\)/i.test(ua)
+    || /\bwv\b/i.test(ua)
+    || /Version\/4\.0.*Chrome\//i.test(ua)
+    || /WebView/i.test(ua)
+  );
   const isChromeCustomTab = isAndroid && !isAndroidWebView && /Chrome/.test(ua) && !window.matchMedia('(display-mode: standalone)').matches;
 
   // iOS WKWebView
