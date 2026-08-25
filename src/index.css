@@ -7,6 +7,7 @@
 @layer base {
   :root {
     --font-inter: 'Inter', sans-serif;
+    --app-safe-area-top: env(safe-area-inset-top, 0px);
     --background: 220 20% 97%;
     --foreground: 220 30% 10%;
     --card: 0 0% 100%;
@@ -40,6 +41,16 @@
     --sidebar-accent-foreground: 220 15% 85%;
     --sidebar-border: 220 25% 20%;
     --sidebar-ring: 210 100% 55%;
+  }
+
+  html.native-android {
+    --app-safe-area-top: max(env(safe-area-inset-top, 0px), 32px);
+  }
+
+  @media (orientation: landscape) {
+    html.native-android {
+      --app-safe-area-top: env(safe-area-inset-top, 0px);
+    }
   }
 
   .dark {
