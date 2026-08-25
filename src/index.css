@@ -8,6 +8,7 @@
   :root {
     --font-inter: 'Inter', sans-serif;
     --app-safe-area-top: env(safe-area-inset-top, 0px);
+    --app-safe-area-bottom: env(safe-area-inset-bottom, 0px);
     --background: 220 20% 97%;
     --foreground: 220 30% 10%;
     --card: 0 0% 100%;
@@ -51,6 +52,23 @@
     html.native-android {
       --app-safe-area-top: env(safe-area-inset-top, 0px);
     }
+  }
+
+  /* Full-viewport screens that are not wrapped by AppLayout still need to
+     reserve Android/iOS system-bar space. These preserve a normal web gutter
+     while adding device insets in installed shells. */
+  .app-safe-viewport {
+    padding-top: calc(var(--app-safe-area-top) + 1rem);
+    padding-bottom: calc(var(--app-safe-area-bottom) + 1rem);
+  }
+
+  .app-safe-inset {
+    padding-top: var(--app-safe-area-top);
+    padding-bottom: var(--app-safe-area-bottom);
+  }
+
+  .app-safe-header {
+    padding-top: var(--app-safe-area-top);
   }
 
   .dark {
