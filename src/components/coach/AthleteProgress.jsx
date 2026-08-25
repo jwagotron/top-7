@@ -6,6 +6,7 @@ import { CheckCircle2, ChevronDown, ChevronUp, StickyNote, Users } from 'lucide-
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useUnits } from '@/hooks/useUnits';
+import { parseDateOnly } from '@/lib/dateUtils';
 
 function ProgressBar({ pct }) {
   return (
@@ -109,7 +110,7 @@ function AthleteRow({ athlete, plans, plannedWorkouts, completions }) {
                   <div key={w.id} className="flex items-center gap-2 text-xs text-muted-foreground">
                     <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
                     <span className="flex-1 truncate">{w.title}</span>
-                    <span className="shrink-0">{format(new Date(w.scheduled_date), 'MMM d')}</span>
+                    <span className="shrink-0">{format(parseDateOnly(w.scheduled_date), 'MMM d')}</span>
                   </div>
                 ))}
                 {pending.length > 5 && (
