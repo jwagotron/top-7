@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Bike, Footprints, Waves, Dumbbell, CircleDot, Clock, MapPin, Heart, Mountain, Pencil, Trash2 } from 'lucide-react';
 import { useUnits } from '@/hooks/useUnits';
+import { parseDateOnly } from '@/lib/dateUtils';
 
 const sportIcons = { run: Footprints, bike: Bike, swim: Waves, strength: Dumbbell, other: CircleDot };
 const sportColors = {
@@ -32,7 +33,7 @@ export default function WorkoutCard({ workout, onEdit, onDelete }) {
               <h3 className="font-semibold text-sm truncate">{workout.title}</h3>
               {workout.feeling && <span className="text-sm">{feelingEmojis[workout.feeling]}</span>}
             </div>
-            <p className="text-xs text-muted-foreground mb-2">{format(new Date(workout.date), 'EEEE, MMMM d, yyyy')}</p>
+            <p className="text-xs text-muted-foreground mb-2">{format(parseDateOnly(workout.date), 'EEEE, MMMM d, yyyy')}</p>
             <div className="flex flex-wrap gap-3">
               {workout.duration_minutes && (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -63,7 +64,7 @@ export default function WorkoutCard({ workout, onEdit, onDelete }) {
             </div>
             {workout.notes && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{workout.notes}</p>}
           </div>
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+          <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(workout)}>
               <Pencil className="w-3.5 h-3.5" />
             </Button>
