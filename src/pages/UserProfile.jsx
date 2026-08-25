@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useAthleteStats } from '@/hooks/useAthleteStats';
 import { useUnits } from '@/hooks/useUnits';
+import { parseDateOnly } from '@/lib/dateUtils';
 
 function Avatar({ name, size = 'lg' }) {
   const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -85,7 +86,7 @@ function AthleteProfileContent({ user }) {
 
   // 10 most recent completed workouts
   const recentWorkouts = [...completedWorkoutItems]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => parseDateOnly(b.date) - parseDateOnly(a.date))
     .slice(0, 10);
 
   return (
@@ -151,7 +152,7 @@ function AthleteProfileContent({ user }) {
                     <p className="font-medium text-sm truncate">{w.title}</p>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <span className="text-xs text-muted-foreground">
-                        {w.date ? format(new Date(w.date), 'MMM d, yyyy') : '—'}
+                        {w.date ? format(parseDateOnly(w.date), 'MMM d, yyyy') : '—'}
                       </span>
                       {dist && <span className="text-xs text-muted-foreground">{dist.toFixed(1)} {label}</span>}
                       {w.duration_minutes > 0 && (
@@ -210,7 +211,7 @@ function CoachProfileContent({ user }) {
 
   const activeAthletes = memberships.filter(m => m.status === 'active');
   const assignedWorkouts = plannedWorkouts.filter(pw => pw.assigned_to);
-  const recentAssigned = [...assignedWorkouts].sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date)).slice(0, 5);
+  const recentAssigned = [...assignedWorkouts].sort((a, b) => parseDateOnly(b.scheduled_date) - parseDateOnly(a.scheduled_date)).slice(0, 5);
 
   return (
     <>
@@ -266,7 +267,7 @@ function CoachProfileContent({ user }) {
                 <div className="min-w-0">
                   <p className="font-medium text-sm truncate">{pw.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    {athleteDisplay} · {pw.scheduled_date ? format(new Date(pw.scheduled_date), 'MMM d') : '—'}
+                    {athleteDisplay} · {pw.scheduled_date ? format(parseDateOnly(pw.scheduled_date), 'MMM d') : '—'}
                   </p>
                 </div>
                 <Badge variant="outline" className={`text-[10px] capitalize shrink-0 ${pw.status === 'completed' ? 'text-secondary border-secondary/40' : ''}`}>
