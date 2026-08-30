@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AppLogo from '@/components/ui/AppLogo';
-import { APP_NAME } from '@/lib/branding';
+import { APP_NAME, APP_URL } from '@/lib/branding';
 import { base44 } from '@/api/base44Client';
-import { isNativePlatform } from '@/lib/capacitorAuth';
 import { detectRuntime } from '@/lib/runtimeDetect';
 
 const ANDROID_PACKAGE = 'com.base69c32a03dfe10b4cd6245abe.app';
@@ -20,32 +19,40 @@ function readToken() {
   }
 }
 
-function getAndroidIntentUrl(token) {
-  const query = new URLSearchParams({
-    access_token: token,
-  });
+function buildAppIntent(token) {
+  const appUrl = new URL('/', APP_URL);
+  appUrl.searchParams.set('access_token', token);
+  appUrl.searchParams.set('oauth_return', '1');
 
-  // Explicitly target the Play Store package. The HTTPS URL is also a verified
-  // Android App Link for top-7.app, so Android can deliver the callback to the
-  // installed Top 7 app instead of leaving it inside the Chrome Custom Tab.
-  return `intent://top-7.app/auth-return?${query.toString()}#Intent;scheme=https;package=${ANDROID_PACKAGE};end`;
+  const query = appUrl.searchParams.toString();
+  return `intent://top-7.app/?${query}#Intent;scheme=https;package=${ANDROID_PACKAGE};end`;
 }
 
 export default function AuthReturn() {
-  const [error, setError] = useState('');
-  const [showReturnButton, setShowReturnButton] = useState(false);
   const token = useMemo(() => readToken(), []);
+  const runtime = useMemo(() => detectRuntime(), []);
+  const [error, setError] = useState('');
+  const [showFallbacks, setShowFallbacks] = useState(false);
 
-  const runtime = detectRuntime();
-  const isAndroid = runtime.isAndroid;
-  const native = isNativePlatform() || (runtime.isAndroid && (runtime.isWebView || runtime.isCapacitor || runtime.isStandalone));
+  const isInstalledRuntime = runtime.isAndroid
+    && (runtime.isWebView || runtime.isCapacitor || runtime.isStandalone);
 
-  const returnToAndroidApp = () => {
+  const continueInBrowser = () => {
+    if (!token) return;
+    try {
+      localStorage.setItem('base44_access_token', token);
+      localStorage.setItem('token', token);
+      base44.auth.setToken(token);
+    } catch (_) {}
+    window.location.replace('/');
+  };
+
+  const openInstalledApp = () => {
     if (!token) {
       setError('Google sign-in finished, but no Top 7 session was returned. Please try again.');
       return;
     }
-    window.location.href = getAndroidIntentUrl(token);
+    window.location.href = buildAppIntent(token);
   };
 
   useEffect(() => {
@@ -54,44 +61,48 @@ export default function AuthReturn() {
       return;
     }
 
+    // app-params.js may already have consumed the URL token before this route
+    // renders. Persisting it here is harmless on web and gives this page a
+    // reliable browser fallback if Android refuses to launch the app.
     try {
       localStorage.setItem('base44_access_token', token);
       localStorage.setItem('token', token);
-      localStorage.setItem('base44_session_active', '1');
       base44.auth.setToken(token);
     } catch (_) {}
 
-    // If Android already delivered the verified App Link into the installed
-    // WebView, the token is now in the app's storage. Finish the login there.
-    if (native) {
+    // If Android has already delivered the verified App Link into the installed
+    // Top 7 WebView, there is nothing left to hand off. Finish inside the app.
+    if (isInstalledRuntime) {
       window.location.replace('/');
       return;
     }
 
-    // This route is reserved for the installed-app Google OAuth flow. If the
-    // callback remains in Android Chrome instead of reopening Top 7, force an
-    // explicit package-targeted intent so the token crosses the browser/WebView
-    // storage boundary. If Chrome blocks an automatic external-app launch,
-    // reveal the same action as a user tap.
-    if (isAndroid) {
-      const timer = window.setTimeout(() => {
-        returnToAndroidApp();
-        window.setTimeout(() => setShowReturnButton(true), 900);
-      }, 150);
-      return () => window.clearTimeout(timer);
+    // Normal desktop/iOS web sign-in should simply finish in the browser.
+    if (!runtime.isAndroid) {
+      window.location.replace('/');
+      return;
     }
 
-    // Ordinary web OAuth should never linger on this bridge page.
-    window.location.replace('/');
-  }, [token, native, isAndroid]);
+    // Android OAuth commonly finishes inside a Chrome Custom Tab. Explicitly
+    // target the installed Play Store package so the final authenticated page
+    // returns to Top 7 instead of leaving top-7.app visible in Chrome.
+    const launchTimer = window.setTimeout(openInstalledApp, 100);
+    const fallbackTimer = window.setTimeout(() => setShowFallbacks(true), 1200);
+
+    return () => {
+      window.clearTimeout(launchTimer);
+      window.clearTimeout(fallbackTimer);
+    };
+  }, [token, isInstalledRuntime, runtime.isAndroid]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-6">
+    <div className="min-h-[100dvh] bg-background text-foreground flex items-center justify-center px-6 app-safe-viewport">
       <div className="w-full max-w-sm text-center">
         <div className="flex justify-center mb-5">
           <AppLogo className="w-14 h-14" rounded="rounded-2xl" />
         </div>
         <h1 className="text-xl font-bold tracking-tight">Finishing sign in</h1>
+
         {!error && (
           <p className="mt-2 text-sm text-muted-foreground">
             Returning you to {APP_NAME}…
@@ -104,14 +115,23 @@ export default function AuthReturn() {
           </div>
         )}
 
-        {showReturnButton && !error && (
-          <button
-            type="button"
-            onClick={returnToAndroidApp}
-            className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
-          >
-            Return to Top 7
-          </button>
+        {showFallbacks && !error && (
+          <div className="mt-6 space-y-3">
+            <button
+              type="button"
+              onClick={openInstalledApp}
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
+            >
+              Open {APP_NAME}
+            </button>
+            <button
+              type="button"
+              onClick={continueInBrowser}
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-border bg-background px-5 py-3 text-sm font-semibold text-foreground"
+            >
+              Continue in browser
+            </button>
+          </div>
         )}
       </div>
     </div>
