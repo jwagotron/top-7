@@ -26,6 +26,7 @@ import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
 import Support from '@/pages/Support';
 import DeleteAccount from '@/pages/DeleteAccount';
+import AuthReturn from '@/pages/AuthReturn';
 import Landing from '@/pages/Landing';
 import PageTitleManager from '@/components/PageTitleManager';
 
@@ -271,7 +272,7 @@ function UrlHygiene() {
     const params = new URLSearchParams(window.location.search);
     let changed = false;
 
-    for (const key of ['is_new_user']) {
+    for (const key of ['is_new_user', 'oauth_return']) {
       if (params.has(key)) {
         params.delete(key);
         changed = true;
@@ -292,11 +293,11 @@ function UrlHygiene() {
 // — no auth loading, no error gates, no redirects. Works in incognito.
 function AppContent() {
   const location = useLocation();
-  const isPublicLegal = ['/privacy', '/terms', '/support', '/delete-account'].some(p =>
+  const isStandalonePublic = ['/privacy', '/terms', '/support', '/delete-account', '/auth-return'].some(p =>
     location.pathname === p || location.pathname.startsWith(p + '/')
   );
 
-  if (isPublicLegal) {
+  if (isStandalonePublic) {
     return (
       <>
         <UrlHygiene />
@@ -306,6 +307,7 @@ function AppContent() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/support" element={<Support />} />
           <Route path="/delete-account" element={<DeleteAccount />} />
+          <Route path="/auth-return" element={<AuthReturn />} />
         </Routes>
       </>
     );
