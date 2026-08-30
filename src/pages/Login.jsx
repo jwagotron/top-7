@@ -120,7 +120,7 @@ export default function Login() {
     // Base44's Play Store wrapper owns the native Google-auth handoff once the
     // Play App Signing SHA-256 is configured. Keep this on the supported SDK
     // path so the wrapper can intercept and restore the session correctly.
-    base44.auth.loginWithProvider("google", `${APP_URL}/`);
+    base44.auth.loginWithProvider("google", `${APP_URL}/auth-return`);
   };
 
   return (
