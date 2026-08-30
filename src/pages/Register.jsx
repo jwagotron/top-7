@@ -113,7 +113,7 @@ export default function Register() {
     setError("");
     // Google OAuth handles both new and returning users. Base44's mobile
     // wrapper owns the Play Store auth handoff when the signing SHA is set.
-    base44.auth.loginWithProvider("google", `${APP_URL}/`);
+    base44.auth.loginWithProvider("google", `${APP_URL}/auth-return`);
   };
 
   if (showOtp) {
