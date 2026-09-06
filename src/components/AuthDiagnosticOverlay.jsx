@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { detectRuntime } from '@/lib/runtimeDetect';
 import { appParams } from '@/lib/app-params';
-import { getOAuthDiagnostics, isNativePlatform } from '@/lib/capacitorAuth';
+import { isNativePlatform } from '@/lib/capacitorAuth';
 
 /**
- * Diagnostic overlay for Android/Capacitor auth debugging.
- * Shows real-time auth state, runtime environment, OAuth flow status,
- * and the actual error from base44.auth.me().
+ * Diagnostic overlay for mobile auth debugging.
+ * Shows real-time auth state, runtime environment, and the actual error from
+ * base44.auth.me(). Google OAuth itself is owned by the Base44 native shell.
  *
  * ONLY visible in development builds (import.meta.env.DEV) or when an
  * explicit debug flag is set: localStorage.setItem('DEBUG_AUTH', 'true').
@@ -28,7 +28,6 @@ export default function AuthDiagnosticOverlay() {
   const show = shouldShowOverlay();
   const [visible, setVisible] = useState(show);
   const [authState, setAuthState] = useState({});
-  const [oauthDiag, setOauthDiag] = useState(getOAuthDiagnostics());
   const { isLoadingAuth, isAuthenticated, authErrorMessage, hasToken } = useAuth();
   const runtime = detectRuntime();
 
@@ -47,7 +46,6 @@ export default function AuthDiagnosticOverlay() {
         origin: window.location.origin,
         appId: appParams.appId || 'NOT SET',
       });
-      setOauthDiag(getOAuthDiagnostics());
     }, 500);
 
     return () => clearInterval(interval);
@@ -90,27 +88,16 @@ export default function AuthDiagnosticOverlay() {
         <div>Authed: <span className={val(isAuthenticated)}>{isAuthenticated ? 'YES' : 'NO'}</span></div>
         <div>HasToken(ctx): <span className={val(hasToken)}>{hasToken ? 'YES' : 'NO'}</span></div>
 
-        {/* OAuth flow diagnostics */}
+        {/* OAuth flow */}
         <div className="pt-1 border-t border-slate-700 mt-1 font-bold text-yellow-400">OAuth Flow:</div>
-        <div>Redirect URL: <span className="text-cyan-300 break-all">{oauthDiag.redirectUrl || '—'}</span></div>
-        <div>OAuth URL set: <span className={val(oauthDiag.oauthUrl)}> {oauthDiag.oauthUrl ? 'YES' : 'NO'}</span></div>
-        <div>Browser opened: <span className={val(oauthDiag.browserOpened)}>{oauthDiag.browserOpened ? 'YES' : 'NO'}</span></div>
-        <div>Callback received: <span className={val(oauthDiag.callbackReceived)}>{oauthDiag.callbackReceived ? 'YES' : 'NO'}</span></div>
-        <div>Token extracted: <span className={val(oauthDiag.tokenExtracted)}>{oauthDiag.tokenExtracted ? 'YES' : 'NO'}</span></div>
-        <div>Token stored: <span className={val(oauthDiag.tokenStored)}>{oauthDiag.tokenStored ? 'YES' : 'NO'}</span></div>
-        <div>auth.me: <span className={oauthDiag.authMeResult?.startsWith('success') ? 'text-green-400' : oauthDiag.authMeResult?.startsWith('failed') ? 'text-red-400' : 'text-slate-400'}>{oauthDiag.authMeResult || 'pending'}</span></div>
+        <div>Strategy: <span className="text-cyan-300">Base44 native Auth Tab</span></div>
+        <div>Return path: <span className="text-cyan-300">/</span></div>
 
         {/* Errors */}
         {authErrorMessage && (
           <div className="pt-1 border-t border-slate-700 mt-1">
             <div className="text-red-400 font-bold">Auth Error:</div>
             <div className="text-red-300 break-all">{authErrorMessage}</div>
-          </div>
-        )}
-        {oauthDiag.lastError && (
-          <div className="pt-1">
-            <div className="text-red-400 font-bold">OAuth Error:</div>
-            <div className="text-red-300 break-all">{oauthDiag.lastError}</div>
           </div>
         )}
         <div className="pt-1 border-t border-slate-700 mt-1 text-slate-500 text-[10px]">
