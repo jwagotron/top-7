@@ -33,7 +33,10 @@ async function fixture(opts={}) {
    if(u.pathname==='/api/apps/auth/login') {
     opts.onGoogle?.(u);
     // Simulate the callback result, NOT native Android Auth Tab itself.
-    return route.fulfill({status:302,headers:{location:new URL('/?access_token='+fakeToken,u.searchParams.get('from_url')).href}});
+    const callback = new URL('/?access_token='+fakeToken,u.searchParams.get('from_url')).href;
+    // A new document navigation is intercepted again. HTTP redirect chains in
+    // Playwright may bypass a route handler on the redirected request.
+    return route.fulfill({status:200,contentType:'text/html',body:'<script>location.replace('+JSON.stringify(callback)+')</script>'});
    }
    if(u.pathname.endsWith('/entities/User/me')) {
     const n=++meCount;
