@@ -165,9 +165,9 @@ await test('Old 401 cannot delete a newer successful session',{native:true,me:(_
  assert.equal(await f.page.evaluate(()=>localStorage.getItem('base44_access_token')),fakeToken);await dashboard(f);
 });
 await test('Clearing a session while verification is pending prevents late login',{me:()=>({status:200,data:user,delay:1300})},async f=>{
- await f.page.goto(web+'/?access_token='+fakeToken);await f.page.waitForTimeout(150);
+ await f.page.goto(web+'/?access_token='+fakeToken);await f.page.getByText('Loading session…',{exact:true}).waitFor();
  await f.page.evaluate(()=>{localStorage.removeItem('base44_access_token');localStorage.removeItem('token');window.dispatchEvent(new Event('focus'));});
- await f.page.waitForTimeout(1900);assert.equal(await f.page.getByRole('heading',{name:'My Progress',exact:true}).count(),0);
+ await f.page.waitForTimeout(1900);await f.page.getByRole('heading',{name:'Top 7',exact:true}).waitFor();assert.equal(await f.page.getByRole('heading',{name:'My Progress',exact:true}).count(),0);
 });
 for(const route of ['/login','/register']) {
  let destination;
@@ -211,6 +211,13 @@ await test('Reset request network failure does not pretend email was sent',{rese
 await test('Login stays usable when token storage writes fail',{init:()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='base44_access_token'||k==='token')throw new DOMException('Quota','QuotaExceededError');return original.call(this,k,v);};}},async f=>{
  await f.page.goto(web+'/login');await loginForm(f);await dashboard(f);
 });
+
+await test('A successful-looking response without a token cannot reuse an old session',{login:{status:200,data:{user}}},async f=>{
+ await f.page.goto(web+'/login');await loginForm(f);
+ await f.page.getByRole('alert').filter({hasText:'could not verify the session'}).waitFor();
+ assert.equal(await f.page.getByRole('heading',{name:'My Progress',exact:true}).count(),0);
+});
+
 console.log(JSON.stringify({passed:results.filter(r=>r.status==='PASS').length,total:results.length,results},null,2));
 await fs.writeFile('/tmp/top7-auth-tests/report.json',JSON.stringify(results,null,2));
 await browser.close();

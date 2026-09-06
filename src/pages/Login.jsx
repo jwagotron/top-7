@@ -23,7 +23,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { isAuthenticated, acceptLoginSession, authError } = useAuth();
+  const { isAuthenticated, acceptLoginSession, authError, dismissAuthError } = useAuth();
   const navigate = useNavigate();
 
   // The duplicate-account handoff may prefill ?email=. Consume it once, then
@@ -46,6 +46,7 @@ export default function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (loading) return;
+    dismissAuthError();
     setError("");
     setLoading(true);
     recordAuthPhase('email_login', {method:'password', startedAt:Date.now(), callbackSeen:false});
@@ -66,6 +67,7 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
+    dismissAuthError();
     setError("");
     try { startGoogleLogin(); }
     catch { setError('Google sign-in could not be opened. Please try again.'); }

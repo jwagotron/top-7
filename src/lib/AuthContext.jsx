@@ -164,7 +164,11 @@ export const AuthProvider = ({ children }) => {
   }, [checkAppState]);
 
   const acceptLoginSession = useCallback(async (token) => {
-    if (token) { saveSessionToken(token); base44.auth.setToken(token); }
+    if (typeof token !== 'string' || !token) {
+      throw Object.assign(new Error('No session was returned by the sign-in service.'), {code:'SESSION_NOT_VERIFIED'});
+    }
+    saveSessionToken(token);
+    base44.auth.setToken(token);
     const currentUser = await checkAppState();
     if (!currentUser) throw Object.assign(new Error('The sign-in response could not be verified.'), {code:'SESSION_NOT_VERIFIED'});
     return currentUser;
@@ -188,7 +192,7 @@ export const AuthProvider = ({ children }) => {
       user, setUser, isAuthenticated, isLoadingAuth, isLoadingPublicSettings:false,
       authError, authErrorMessage:authError?.message || null, hasToken, appPublicSettings:null,
       logout, navigateToLogin:() => { window.location.assign('/login'); },
-      checkAppState, refetchUser, acceptLoginSession,
+      checkAppState, refetchUser, acceptLoginSession, dismissAuthError:() => setAuthError(null),
       persistSession:() => { try { localStorage.setItem('base44_session_active','1'); } catch { /* optional */ } },
     }}>
       {children}

@@ -24,7 +24,7 @@ export default function Register() {
   const [otpCode, setOtpCode] = useState("");
   const [accountExists, setAccountExists] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
-  const { isAuthenticated, acceptLoginSession, authError } = useAuth();
+  const { isAuthenticated, acceptLoginSession, authError, dismissAuthError } = useAuth();
   const navigate = useNavigate();
   useEffect(() => {
     if (isAuthenticated) navigate('/', {replace:true});
@@ -33,6 +33,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
+    dismissAuthError();
     setError("");
     setAccountExists(false);
     if (password !== confirmPassword) {
@@ -71,6 +72,7 @@ export default function Register() {
 
   const handleVerify = async () => {
     if (loading) return;
+    dismissAuthError();
     setError("");
     setLoading(true);
     let verificationCompleted = otpVerified;
@@ -108,6 +110,7 @@ export default function Register() {
   };
 
   const handleGoogle = () => {
+    dismissAuthError();
     setError("");
     try { startGoogleLogin(); }
     catch { setError('Google sign-in could not be opened. Please try again.'); }
