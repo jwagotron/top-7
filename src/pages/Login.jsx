@@ -8,7 +8,9 @@ import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { useAuth } from "@/lib/AuthContext";
-import { detectRuntime } from "@/lib/runtimeDetect";
+import { startGoogleLogin } from "@/lib/googleLogin";
+import { getAuthFailureMessage, getAuthStatus, recordAuthPhase } from "@/lib/authSession";
+import SignInDiagnostics from "@/components/SignInDiagnostics";
 
 export default function Login() {
   const [email, setEmail] = useState(() => {
@@ -21,7 +23,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { isAuthenticated, hasToken, checkAppState } = useAuth();
+  const { isAuthenticated, acceptLoginSession, authError } = useAuth();
   const navigate = useNavigate();
 
   // The duplicate-account handoff may prefill ?email=. Consume it once, then
@@ -35,80 +37,29 @@ export default function Login() {
     window.history.replaceState(window.history.state, document.title, `/login${query ? `?${query}` : ''}${window.location.hash}`);
   }, []);
 
-  // If the user lands on /login with a valid token or an active session marker,
-  // try to restore the session and redirect to the app instead of showing the login form.
+  // AuthProvider owns restoration. Never start a second validation on every
+  // Login remount, which could repeatedly unmount and re-open this form.
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/", { replace: true });
-      return;
-    }
-    // Token exists or session marker is active — try to restore session
-    const sessionMarker = localStorage.getItem('base44_session_active');
-    if ((hasToken || sessionMarker) && !isAuthenticated) {
-      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[login] token or session marker found on /login — attempting session restore');
-      checkAppState();
-    }
-  }, [isAuthenticated, hasToken]);
+    if (isAuthenticated) navigate("/", { replace:true });
+  }, [isAuthenticated, navigate]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (loading) return;
     setError("");
     setLoading(true);
-    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[login] email/password login started for:', email);
+    recordAuthPhase('email_login', {method:'password', startedAt:Date.now(), callbackSeen:false});
     try {
-      const result = await base44.auth.loginViaEmailPassword(email, password);
-      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[login] ✅ loginViaEmailPassword succeeded | result keys:', result ? Object.keys(result) : 'null');
-
-      // Explicitly persist the token ourselves — the SDK writes it internally,
-      // but on Android WebView the localStorage write may not complete before
-      // the hard redirect fires. Writing it here ensures it's in storage.
-      if (result?.access_token) {
-        try {
-          localStorage.setItem('base44_access_token', result.access_token);
-          localStorage.setItem('token', result.access_token);
-          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[login] token explicitly persisted to localStorage');
-        } catch (_) {}
-        // Force the SDK to use the fresh token
-        try { base44.auth.setToken(result.access_token); } catch (_) {}
-      }
-
-      // Also persist session marker
-      try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
-
-      // Verify the session actually works by calling me() BEFORE redirecting.
-      // This catches the case where the token is saved but the SDK can't use it.
-      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[login] verifying session with base44.auth.me()…');
-      try {
-        const meUser = await base44.auth.me();
-        if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[login] ✅ session verified — email:', meUser?.email, '| user_type:', meUser?.user_type);
-      } catch (meErr) {
-        console.error('[login] ⚠️ session verification failed:', meErr.message, 'status:', meErr.status);
-        // Don't block the redirect — the token may still work on the fresh page load.
-        // The AuthContext will retry me() with setToken() on the new page.
-      }
-
-      // Small delay to let Android WebView localStorage settle before hard redirect
-      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[login] redirecting to / in 300ms (Android storage settle delay)');
-      setTimeout(() => { window.location.href = "/"; }, 300);
+      // Whitespace around an autofilled email is not part of its identity.
+      // Never trim or otherwise modify the password.
+      const result = await base44.auth.loginViaEmailPassword(email.trim(), password);
+      await acceptLoginSession(result?.access_token);
+      navigate("/", { replace:true });
     } catch (err) {
-      const runtime = detectRuntime();
-      console.error('[login] ❌ login failed:', {
-        message: err.message,
-        status: err.status,
-        code: err.code,
-        response: err.response?.data,
-        runtime: runtime.label,
-        origin: window.location.origin,
-      });
-      // Provide a more helpful error message that includes the status code
-      // so testers can distinguish wrong password (401) from endpoint/CORS issues
-      const statusInfo = err.status ? ` (HTTP ${err.status})` : '';
-      const isNetworkErr = !err.status || err.message?.includes('network') || err.message?.includes('fetch') || err.message?.includes('Failed to fetch');
-      if (isNetworkErr) {
-        setError(`Network error — cannot reach auth server. Runtime: ${runtime.label}. Origin: ${window.location.origin}`);
-      } else {
-        setError(err.message || "Invalid email or password" + statusInfo);
-      }
+      recordAuthPhase('email_login_failed', {httpStatus:getAuthStatus(err)});
+      setError(err?.code === 'SESSION_NOT_VERIFIED'
+        ? 'Your credentials were submitted, but Top 7 could not verify the session. Please use the sign-in details below.'
+        : getAuthFailureMessage(err));
     } finally {
       setLoading(false);
     }
@@ -116,11 +67,8 @@ export default function Login() {
 
   const handleGoogle = () => {
     setError("");
-    // Keep Google OAuth on Base44's normal navigation path. In the installed
-    // mobile app, the native Base44 shell intercepts this auth URL, opens its
-    // secure Auth Tab, and returns the authenticated root URL to this WebView.
-    // On the web, the same call behaves as the standard browser OAuth flow.
-    base44.auth.loginWithProvider("google", "/");
+    try { startGoogleLogin(); }
+    catch { setError('Google sign-in could not be opened. Please try again.'); }
   };
 
   return (
@@ -138,6 +86,8 @@ export default function Login() {
       }
     >
       <Button
+        type="button"
+        disabled={loading}
         variant="outline"
         className="w-full h-12 text-sm font-medium mb-6"
         onClick={handleGoogle}
@@ -155,9 +105,10 @@ export default function Login() {
         </div>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-          {error}
+      {(error || authError) && (
+        <div role="alert" className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+          <p>{error || authError.message}</p>
+          {authError?.code && <p className="mt-2 text-xs">{authError.code}</p>}
         </div>
       )}
 
@@ -169,7 +120,9 @@ export default function Login() {
             <Input
               id="email"
               type="email"
-              autoComplete="email"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
               autoFocus
               placeholder="you@example.com"
               value={email}
@@ -192,6 +145,7 @@ export default function Login() {
               id="password"
               type="password"
               autoComplete="current-password"
+              aria-describedby="password-help"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -211,6 +165,10 @@ export default function Login() {
           )}
         </Button>
       </form>
+      <p id="password-help" className="mt-4 text-xs text-muted-foreground">
+        Already joined with Google? Use Continue with Google. This password field is for a password you set for Top 7, not your Google password.
+      </p>
+      <SignInDiagnostics code={authError?.code} />
     </AuthLayout>
   );
 }

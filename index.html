@@ -32,26 +32,6 @@
         "description": "Top 7 is a running training and coaching platform for athletes and coaches. Coaches build and assign workouts and training plans, athletes follow daily training, and teams track workout completion, progress, feedback, race goals, shoe mileage, streaks, race predictions, and performance analytics."
       }
     </script>
-    <!-- Capture Base44 OAuth callbacks before React or the SDK boot. The Android
-         wrapper returns Google auth to the site root with access_token in the URL. -->
-    <script>
-      (function() {
-        try {
-          var params = new URLSearchParams(window.location.search);
-          var token = params.get('access_token');
-          if (!token && window.location.hash) {
-            token = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('access_token');
-          }
-          if (token) {
-            localStorage.setItem('base44_access_token', token);
-            localStorage.setItem('token', token);
-            localStorage.setItem('base44_session_active', '1');
-            localStorage.setItem('top7_oauth_returned_at', String(Date.now()));
-            window.__TOP7_OAUTH_BOOTSTRAP__ = { hasToken: true, returnedAt: Date.now() };
-          }
-        } catch (e) {}
-      })();
-    </script>
     <!-- Anti-flash: apply stored theme before first paint -->
     <script>
       (function() {

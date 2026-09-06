@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
         if (isPendingGoogleLogin()) {
           recordAuthPhase('no_callback');
           setAuthError({type:'callback_missing', code:'T7-NO-CALLBACK',
-            message:'Google sign-in was canceled or did not return a session to Top 7. No account was created by this page. Please try again.'});
+            message:'Google sign-in was canceled or did not return a session to Top 7. Please try again.'});
         }
       }
       return Promise.resolve(null);
