@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
   const [authErrorMessage, setAuthErrorMessage] = useState(null);
   const [hasToken, setHasToken] = useState(false);
-  const [appPublicSettings, setAppPublicSettings] = useState(null);
+  const [appPublicSettings] = useState(null);
 
   useEffect(() => {
     // Base44's web and store wrappers return OAuth sessions through the SDK's
@@ -136,6 +136,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try { localStorage.removeItem('base44_session_active'); } catch (_) {}
+      clearOAuthReturnMarker();
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
@@ -143,38 +144,54 @@ export const AuthProvider = ({ children }) => {
       console.warn(`[auth] ❌ checkUserAuth attempt ${attempt} failed:`, error.message, 'status:', error.status, 'code:', error.code);
       setAuthErrorMessage(`Attempt ${attempt}: ${error.message || 'Unknown error'} (status: ${error.status || 'none'})`);
 
-      const isNetworkError = !error.status || error.status >= 500 || error.message?.includes('network') || error.message?.includes('fetch') || error.message?.includes('Failed to fetch');
-      if (attempt < 3 && isNetworkError) {
-        if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log(`[auth] retrying auth check in ${attempt * 800}ms… (attempt ${attempt + 1}/3)`);
-        setTimeout(() => checkUserAuth(attempt + 1), attempt * 800);
-        return;
-      }
-
-      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] auth check exhausted after', attempt, 'attempts — marking unauthenticated');
-
-      // Detect user_not_registered from the me() error. The SDK/axios error
-      // may expose the response body in several shapes, so check them all.
+      // Detect user_not_registered before any retry. That is a valid identity
+      // without app membership, not a transient session restoration failure.
       const errData = error?.response?.data || error?.data || error?.response?.body;
       const reason = errData?.extra_data?.reason || errData?.reason;
       if (error.status === 403 && reason === 'user_not_registered') {
         if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] user_not_registered — showing UserNotRegisteredError (not bouncing to login)');
         setAuthError({ type: 'user_not_registered', message: errData?.message || error.message || 'Access denied' });
-        // Do NOT purge the token — the session is valid, the user just isn't a
-        // member of this app. Clearing it would create a login loop.
         try { localStorage.removeItem('base44_session_active'); } catch (_) {}
+        clearOAuthReturnMarker();
         setIsLoadingAuth(false);
         setIsAuthenticated(false);
         return;
       }
 
-      // If the token is expired/invalid (401/403), purge it from localStorage
-      if (error.status === 401 || error.status === 403) {
+      const freshOAuth = isFreshOAuthReturn();
+      const isAuthStatus = error.status === 401 || error.status === 403;
+      const isNetworkError = !error.status || error.status >= 500 || error.message?.includes('network') || error.message?.includes('fetch') || error.message?.includes('Failed to fetch');
+      const shouldRetryFreshOAuth = freshOAuth && !!liveToken && isAuthStatus && attempt < 4;
+      const shouldRetryNetwork = isNetworkError && attempt < 3;
+
+      if (shouldRetryFreshOAuth || shouldRetryNetwork) {
+        const delay = shouldRetryFreshOAuth ? attempt * 600 : attempt * 800;
+        if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log(`[auth] retrying auth check in ${delay}ms… (attempt ${attempt + 1})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return checkUserAuth(attempt + 1);
+      }
+
+      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] auth check exhausted after', attempt, 'attempts — marking unauthenticated');
+
+      // Never destroy a just-issued Google token on the same return cycle. If
+      // validation still fails after the grace retries, preserve the token and
+      // show the session-retry state instead of looping straight back to login.
+      if (freshOAuth && liveToken && isAuthStatus) {
+        setAuthError({ type: 'session_restore_failed', message: error.message || 'Google session is still being restored' });
+        setHasToken(true);
+        setIsLoadingAuth(false);
+        setIsAuthenticated(false);
+        return;
+      }
+
+      // A token that was not just issued and is explicitly rejected is stale.
+      if (isAuthStatus) {
         if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] stale/invalid token — clearing from storage');
         try { localStorage.removeItem('base44_access_token'); } catch (_) {}
         try { localStorage.removeItem('token'); } catch (_) {}
+        clearOAuthReturnMarker();
         setHasToken(false);
       }
-      // Clear stale session marker on final failure
       try { localStorage.removeItem('base44_session_active'); } catch (_) {}
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
