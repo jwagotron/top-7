@@ -9,7 +9,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const {chromium} = await import(process.env.TOP7_PLAYWRIGHT_MODULE || 'playwright');
-const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..');
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const dist=path.join(root,'dist');
 const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
 const web='https://top-7.app', native='https://top-7.base44.app';
@@ -72,6 +72,7 @@ async function fixture(opts={}) {
  return {context,page,errors,consoleErrors,requests,get meCount(){return meCount;}};
 }
 async function test(name,opts,fn){
+ if(process.env.TOP7_TEST_FILTER && !name.includes(process.env.TOP7_TEST_FILTER)) return;
  const f=await fixture(opts);
  try {
   await fn(f);
@@ -79,7 +80,7 @@ async function test(name,opts,fn){
   assert.ok(!f.consoleErrors.some(s=>/liveToken is not defined|Maximum update depth|unexpected error/.test(s)), 'Internal session error');
   results.push({test:name,status:'PASS'});
  } catch(e){
-  results.push({test:name,status:'FAIL',error:e.message,body:(await f.page.locator('body').innerText().catch(()=>'' )).slice(0,800)});
+  results.push({test:name,status:'FAIL',error:e.message,browserErrors:f.errors,consoleErrors:f.consoleErrors.slice(0,5),body:(await f.page.locator('body').innerText().catch(()=>'' )).slice(0,800)});
  } finally {await f.context.close();}
 }
 async function dashboard(f){await f.page.getByRole('heading',{name:'My Progress',exact:true}).waitFor();}
