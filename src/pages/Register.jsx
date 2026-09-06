@@ -9,7 +9,6 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
-import { APP_URL } from "@/lib/branding";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -111,9 +110,10 @@ export default function Register() {
 
   const handleGoogle = () => {
     setError("");
-    // Google OAuth handles both new and returning users. Base44's mobile
-    // wrapper owns the Play Store auth handoff when the signing SHA is set.
-    base44.auth.loginWithProvider("google", `${APP_URL}/auth-return`);
+    // Google OAuth handles both new and returning users. Use Base44's normal
+    // auth navigation so the installed mobile shell can intercept it with its
+    // native Auth Tab and return the authenticated root URL to this WebView.
+    base44.auth.loginWithProvider("google", "/");
   };
 
   if (showOtp) {
