@@ -3,6 +3,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { detectRuntime } from '@/lib/runtimeDetect';
 import { appParams } from '@/lib/app-params';
 import { isNativePlatform } from '@/lib/capacitorAuth';
+import { getSessionToken } from '@/lib/authSession';
 
 /**
  * Diagnostic overlay for mobile auth debugging.
@@ -32,13 +33,13 @@ export default function AuthDiagnosticOverlay() {
   const runtime = detectRuntime();
 
   useEffect(() => {
+    if (!show || !visible) return;
     const interval = setInterval(() => {
-      const token = localStorage.getItem('base44_access_token') || localStorage.getItem('token');
+      const token = getSessionToken();
       const sessionActive = localStorage.getItem('base44_session_active');
       const localRole = localStorage.getItem('app_local_role');
       setAuthState({
         hasToken: !!token,
-        tokenPreview: token ? `${token.slice(0, 8)}…${token.slice(-4)}` : 'none',
         tokenLength: token ? token.length : 0,
         sessionActive: !!sessionActive,
         localRole,
@@ -49,7 +50,7 @@ export default function AuthDiagnosticOverlay() {
     }, 500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [show, visible]);
 
   if (!show || !visible) return null;
 
@@ -79,7 +80,7 @@ export default function AuthDiagnosticOverlay() {
         <div>AppId: <span className="text-cyan-300">{authState.appId}</span></div>
 
         {/* Token / Session */}
-        <div className="pt-1 border-t border-slate-700 mt-1">Token: <span className={val(authState.hasToken)}>{authState.hasToken ? `YES (${authState.tokenLength}ch ${authState.tokenPreview})` : 'NONE'}</span></div>
+        <div className="pt-1 border-t border-slate-700 mt-1">Token: <span className={val(authState.hasToken)}>{authState.hasToken ? 'YES' : 'NONE'}</span></div>
         <div>Session: <span className={val(authState.sessionActive)}>{authState.sessionActive ? 'MARKED' : 'NONE'}</span></div>
         <div>LocalRole: <span className="text-cyan-300">{authState.localRole || 'none'}</span></div>
 

@@ -8,13 +8,20 @@ export default [
   {
     // Playwright E2E tests and helpers run in Node CommonJS outside the app's
     // lint scope — ignore them so require/module/__dirname/process don't trip no-undef.
-    ignores: ["src/lib/**", "src/components/ui/**", "src/tests/**"],
+    ignores: ["src/components/ui/**", "src/tests/**", "dist/**", "node_modules/**"],
   },
   {
     files: [
       "src/components/**/*.{js,mjs,cjs,jsx}",
       "src/pages/**/*.{js,mjs,cjs,jsx}",
       "src/Layout.jsx",
+      "src/lib/AuthContext.jsx",
+      "src/lib/authSession.js",
+      "src/lib/app-params.js",
+      "src/lib/googleLogin.js",
+      "src/lib/runtimeDetect.js",
+      "src/lib/capacitorAuth.js",
+      "src/api/base44Client.js",
     ],
     ...pluginJs.configs.recommended,
     ...pluginReact.configs.flat.recommended,
