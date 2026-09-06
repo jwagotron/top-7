@@ -1,3 +1,5 @@
+import { captureAuthCallback, getSessionToken } from './authSession';
+
 const isNode = typeof window === 'undefined';
 
 // Safe storage wrapper — localStorage may be blocked in sandboxed iframes
@@ -54,25 +56,10 @@ const getAppParamValue = (paramName, { defaultValue = undefined, removeFromUrl =
 }
 
 const getAppParams = () => {
-	// clear_access_token is a one-shot control flag, never durable app state.
-	// Persisting it would delete every future OAuth token on every app launch and
-	// create a permanent login loop. Purge any legacy stored copy first, then
-	// consume the flag only if it exists on the current URL.
-	storage.removeItem('base44_clear_access_token');
-	const startupParams = new URLSearchParams(window.location.search);
-	if (startupParams.get('clear_access_token') === 'true') {
-		storage.removeItem('base44_access_token');
-		storage.removeItem('token');
-		startupParams.delete('clear_access_token');
-		const cleanUrl = `${window.location.pathname}${startupParams.toString() ? `?${startupParams.toString()}` : ''}${window.location.hash}`;
-		window.history.replaceState({}, document.title, cleanUrl);
-	}
-	const token = getAppParamValue("access_token", { removeFromUrl: true });
-	// Log token source for debugging Android/Capacitor auth issues
-	const fromUrl = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('access_token');
-	const fromStorage = storageAvailable ? storage.getItem('base44_access_token') : null;
-	const sessionActive = storageAvailable ? storage.getItem('base44_session_active') : null;
-	if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[params] token sources — fromUrl:', !!fromUrl, 'fromStorage:', !!fromStorage, 'sessionActive:', !!sessionActive, 'hasToken:', !!token);
+	// This module runs before the Base44 client is constructed. Capture once here,
+	// and use the same handler for warm WebView returns in AuthContext.
+	captureAuthCallback();
+	const token = getSessionToken();
 	return {
 		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_BASE44_APP_ID }),
 		token,
