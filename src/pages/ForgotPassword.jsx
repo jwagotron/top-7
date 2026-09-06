@@ -6,22 +6,31 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
+import { getAuthStatus } from "@/lib/authSession";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
-      await base44.auth.resetPasswordRequest(email);
-    } catch {
-      // Always show success regardless
+      await base44.auth.resetPasswordRequest(email.trim());
+      setSent(true);
+    } catch (err) {
+      const status = getAuthStatus(err);
+      if (!status || status >= 500 || status === 429) {
+        setError(status === 429 ? 'Please wait a few minutes before requesting another link.' : 'The reset service could not be reached. Please try again.');
+      } else {
+        // Do not reveal whether a particular email is registered.
+        setSent(true);
+      }
     } finally {
       setLoading(false);
-      setSent(true);
     }
   };
 
@@ -42,6 +51,7 @@ export default function ForgotPassword() {
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           <div className="space-y-2">
             <Label htmlFor="email">Email address</Label>
             <div className="relative">

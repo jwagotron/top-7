@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,10 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/lib/AuthContext";
+import { startGoogleLogin } from "@/lib/googleLogin";
+import { getAuthFailureMessage, getAuthStatus, recordAuthPhase } from "@/lib/authSession";
+import SignInDiagnostics from "@/components/SignInDiagnostics";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -19,9 +23,16 @@ export default function Register() {
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [accountExists, setAccountExists] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const { isAuthenticated, acceptLoginSession, authError } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (isAuthenticated) navigate('/', {replace:true});
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError("");
     setAccountExists(false);
     if (password !== confirmPassword) {
@@ -30,7 +41,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await base44.auth.register({ email, password });
+      await base44.auth.register({ email:email.trim(), password });
       setShowOtp(true);
     } catch (err) {
       const responseData = err?.response?.data || err?.data || {};
@@ -59,37 +70,25 @@ export default function Register() {
   };
 
   const handleVerify = async () => {
+    if (loading) return;
     setError("");
     setLoading(true);
-    if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[register] OTP verification started');
+    let verificationCompleted = otpVerified;
     try {
-      const result = await base44.auth.verifyOtp({ email, otpCode });
-      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[register] OTP verified — result keys:', result ? Object.keys(result) : 'null');
-      if (result?.access_token) {
-        // Explicitly persist token to localStorage — Android WebView may not
-        // complete the SDK's internal write before the hard redirect fires
-        try {
-          localStorage.setItem('base44_access_token', result.access_token);
-          localStorage.setItem('token', result.access_token);
-        } catch (_) {}
-        base44.auth.setToken(result.access_token);
-        if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[register] token persisted to localStorage + SDK');
-      }
-
-      // Verify the session works before redirecting
-      try {
-        const meUser = await base44.auth.me();
-        if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[register] ✅ session verified — email:', meUser?.email);
-      } catch (meErr) {
-        console.error('[register] ⚠️ session verification failed:', meErr.message);
-      }
-      // Persist session marker before hard redirect
-      try { localStorage.setItem('base44_session_active', '1'); } catch (_) {}
-      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[register] redirecting to / in 300ms (Android storage settle delay)');
-      setTimeout(() => { window.location.href = "/"; }, 300);
+      // Older/newer platform responses can differ: verification is not proof
+      // of a usable session unless a token is returned and me() validates it.
+      const verified = otpVerified ? null : await base44.auth.verifyOtp({email:email.trim(), otpCode});
+      verificationCompleted = true;
+      setOtpVerified(true);
+      const result = verified?.access_token ? verified
+        : await base44.auth.loginViaEmailPassword(email.trim(), password);
+      await acceptLoginSession(result?.access_token);
+      navigate('/', {replace:true});
     } catch (err) {
-      console.error('[register] OTP verification failed:', err.message, 'status:', err.status);
-      setError(err.message || "Invalid verification code");
+      recordAuthPhase('registration_verification_failed', {httpStatus:getAuthStatus(err)});
+      setError(verificationCompleted
+        ? getAuthFailureMessage(err)
+        : 'That verification code could not be accepted. Check the code or request another one.');
     } finally {
       setLoading(false);
     }
@@ -98,7 +97,7 @@ export default function Register() {
   const handleResend = async () => {
     setError("");
     try {
-      await base44.auth.resendOtp(email);
+      await base44.auth.resendOtp(email.trim());
       toast({
         title: "Code sent",
         description: "Check your email for the new code.",
@@ -110,10 +109,8 @@ export default function Register() {
 
   const handleGoogle = () => {
     setError("");
-    // Google OAuth handles both new and returning users. Use Base44's normal
-    // auth navigation so the installed mobile shell can intercept it with its
-    // native Auth Tab and return the authenticated root URL to this WebView.
-    base44.auth.loginWithProvider("google", "/");
+    try { startGoogleLogin(); }
+    catch { setError('Google sign-in could not be opened. Please try again.'); }
   };
 
   if (showOtp) {
@@ -149,7 +146,7 @@ export default function Register() {
         <Button
           className="w-full h-12 font-medium"
           onClick={handleVerify}
-          disabled={loading || otpCode.length < 6}
+          disabled={loading || (!otpVerified && otpCode.length < 6)}
         >
           {loading ? (
             <>
@@ -185,6 +182,8 @@ export default function Register() {
       }
     >
       <Button
+        type="button"
+        disabled={loading}
         variant="outline"
         className="w-full h-12 text-sm font-medium"
         onClick={handleGoogle}
@@ -228,6 +227,8 @@ export default function Register() {
               id="email"
               type="email"
               autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
               autoFocus
               placeholder="you@example.com"
               value={email}
@@ -280,6 +281,7 @@ export default function Register() {
           )}
         </Button>
       </form>
+      <SignInDiagnostics code={authError?.code} />
     </AuthLayout>
   );
 }

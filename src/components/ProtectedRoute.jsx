@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
+import SignInDiagnostics from '@/components/SignInDiagnostics';
 import { useAuth } from '@/lib/AuthContext';
 import { useRole } from '@/lib/RoleContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -13,19 +14,21 @@ const DefaultFallback = () => (
   </div>
 );
 
-const SessionRestoreFailed = ({ onRetry }) => (
+const SessionRestoreFailed = ({ onRetry, error, retrying }) => (
   <div className="fixed inset-0 flex items-center justify-center flex-col gap-4 p-6 app-safe-viewport-lg">
     <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
       <RefreshCw className="w-8 h-8 text-orange-600" />
     </div>
     <h2 className="text-lg font-semibold text-center">Session restore failed</h2>
     <p className="text-sm text-muted-foreground text-center max-w-xs">
-      Your token was found but the session couldn't be restored. This is often a temporary network issue.
+      {error?.message || 'Your session could not be verified. Retry or sign in again.'}
     </p>
-    <Button onClick={onRetry} variant="default" className="gap-2">
+    <Button onClick={onRetry} disabled={retrying} variant="default" className="gap-2">
       <RefreshCw className="w-4 h-4" />
       Retry
     </Button>
+    <Link to="/login" className="text-primary text-sm underline">Back to sign in</Link>
+    <SignInDiagnostics code={error?.code} />
   </div>
 );
 
@@ -52,12 +55,12 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
       return <UserNotRegisteredError />;
     }
     // For unknown errors, if we have a token, show retry instead of bouncing to login
-    if (hasToken && authError.type !== 'user_not_registered') {
+    if (hasToken || ['session_restore_failed','callback_missing'].includes(authError.type)) {
       const handleRetry = () => {
         setRetrying(true);
         checkAppState().finally(() => setRetrying(false));
       };
-      return <SessionRestoreFailed onRetry={handleRetry} />;
+      return <SessionRestoreFailed onRetry={handleRetry} error={authError} retrying={retrying} />;
     }
     return unauthenticatedElement;
   }
@@ -70,7 +73,7 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
       setRetrying(true);
       checkAppState().finally(() => setRetrying(false));
     };
-    return <SessionRestoreFailed onRetry={handleRetry} />;
+    return <SessionRestoreFailed onRetry={handleRetry} error={authError} retrying={retrying} />;
   }
 
   if (!isAuthenticated) {
