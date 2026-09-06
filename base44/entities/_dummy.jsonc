@@ -1,0 +1,7 @@
+{
+  "type": "object",
+  "properties": {},
+  "required": [],
+  "name": "_dummy",
+  "description": "Unused placeholder created during debugging; contains no data and is not referenced by the app."
+}
