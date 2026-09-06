@@ -20,6 +20,22 @@ const getLiveToken = () => {
   }
 };
 
+const OAUTH_RETURNED_AT_KEY = 'top7_oauth_returned_at';
+const OAUTH_RETURN_GRACE_MS = 20000;
+
+const isFreshOAuthReturn = () => {
+  try {
+    const returnedAt = Number(localStorage.getItem(OAUTH_RETURNED_AT_KEY) || 0);
+    return returnedAt > 0 && Date.now() - returnedAt < OAUTH_RETURN_GRACE_MS;
+  } catch (_) {
+    return false;
+  }
+};
+
+const clearOAuthReturnMarker = () => {
+  try { localStorage.removeItem(OAUTH_RETURNED_AT_KEY); } catch (_) {}
+};
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -41,85 +57,39 @@ export const AuthProvider = ({ children }) => {
 
   const checkAppState = async () => {
     try {
-      setIsLoadingPublicSettings(true);
       setAuthError(null);
       setAuthErrorMessage(null);
+      setIsLoadingAuth(true);
+
+      // Public settings are not used by the current app. They previously sat in
+      // front of auth restoration and could delay a brand-new OAuth session.
+      // Keep them out of the authentication critical path entirely.
+      setIsLoadingPublicSettings(false);
 
       const liveToken = getLiveToken();
       setHasToken(!!liveToken);
-      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] checkAppState — starting | appParams.token:', !!appParams.token, '| liveToken:', !!liveToken);
+      if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] checkAppState — starting | appParams.token:', !!appParams.token, '| liveToken:', !!liveToken, '| freshOAuth:', isFreshOAuthReturn());
 
-      // If we have a token, force the SDK's axios client to use it BEFORE any request.
-      // The SDK sets the Authorization header at createClient() time from appParams.token,
-      // which may be stale/null on Android WebView cold starts. setToken() updates the
-      // axios.defaults.headers.common["Authorization"] directly, ensuring me() goes out
-      // authenticated.
       if (liveToken) {
-        try {
-          base44.auth.setToken(liveToken);
-          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] ✅ forced SDK setToken with live token');
-        } catch (e) {
+        try { base44.auth.setToken(liveToken); } catch (e) {
           console.warn('[auth] setToken failed:', e.message);
         }
+        await checkUserAuth();
+        return;
       }
 
-      try {
-        // Public settings are public app metadata, not an authentication check.
-        // Do not attach the freshly issued OAuth token here. A public-settings
-        // 403 must never be allowed to reject an otherwise valid Google session.
-        const res = await fetch(`/api/apps/public/prod/public-settings/by-id/${appParams.appId}`, {
-          headers: { 'X-App-Id': appParams.appId }
-        });
-        if (res.ok) {
-          const publicSettings = await res.json();
-          setAppPublicSettings(publicSettings);
-          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] public settings loaded');
-        } else if (res.status === 403) {
-          const data = await res.json().catch(() => ({}));
-          const reason = data?.extra_data?.reason;
-          if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] public-settings returned 403, reason:', reason, '— auth will still be validated with auth.me()');
-          // Never decide user authentication from the public-settings endpoint.
-          // A valid OAuth token must be validated by base44.auth.me() below.
-        }
-
-        // Re-read token after the fetch — in case the SDK wrote it during the await
-        const tokenForAuth = getLiveToken();
-        setHasToken(!!tokenForAuth);
-        if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] tokenForAuth after public-settings:', !!tokenForAuth);
-        if (tokenForAuth) {
-          // Force SDK to use the live token again (in case it was updated during the await)
-          try { base44.auth.setToken(tokenForAuth); } catch (_) {}
-          await checkUserAuth();
-        } else {
-          // No local token — but if session marker is active, the SDK might still
-          // have a token internally from its own init-time localStorage read, or
-          // there may be a server-side session cookie. Try me() as a last resort.
-          const sessionMarker = localStorage.getItem('base44_session_active');
-          if (sessionMarker) {
-            if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] no local token but session marker active — attempting me() as last resort');
-            await checkUserAuth();
-          } else {
-            if (typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) console.log('[auth] no token and no session marker — marking unauthenticated');
-            setIsLoadingAuth(false);
-            setIsAuthenticated(false);
-          }
-        }
-        setIsLoadingPublicSettings(false);
-      } catch (appError) {
-        console.error('[auth] checkAppState error:', appError.message);
-        const fallbackToken = getLiveToken();
-        setHasToken(!!fallbackToken);
-        if (fallbackToken) {
-          try { base44.auth.setToken(fallbackToken); } catch (_) {}
-          await checkUserAuth();
-        } else {
-          setAuthError({ type: 'unknown', message: appError.message || 'Failed to load app' });
-          setAuthErrorMessage(appError.message);
-          setIsLoadingAuth(false);
-          setIsAuthenticated(false);
-        }
-        setIsLoadingPublicSettings(false);
+      // If the native wrapper returned a cookie-backed session without exposing
+      // a local token, give the SDK one authenticated me() attempt before showing
+      // the signed-out experience.
+      let sessionMarker = null;
+      try { sessionMarker = localStorage.getItem('base44_session_active'); } catch (_) {}
+      if (sessionMarker) {
+        await checkUserAuth();
+        return;
       }
+
+      setIsLoadingAuth(false);
+      setIsAuthenticated(false);
     } catch (error) {
       console.error('[auth] checkAppState unexpected error:', error.message);
       setAuthError({ type: 'unknown', message: error.message || 'An unexpected error occurred' });
