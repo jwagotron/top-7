@@ -17,6 +17,7 @@ export default [
       "src/Layout.jsx",
       "src/lib/AuthContext.jsx",
       "src/lib/authSession.js",
+      "src/lib/passwordLoginErrors.js",
       "src/lib/app-params.js",
       "src/lib/googleLogin.js",
       "src/lib/runtimeDetect.js",

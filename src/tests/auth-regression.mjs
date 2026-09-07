@@ -56,7 +56,7 @@ async function fixture(opts={}) {
     return route.fulfill({status:200,headers,body:JSON.stringify(opts.otp || {verified:true})});
    }
    if(u.pathname.endsWith('/auth/reset-password-request')) {
-    return route.fulfill({status:opts.resetStatus || 200,headers,body:JSON.stringify({})});
+    return route.fulfill({status:opts.resetStatus || 200,headers,body:JSON.stringify(opts.resetBody || {})});
    }
    return route.fulfill({status:200,headers,body:u.pathname.includes('/entities/')?'[]':'{}'});
   }
@@ -107,7 +107,7 @@ await test('Invalid password stays on login with guidance, not signup',{login:{s
 });
 await test('Credential acceptance does not bypass failed session verification',{me:()=>meDenied},async f=>{
  await f.page.goto(web+'/login');await loginForm(f);
- await f.page.getByRole('alert').filter({hasText:'T7-SESSION-401'}).waitFor();
+ await f.page.getByRole('alert').filter({hasText:'T7-EMAIL-SESSION'}).waitFor();
  assert.equal(await f.page.getByRole('heading',{name:'My Progress',exact:true}).count(),0);
 });
 for(const origin of [web,native]) {
@@ -214,11 +214,71 @@ await test('Login stays usable when token storage writes fail',{init:()=>{const 
 
 await test('A successful-looking response without a token cannot reuse an old session',{login:{status:200,data:{user}}},async f=>{
  await f.page.goto(web+'/login');await loginForm(f);
- await f.page.getByRole('alert').filter({hasText:'could not verify the session'}).waitFor();
+ await f.page.getByRole('alert').filter({hasText:'T7-EMAIL-SESSION'}).waitFor();
  assert.equal(await f.page.getByRole('heading',{name:'My Progress',exact:true}).count(),0);
 });
 
+
+for (const [reason, code] of [
+ ['Invalid email or password', 'T7-EMAIL-CREDENTIALS'],
+ ['Missing Turnstile token', 'T7-EMAIL-SECURITY-CHECK'],
+ ['Username password authentication is disabled', 'T7-EMAIL-DISABLED'],
+ ['Please login with Google', 'T7-EMAIL-SIGNIN-METHOD'],
+ ['Email is not verified', 'T7-EMAIL-VERIFY'],
+ ['Request rejected', 'T7-EMAIL-400'],
+]) {
+ await test('HTTP 400 gives a specific safe reason: '+code, {native:true,login:{status:400,data:{message:reason,detail:reason}}}, async f=>{
+  await f.page.goto(native+'/login');
+  await f.page.getByText('Sign-in details',{exact:true}).click();
+  await loginForm(f);
+  await f.page.getByRole('alert').filter({hasText:code}).waitFor();
+  await f.page.getByText('Server status: 400',{exact:true}).waitFor();
+  await f.page.getByText('Support code: '+code,{exact:true}).waitFor();
+  await f.page.getByText('Email form: T7-EMAIL-2026-09-07-1',{exact:true}).waitFor();
+  assert.equal(f.requests.filter(r=>r.path.endsWith('/auth/login')).length,1);
+  assert.ok(!f.requests.some(r=>r.path.endsWith('/auth/register')));
+ });
+}
+await test('Password visibility toggle preserves input and does not submit',{},async f=>{
+ await f.page.goto(web+'/login');
+ await f.page.getByLabel('Password',{exact:true}).fill('  Exact password with spaces  ');
+ await f.page.getByRole('button',{name:'Show password',exact:true}).click();
+ assert.equal(await f.page.getByLabel('Password',{exact:true}).getAttribute('type'),'text');
+ assert.equal(await f.page.getByLabel('Password',{exact:true}).inputValue(),'  Exact password with spaces  ');
+ await f.page.getByRole('button',{name:'Hide password',exact:true}).click();
+ assert.equal(await f.page.getByLabel('Password',{exact:true}).getAttribute('type'),'password');
+ assert.equal(f.requests.filter(r=>r.path.endsWith('/auth/login')).length,0);
+ assert.ok(!(await f.page.evaluate(()=>JSON.stringify(localStorage))).includes('Exact password'));
+});
+await test('Recovery keeps the same email, with no password or email in the URL',{login:{status:400,data:{detail:'Invalid email or password'}}},async f=>{
+ await f.page.goto(web+'/login');await loginForm(f);
+ await f.page.getByRole('link',{name:'Reset password for this email'}).click();
+ await f.page.getByRole('heading',{name:'Reset password',exact:true}).waitFor();
+ assert.equal(await f.page.getByLabel('Email address').inputValue(),'existing@example.invalid');
+ assert.equal(new URL(f.page.url()).search,'');
+ assert.ok(!(await f.page.evaluate(()=>JSON.stringify(history.state))).includes('Exact password'));
+ assert.ok(!f.requests.some(r=>r.path.endsWith('/auth/reset-password-request')));
+ await f.page.getByRole('button',{name:'Send reset link',exact:true}).click();
+ await f.page.getByText(/If password recovery is available/).waitFor();
+ const request=f.requests.find(r=>r.path.endsWith('/auth/reset-password-request'));
+ assert.deepEqual(request.body,{email:'existing@example.invalid'});
+});
+await test('An unexplained reset HTTP 400 is not reported as an email sent',{resetStatus:400,resetBody:{detail:'Request rejected'}},async f=>{
+ await f.page.goto(web+'/forgot-password');await f.page.getByLabel('Email address').fill('existing@example.invalid');
+ await f.page.getByRole('button',{name:'Send reset link',exact:true}).click();
+ await f.page.getByRole('alert').filter({hasText:'No reset email was confirmed'}).waitFor();
+ assert.equal(await f.page.getByText(/If password recovery is available/).count(),0);
+});
+await test('Explicit no-account recovery response preserves account privacy',{resetStatus:400,resetBody:{detail:'User not found'}},async f=>{
+ await f.page.goto(web+'/forgot-password');await f.page.getByLabel('Email address').fill('existing@example.invalid');
+ await f.page.getByRole('button',{name:'Send reset link',exact:true}).click();
+ await f.page.getByText(/If password recovery is available/).waitFor();
+ assert.ok(!(await f.page.locator('body').innerText()).includes('User not found'));
+});
+
 console.log(JSON.stringify({passed:results.filter(r=>r.status==='PASS').length,total:results.length,results},null,2));
-await fs.writeFile('/tmp/top7-auth-tests/report.json',JSON.stringify(results,null,2));
+const reportPath = process.env.TOP7_TEST_REPORT || '/tmp/top7-auth-tests/report.json';
+await fs.mkdir(path.dirname(reportPath), {recursive:true});
+await fs.writeFile(reportPath,JSON.stringify(results,null,2));
 await browser.close();
 if(results.some(r=>r.status!=='PASS'))process.exitCode=1;
