@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getAuthDiagnostics, getSessionToken } from '@/lib/authSession';
 import { detectRuntime } from '@/lib/runtimeDetect';
 
 /** Local-only troubleshooting. No email, password, token, or token prefix is shown. */
-export default function SignInDiagnostics({ code }) {
+export default function SignInDiagnostics({ code, formBuild }) {
   const [details, setDetails] = useState(null);
-  const refresh = () => setDetails({ ...getAuthDiagnostics(), hasSession:Boolean(getSessionToken()), runtime:detectRuntime().label });
+  const [isOpen, setIsOpen] = useState(false);
+  useEffect(() => {
+    if (!isOpen) return;
+    const refresh = () => setDetails({ ...getAuthDiagnostics(), hasSession:Boolean(getSessionToken()), runtime:detectRuntime().label });
+    refresh();
+    const timer = window.setInterval(refresh, 1000);
+    return () => window.clearInterval(timer);
+  }, [isOpen, code]);
   return (
-    <details className="mt-5 text-xs text-muted-foreground" onToggle={refresh}>
+    <details className="mt-5 text-xs text-muted-foreground" onToggle={event => setIsOpen(event.currentTarget.open)}>
       <summary className="cursor-pointer py-2">Sign-in details</summary>
       {details && <div className="space-y-1 break-words rounded-lg border border-border p-3" aria-label="Sign-in diagnostics">
         <p>Build: {details.build}</p>
+        {formBuild && <p>Email form: {formBuild}</p>}
         <p>Environment: {details.runtime}</p>
         <p>App address: {details.origin}</p>
         <p>Step: {details.phase}</p>
