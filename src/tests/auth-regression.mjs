@@ -107,7 +107,9 @@ await test('Invalid password stays on login with guidance, not signup',{login:{s
 });
 await test('Credential acceptance does not bypass failed session verification',{me:()=>meDenied},async f=>{
  await f.page.goto(web+'/login');await loginForm(f);
- await f.page.getByRole('alert').filter({hasText:'T7-EMAIL-SESSION'}).waitFor();
+ // AuthProvider may replace the form during verification; its authoritative
+ // 401 error must remain visible after the local form is remounted.
+ await f.page.getByRole('alert').filter({hasText:'T7-SESSION-401'}).waitFor();
  assert.equal(await f.page.getByRole('heading',{name:'My Progress',exact:true}).count(),0);
 });
 for(const origin of [web,native]) {
